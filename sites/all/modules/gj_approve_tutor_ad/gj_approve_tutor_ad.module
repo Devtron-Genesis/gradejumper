@@ -1,0 +1,126 @@
+<?php
+
+
+function gj_approve_tutor_ad_block_info() {
+  $blocks = array();
+  $blocks['gj_approve_tutor_ad'] = array(
+    'info' => t('GJ Approve/Delete Tutor Ad'),
+	'cache' => DRUPAL_NO_CACHE,
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function gj_approve_tutor_ad_block_view($delta='') {
+  $block = array();
+
+  switch($delta) {
+    case 'gj_approve_tutor_ad' :
+      //$block['content'] = gj_approve_tutor_ad_blockcontents();
+      $block['content'] = drupal_get_form('gj_approve_tutor_ad_form');
+      break;
+  }
+
+  return $block;
+}
+
+function gj_approve_tutor_ad_blockcontents() {
+  $items = array();
+
+  drupal_add_css(drupal_get_path('module', 'gj_approve_tutor_ad') . '/css/gj_approve_tutor_ad.css');
+
+  if (arg(0) == 'node' && is_numeric(arg(1))) {
+      $nid = arg(1);
+  }
+
+  $items['nid'] = $nid;
+  return theme('gj_approve_tutor_ad_blockcontents', array('items' => $items));
+}
+
+function gj_approve_tutor_ad_theme() {
+  $module_path = drupal_get_path('module', 'gj_approve_tutor_ad');
+  $base = array(
+    'path' => "$module_path/templates",
+  );
+  return array(
+    'gj_approve_tutor_ad_blockcontents' => $base + array(
+      'template' => 'approve_delete_block',  //leave off .tpl.php
+      'variables' => array('items' => NULL,),
+    ),
+  );
+}
+
+function gj_approve_tutor_ad_form($form, &$form_state) {
+  $form['#attached']['css'][] = drupal_get_path('module', 'gj_approve_tutor_ad') . '/css/gj_approve_tutor_ad.css';
+
+  $form['admin_options'] = array
+  (
+    '#type' => 'fieldset',
+    '#title' => t('Node Approval'),
+    '#weight' => 5,
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['admin_options']['approval_markup'] = array(
+
+    '#markup' => "If you are happy with this submission, click the button and the advert will go live<br><br>",
+
+  );
+
+  $form['admin_options']['submit_button_1'] = array
+  (
+    '#type' => 'submit',
+    '#value' => t('APPROVE this  node'),
+    '#submit' => array('gj_approve_tutor_ad_button_1_submit'),
+    '#attributes' => array('class' => array('btn-primary')),
+  );
+
+  $form['admin_options']['deletion_markup'] = array(
+
+    '#markup' => "<br><br>If you decide to reject the submission of this node, press the button below and the node will be deleted. THIS WILL DELETE THE ADVERT AND CANNOT BE UNDONE!<br><br>",
+
+  );
+  $form['admin_options']['submit_button_2'] = array
+  (
+    '#type' => 'submit',
+    '#value' => t('DISAPPROVE/DELETE this node'),
+    '#submit' => array('gj_approve_tutor_ad_button_2_submit'),
+  );
+
+  return $form;
+}
+
+function gj_approve_tutor_ad_button_1_submit($form, &$form_state) {
+  if (arg(0) == 'node' && is_numeric(arg(1))) {
+      $nid = arg(1);
+      $node = node_load($nid);
+      $node->status = 1;
+      node_save($node);
+  }
+}
+
+function gj_approve_tutor_ad_button_2_submit($form, &$form_state) {
+  if (arg(0) == 'node' && is_numeric(arg(1))) {
+      $nid = arg(1);
+      node_delete($nid);
+  }
+}
+
+function display_gj_approve_tutor_ad_block() {
+  // Only show block on tutor_ad node pages
+  $match = FALSE;
+
+  if (arg(0) == 'node' && is_numeric(arg(1))) {
+    if(user_has_named_role("administrator") || user_has_named_role("Manager") ) {
+      $nid = arg(1);
+      $node = node_load($nid);
+      if ($node->type == "tutor_ad" && $node->status == 0) {
+        $match = TRUE;
+      }
+    }
+  }
+return $match;
+}

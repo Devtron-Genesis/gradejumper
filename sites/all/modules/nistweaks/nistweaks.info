@@ -1,0 +1,4 @@
+name = Nibor IS Tweaks
+description = NIS tweaks for GradeJumpers.com
+core = 7.x
+package = Nibor IS

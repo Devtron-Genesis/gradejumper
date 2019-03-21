@@ -1,0 +1,7 @@
+name = GradeJumpers Private Messages Send Message Button
+description = Provides 'Send Message' button function for nodes.
+core = 7.x
+package = "GJ Dean Hopkins"
+dependencies[] = gj_deanhopkins_privatemsg
+files[] = gj_deanhopkins_privatemsg_sendmsgbtn.install
+files[] = gj_deanhopkins_privatemsg_sendmsgbtn.module

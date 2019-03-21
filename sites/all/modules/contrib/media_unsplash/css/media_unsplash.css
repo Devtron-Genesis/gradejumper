@@ -1,0 +1,37 @@
+form#media-unsplash-external .form-item-unsplash-image,
+form#media-unsplash-external input#edit-search {
+  display: inline-block;
+}
+
+#unsplash-output .media-list-thumbnails li {
+  float: none;
+  display: inline-block;
+}
+
+#unsplash-output ul#photos {
+  margin: 0;
+  padding: 0;
+}
+
+#unsplash-output li .label-wrapper {
+  display: none;
+}
+
+#unsplash-output li .label-wrapper a {
+  padding: 15px 0;
+}
+
+#unsplash-output li:hover .label-wrapper {
+  display: block;
+}
+
+#unsplash-output ul li .media-thumbnail {
+  position: relative;
+  cursor: pointer;
+}
+
+#unsplash-output ul li .media-thumbnail img {
+  vertical-align: bottom;
+  width: 100%;
+  height: auto;
+}

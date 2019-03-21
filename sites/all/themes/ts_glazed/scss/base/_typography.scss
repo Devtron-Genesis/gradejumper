@@ -1,0 +1,60 @@
+//
+// Font faces, stacks and sizes.
+//
+@import url('https://fonts.googleapis.com/css?family=Raleway:300');
+@import url('https://fonts.googleapis.com/css?family=Montserrat:500');
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:200,300,400,400i,500,600,700,800');
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,400i,500,600,700');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css');
+
+// Compass' vertical_rhythm extension is a powerful tool to set up a vertical
+// rhythm for your entire page. You can see some of its mixins and functions in
+// use in the normalize.scss file.
+
+$base-font-size:   16px; // The font size set on the root html element.
+$base-line-height: 24px; // This line-height determines the basic unit of vertical rhythm.
+
+$h1-font-size: 3.75  * $base-font-size; // 60px
+$h2-font-size: 3.125 * $base-font-size; // 50px
+$h3-font-size: 2.25  * $base-font-size; // 36px
+$h4-font-size: 1.375 * $base-font-size; // 22px
+$h5-font-size: 0.83  * $base-font-size;
+$h6-font-size: 0.67  * $base-font-size;
+
+// The following font family declarations are based on the Microsoft core web
+// fonts which are common fonts available on most computer systems. The DejaVu
+// and Nimbus Sans fonts are commonly available on Linux systems where the MS
+// fonts are less common. Tahoma and Helvetica are also widely available.
+//
+// A user's web browser will look at the comma-separated list and will
+// attempt to use each font in turn until it finds one that is available
+// on the user's computer. The final "generic" font (sans-serif, serif or
+// monospace) hints at what type of font to use if the web browser doesn't
+// find any of the fonts in the list.
+
+// First, let's create some font stacks.
+$font-times-new-roman: "Times New Roman", Times, Georgia, "DejaVu Serif", serif;
+$font-times:           Times, "Times New Roman", Georgia, "DejaVu Serif", serif;
+$font-georgia:         Georgia, "Times New Roman", "DejaVu Serif", serif;
+
+$font-verdana:         Verdana, Tahoma, "DejaVu Sans", sans-serif;
+$font-tahoma:          Tahoma, Verdana, "DejaVu Sans", sans-serif;
+$font-helvetica:       Helvetica, Arial, "Nimbus Sans L", sans-serif;
+$font-arial:           Arial, Helvetica, "Nimbus Sans L", sans-serif;
+
+$font-raleway:         "Raleway", sans-serif;
+$font-montserrat:      "Montserrat", sans-serif;
+$font-roboto:          "Roboto", sans-serif;
+$font-opensans:        "Open Sans", sans-serif;
+
+$font-courier:         "Courier New", "DejaVu Sans Mono", monospace, sans-serif;
+
+// Now create some variables for the font stacks we want to use on this site.
+$base-font-family: $font-raleway; // The font family set on the html element.
+
+// For an explanation of why "sans-serif" is at the end of this list, see
+// http://meyerweb.com/eric/thoughts/2010/02/12/fixed-monospace-sizing/
+$font-monospace:   $font-courier;
+
+// The amount lists, blockquotes and comments are indented.
+$indent-amount: 30px;

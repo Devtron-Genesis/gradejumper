@@ -1,0 +1,312 @@
+<?php
+
+/************************************************************
+ * gj_deanhopkins_curated_seo_menu                          *
+ ************************************************************
+ * Description: Register menu routes                        *
+ *              Implements hook_menu()                      *
+ * Arguments:                                               *
+ * Return:      $items                                      *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-02-08                                  *
+ ************************************************************/
+function gj_deanhopkins_curated_seo_menu(){
+    $items['admin/config/gj_deanhopkins_curated_seo'] = array(
+        'title' => "Curated SEO (gj_deanhopkins_curated_seo)",
+        'description' => t("Curated SEO Pages Configuration"),
+        'position' => 'right',
+        'weight' => -5,
+        'access arguments' => array('administer site configuration'),
+        'page callback' => 'system_admin_menu_block_page',
+        'file' => 'system.admin.inc',
+        'file path' => drupal_get_path('module', 'system'),
+    );
+
+
+    $items['admin/config/gj_deanhopkins_curated_seo/curated_seo'] = array(
+        'title' => 'Curated SEO Pages Configuration',
+        'page callback' => 'gj_deanhopkins_curated_seo_admin_callback',
+        'page arguments' => array('gj_deanhopkins_curated_seo'),
+        'access arguments' => array('administer users'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+
+    $items['management/curated_seo'] = array(
+        'title' => 'Curated SEO Pages Configuration',
+        'page callback' => 'gj_deanhopkins_curated_seo_admin_callback',
+        'page arguments' => array('gj_deanhopkins_curated_seo'),
+        'access arguments' => array('administer users'),
+        'theme callback' => 'variable_get',
+        'theme arguments' => array('admin_theme'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+
+    $items['admin/config/gj_deanhopkins_curated_seo/curated_seo/switch_to_curated/%'] = array(
+        'page callback' => 'gj_deanhopkins_curated_seo_admin_switch_to_curated_callback',
+        'page arguments' => array(5),
+        'access arguments' => array('administer users'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['admin/config/gj_deanhopkins_curated_seo/curated_seo/switch_to_active/%'] = array(
+        'page callback' => 'gj_deanhopkins_curated_seo_admin_switch_to_active_callback',
+        'page arguments' => array(5),
+        'access arguments' => array('administer users'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['gj_deanhopkins_curated_seo/parent_search_request'] = array(
+        'page callback' => '_parent_search_request_submit',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK
+    );
+
+    $items['process_subject_level_thresholds'] = array(
+        'type' => MENU_NORMAL_ITEM,
+        'title' => t('Trigger job to process subject level threshold notifications'),
+        'description' => 'Trigger job to process subject level threshold notifications',
+        'page callback' => 'gj_deanhopkins_curated_seo_process_thresholds',
+        'access arguments' => array('access content'),
+        'access callback' => TRUE,
+    );
+
+    return $items;
+}
+
+/************************************************************
+ * gj_deanhopkins_curated_seo_node_info                     *
+ ************************************************************
+ * Description: Register node type.                         *
+ *              Implements hook_node_info()                 *
+ * Arguments:                                               *
+ * Return:      array defining node details                 *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-02-08                                  *
+ ************************************************************/
+function gj_deanhopkins_curated_seo_node_info() {
+    return array(
+        'parent_search_request' => array(
+            'name' => t('Parent Search Request'),
+            'base' => 'parent_search_request',
+            'description' => t('Parent Search Requests from Curated SEO Pages'),
+            'has_title' => FALSE,
+        )
+    );
+}
+
+/************************************************************
+ * gj_deanhopkins_curated_seo_theme                         *
+ ************************************************************
+ * Description: Register theme entries                      *
+ *              Implements hook_theme()                     *
+ * Arguments:                                               *
+ * Return:      array                                       *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-02-08                                  *
+ ************************************************************/
+function gj_deanhopkins_curated_seo_theme(){
+    return [
+        'curated_seo_admin_page_content' => array(
+            'variables' => [],
+        ),
+        'gj_deanhopkins_parent_search_request_form' => array(
+            'render element' => 'form',
+            'variables' => array('output' => NULL, 'data' => NULL),
+            'template' => 'templates/block-parent_search_request',
+        ),
+    ];
+}
+
+/********************************************************************
+ * is_subject_level_over_threshold                                  *
+ ********************************************************************
+ * Description: Calculates if subject/level term is over threshold  *
+ *              Subject: 10 published nodes                         *
+ *                       1 male                                     *
+ *                       1 female                                   *
+ *                       1 < £20                                    *
+ *              Level-Subject: 5 published nodes                    *
+ *                              1 male                              *
+ *                              1 female                            *
+ *                              1 < £20                             *
+ * Arguments:                                                       *
+ * Return:      true/false                                          *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function is_subject_level_over_threshold($subject, $level, $tid){
+    $price_threshold = 20;
+
+    $count_male = _count_relevant_tutor_ads($subject, $level, $tid, "male");
+    $count_female = _count_relevant_tutor_ads($subject, $level, $tid, "female");
+    $count_cheaper_than_threshold = _count_relevant_tutor_ads($subject, $level, $tid, NULL, $price_threshold);
+    $node_count = $count_male + $count_female;
+
+    if ($level){
+        $node_count_req = 5;
+    } else {
+        $node_count_req = 10;
+    }
+
+    if ($node_count < $node_count_req){
+        return FALSE;
+    }
+    if ($count_female < 1){
+        return FALSE;
+    }
+    if ($count_male < 1){
+        return FALSE;
+    }
+    if ($count_cheaper_than_threshold < 1){
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+
+/********************************************************************
+ * is_subject_level_enabled_by_manager                              *
+ ********************************************************************
+ * Description: Checks if subject level is enabled by manager       *
+ *              DB Table: gj_seo_curated_subjects                   *
+ * Arguments:   $tid                                                *
+ * Return:      true/false                                          *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-03-11                                          *
+ ********************************************************************/
+function is_subject_level_enabled_by_manager($tid){
+    $curated_rows = db_query('select tax_sub_lev_tid FROM gj_seo_curated_subjects where show_curated_page = 1 and tax_sub_lev_tid = :tid', array(':tid' => $tid))->fetchAll();
+    return (sizeof($curated_rows) < 1);
+}
+
+/*****************************************************************************
+ * _count_relevant_tutor_ads                                                 *
+ *****************************************************************************
+ * Description: Count number of tutor ads for given optional params          *
+ * Arguments:   $subject, $level, $tid, $gender=NULL, $price_threshold=NULL  *
+ * Return:      true/false                                                   *
+ *****************************************************************************
+ * Author:      Dean Hopkins                                                 *
+ * Date:        2019-02-12                                                   *
+ *****************************************************************************/
+function _count_relevant_tutor_ads($subject, $level, $tid, $gender=NULL, $price_threshold=NULL){
+
+
+    $count_str = "SELECT COUNT(*) as total FROM (
+                  SELECT SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id as nid,
+                    AVG(STAR_RATING_FIELD.field_reference_star_rating_rating) as average_rating,
+                    COUNT(STAR_RATING_FIELD.field_reference_star_rating_rating) as num_ratings,
+                    MIN(PRICE_FIELD.field_subject_level_price_value) as lowest_price ";
+
+    if ($subject && $level){
+        $count_str .= "FROM field_data_field_offered_level OFFERED_LEVEL_FIELD ";
+    } else if ($subject) {
+        $count_str .= "FROM field_data_field_offered_subject OFFERED_SUBJECT_FIELD ";
+    }
+
+    $count_str .= "JOIN field_data_field_col_subject_level_pricing SUBJECT_LEVEL_PRICE_FIELD_COL ";
+
+    if ($subject && $level){
+        $count_str .= "ON OFFERED_LEVEL_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value ";
+    } else if ($subject) {
+        $count_str .= "ON OFFERED_SUBJECT_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value ";
+    }
+
+    $count_str .= "JOIN taxonomy_term_hierarchy TAX_TERM_HIERARCHY ";
+
+    if ($subject && $level){
+        $count_str .= "ON TAX_TERM_HIERARCHY.tid = OFFERED_LEVEL_FIELD.field_offered_level_tid ";
+    } else if ($subject) {
+        $count_str .= "ON TAX_TERM_HIERARCHY.tid = OFFERED_SUBJECT_FIELD.field_offered_subject_tid ";
+    }
+
+    if ($gender){
+        $count_str .= "JOIN field_data_field_tutor_gender FTG on FTG.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id ";
+    }
+
+    $count_str .= "JOIN field_data_field_subject_level_price PRICE_FIELD
+                        ON PRICE_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value ";
+
+
+    if ($price_threshold){
+        $count_str .= "JOIN taxonomy_term_data TAX_OFFERED_PRICE on TAX_OFFERED_PRICE.tid = PRICE_FIELD.field_subject_level_price_value ";
+    }
+
+    $count_str .= "JOIN field_data_field_col_add_reference FDFCAR
+                        ON FDFCAR.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                    JOIN field_data_field_reference_star_rating STAR_RATING_FIELD
+                        ON FDFCAR.field_col_add_reference_value = STAR_RATING_FIELD.entity_id
+                    JOIN field_data_field_tutor_available FDFTA
+                        ON FDFTA.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                    JOIN node
+                        ON node.nid = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                    WHERE SUBJECT_LEVEL_PRICE_FIELD_COL.bundle = 'tutor_ad' ";
+
+    if ($subject && $level){
+        $count_str .= "AND OFFERED_LEVEL_FIELD.bundle = 'field_col_subject_level_pricing' ";
+        $count_str .= "AND ((OFFERED_LEVEL_FIELD.field_offered_level_tid = :tid)) ";
+    } else if ($subject) {
+        $count_str .= "AND OFFERED_SUBJECT_FIELD.bundle = 'field_col_subject_level_pricing' ";
+        $count_str .= "AND ((OFFERED_SUBJECT_FIELD.field_offered_subject_tid = :tid) OR (TAX_TERM_HIERARCHY.parent = :tid)) ";
+    }
+
+    if ($gender){
+        $count_str .= "AND FTG.field_tutor_gender_value = :gender ";
+    }
+
+    if ($price_threshold){
+        $count_str .= "AND TAX_OFFERED_PRICE.name <= :threshold ";
+    }
+
+    $count_str .= "AND FDFTA.field_tutor_available_value = 'Yes'
+                   AND node.status = 1
+                GROUP BY nid
+                ) as select_qry;";
+
+    $params = array();
+    if ($tid){
+        $params['tid'] = $tid;
+    }
+    if ($gender){
+        $params['gender'] = $gender;
+    }
+    if ($price_threshold){
+        $params['threshold'] = $price_threshold;
+    }
+
+    $count_result = db_query($count_str, $params)->fetch();
+
+    return $count_result->total;
+
+}
+
+
+
+function gj_deanhopkins_curated_seo_node_mail($key,&$message,$params)
+{
+    switch ($key) {
+        case 'gj_dh':
+            $message['subject']=t($params['subject']);
+            $message['body'][]=get_email_header() . $params['body'] . get_email_footer();
+            $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+            break;
+    }
+}
+
+
+//Include form block
+include('gj_deanhopkins_curated_seo_form_block.php');
+
+//Include scheduled job
+include('gj_deanhopkins_curated_seo_scheduled_job.php');
+
+//Include admin configuration functions
+include('gj_deanhopkins_curated_seo_admin_config.php');

@@ -1,0 +1,5 @@
+name = GradeJumpers Subject Level Pricing
+description = Provides a field-collection formatter for the Tutor Ad Subject Level Pricing field.
+core = 7.x
+dependencies[] = field_collection
+package = "GJ Dean Hopkins"

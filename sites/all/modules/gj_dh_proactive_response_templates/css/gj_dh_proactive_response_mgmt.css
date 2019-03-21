@@ -1,0 +1,38 @@
+.gj_dh_mgmt_request_container{
+    padding:15px;
+    border: 1px solid;
+    border-radius: 5px;
+    max-width: 400px;
+}
+
+.gj-pr-mgmt-details-container{
+    margin: 5px;
+    padding: 5px;
+    background-color: #eeeeee;
+    border-color: #7C7C7C;
+    border: 1px solid;
+    min-height: 35px;
+}
+
+.gj-pr-mgmt-details-text{
+    margin-left: 10px;
+}
+
+
+.gj-pr-mgmt-details-expanded{
+    display: none;
+}
+
+.gj-pr-gray{
+    background-color: #cccccc;
+}
+
+.gj_dh_approved_sent{
+    background-color: green;
+    color: white;
+    font-weight: bold;
+    border-radius: 5px;
+    border: 1px solid darkgreen;
+    width: 75%;
+    margin: auto;
+}

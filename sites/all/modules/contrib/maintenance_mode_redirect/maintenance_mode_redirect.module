@@ -1,0 +1,88 @@
+<?php
+
+/**
+ * @file
+ * Module file for maintenance_mode_redirect.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function maintenance_mode_redirect_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/help#maintenance_mode_redirect':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Redirect site visitors to another URL when Maintenance Mode is enabled.') . '</p>';
+      $output .= '<p>' . t('The module adds two additional fields to the Maintenance Mode <a href="../config/development/maintenance" >configuration page </a> (admin/config/development/maintenance).') . '</p>';
+      $output .= '<p>' . t('The checkbox is used to enable URL redirect when the site is in Maintenance Mode.') . '</p>';
+      $output .= '<p>' . t('The Redirect URL field should contain a URL to go to when the URL redirect is enabled.') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_boot().
+ */
+function maintenance_mode_redirect_boot() {
+  // Redirect if Maintenance Mode and Maintenance Mode Redirect are enabled.
+  // Redirect if no being call from command line (ex: Drush/Drupal Console).
+  // Redirect if user is anonymous (not logged in).
+  // Redirect if user is not requesting login related paths.
+  if (variable_get('maintenance_mode', 0) && variable_get('maintenance_mode_redirect', 0)) {
+    global $user;
+    $current_path = $_SERVER['REQUEST_URI'];
+    $allowed_path = array(
+      '/user',
+      '/user/login',
+      '/user/password',
+    );
+
+    if (
+      php_sapi_name() != 'cli' &&
+      $user->uid == 0 &&
+      !in_array($current_path, $allowed_path) &&
+      !empty(variable_get('maintenance_mode_redirect_url', NULL))
+    ) {
+      header('location: ' . variable_get('maintenance_mode_redirect_url', NULL), TRUE, '302');
+      exit;
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function maintenance_mode_redirect_form_system_site_maintenance_mode_alter(&$form, &$form_state) {
+  // Add checkbox on the maintenance mode form to enable or disable URL
+  // redirects.
+  $form['maintenance']['maintenance_mode_redirect'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable URL redirect'),
+    '#description' => t('When enabled, anonymous users will be redirected to the Redirect URL when the site is in Maintenance Mode.'),
+    '#default_value' => variable_get('maintenance_mode_redirect', 0),
+  );
+  // Add redirect URL to the maintenance mode form.
+  $form['maintenance']['maintenance_mode_redirect_url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Redirect URL'),
+    '#description' => t('URL that site visitors are redirected to if Maintenance Mode is enabled.'),
+    '#default_value' => variable_get('maintenance_mode_redirect_url', 'http://example.com/'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="maintenance_mode_redirect"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+  $form['#validate'][] = 'maintenance_mode_redirect_form_system_site_maintenance_mode_validate';
+}
+
+/**
+ * Maintenance Mode Redirect submit validate.
+ */
+function maintenance_mode_redirect_form_system_site_maintenance_mode_validate($form, &$form_state) {
+  if (!valid_url($form_state['values']['maintenance_mode_redirect_url'], TRUE)) {
+    form_set_error('maintenance_mode_redirect_url', t('URL is incorrect'));
+  }
+}

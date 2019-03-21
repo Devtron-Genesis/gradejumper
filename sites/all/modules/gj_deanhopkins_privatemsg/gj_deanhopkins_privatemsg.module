@@ -1,0 +1,881 @@
+<?php
+
+/************************************************************
+ * gj_deanhopkins_privatemsg_menu                           *
+ ************************************************************
+ * Description: Register menu routes                        *
+ *              Implements hook_menu()                      *
+ * Arguments:                                               *
+ * Return:      $items                                      *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-02-08                                  *
+ ************************************************************/
+function gj_deanhopkins_privatemsg_menu(){
+    $items['send_message/%'] = array(
+        'title' => '',
+        'page callback' => 'gj_deanhopkins_privatemsg_page_callback',
+        'page arguments' => array(1),
+        'access arguments' => array('access content'),
+    );
+
+    return $items;
+}
+
+function gj_deanhopkins_privatemsg_page_callback($tutor_ad_nid){
+    $proactive = isset($_GET['proactive']) ? $_GET['proactive'] : null;
+
+    if (!user_is_anonymous()){
+        $url = _get_message_url(node_load($tutor_ad_nid));
+    } else {
+        $url = "/parent_query/" . $tutor_ad_nid;
+        if ($proactive){
+            _create_proactive_cookie($proactive);
+        }
+    }
+
+    if ($proactive){
+        $options = array('query' => array('proactive' => $proactive));
+        drupal_goto($url, $options);
+    } else {
+        drupal_goto($url);
+    }
+}
+
+
+function _create_proactive_cookie($str){
+    $cookie_name = "gj_proactive";
+    setcookie($cookie_name, $str, time() + (86400 * 30), "/"); // 86400 = 1 day
+}
+
+/********************************************************************
+ * gj_deanhopkins_privatemsg_init                                   *
+ ********************************************************************
+ * Description: Implements hook_init()                              *
+ *              Add module CSS file to messaging pages on demand    *
+ * Arguments:                                                       *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_privatemsg_init(){
+    if (isset(arg()[0]) and arg()[0] == "messages"){
+        drupal_add_css(drupal_get_path("module", "gj_deanhopkins_privatemsg"). "/css/gj_deanhopkins_privatemsg.css");
+    }
+}
+
+/********************************************************************
+ * gj_deanhopkins_privatemsg_privatemsg_message_insert              *
+ ********************************************************************
+ * Description: Implements hook_private_message_insert()            *
+ *              Create a message_tutor_node_link when creating a    *
+ *              new message thread, if doesnt already exist.        *
+ * Arguments:   $message                                            *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_privatemsg_privatemsg_message_insert($message){
+    global $user;
+
+    if (isset($_GET['nid'])){
+        $nid = base64_decode($_GET['nid']);
+        $message_thread_id = $message->thread_id;
+
+        //check if message thread already has link to node
+        $result = db_select('message_tutor_node_link', 'mtnl')
+            ->fields('mtnl')
+            ->condition('message_thread_id', $message_thread_id,'=')
+            ->execute();
+        $count = $result->rowCount();
+
+        if ($count < 1){
+            //insert link to node
+            $txn = db_transaction();
+            try {
+                db_insert('message_tutor_node_link')
+                    ->fields(array(
+                        'message_thread_id' => $message_thread_id,
+                        'node_id' => $nid,
+                    ))
+                    ->execute();
+            } catch (Exception $e) {
+                $txn->rollback();
+                watchdog_exception('type', $e);
+            }
+        }
+    }
+
+
+    if (has_role_parent($user)){
+        $proactive_nid = null;
+        $proactive = isset($_GET['proactive']) ? $_GET['proactive'] : null;
+
+        if ($proactive){
+            $proactive_nid = base64_decode($proactive_nid);
+        } else {
+            if (isset($_COOKIE['gj_proactive'])){
+                $proactive_nid = base64_decode($_COOKIE['gj_proactive']);
+                // empty value and expiration one hour before
+                unset($_COOKIE['gj_proactive']);
+                $res = setcookie('gj_proactive', '', time() - 3600);
+            }
+        }
+
+        if ($proactive_nid){
+            $tutoring_request = node_load($proactive_nid);
+            if ($tutoring_request and $tutoring_request->bundle = 'tutoring_request'){
+                $tutoring_request->tutor_rqst_date_parent_responded['und'][0]['value'] = date('Y-m-d H:i:s', strtotime('now'));
+                node_save($tutoring_request);
+            }
+        }
+
+    }
+}
+
+/********************************************************************
+ * get_tutor_ad_nid_by_thread_id                                    *
+ ********************************************************************
+ * Description: Returns the tutor ad node id attached to a given    *
+ *              message thread identified by its ID.                *
+ * Arguments:   $message_thread_id                                  *
+ * Return:      Tutor ad node id or null if none exists             *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_tutor_ad_nid_by_thread_id($message_thread_id){
+    $query = db_select('message_tutor_node_link', 'mtnl');
+    $query->fields('mtnl', array('node_id'));
+    $query->condition('mtnl.message_thread_id', $message_thread_id, '=');
+    $result = $query->execute();
+
+    if ($result->rowCount() > 0){
+        $existing_thread_id = $result->fetchAssoc()['node_id'];
+        return $existing_thread_id;
+    } else {
+        return null;
+    }
+}
+
+/********************************************************************
+ * get_tutor_ad_nid_by_thread_id                                    *
+ ********************************************************************
+ * Description: Implements hook_theme_registry_alter()              *
+ *              Add the local template files to theme registry for  *
+ *              use in private message pages                        *
+ * Arguments:   $message_thread_id                                  *
+ * Return:      Tutor ad node id or null if none exists             *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_privatemsg_theme_registry_alter(&$theme_registry) {
+    //Add htmlmail.tpl.php to the theme registry (it is expected to be in theme)
+    $module_path = drupal_get_path('module', 'gj_deanhopkins_privatemsg');
+    $template_file_objects = drupal_find_theme_templates($theme_registry, '.tpl.php', $module_path . "/templates");
+    foreach ($template_file_objects as $key => $template_file_object) {
+        $theme_registry[$key]['theme path'] = $module_path;
+        $theme_registry[$key] = array_merge($theme_registry[$key], $template_file_object);
+        $theme_registry[$key]['type'] = 'module';
+    }
+}
+
+/********************************************************************
+ * gj_deanhopkins_privatemsg_page_alter                             *
+ ********************************************************************
+ * Description: Implements hook_page_alter()                        *
+ *              Alter structure and visibility of elements on       *
+ *              private messaging pages                             *
+ * Arguments:   &$page                                              *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_privatemsg_page_alter(&$page){
+    drupal_add_css(drupal_get_path('module', 'gj_deanhopkins_tutor_ad') . '/widgets/fontawesome/fontawesome-star.css');
+    global $user;
+    if (!drupal_get_http_header('status') or !substr(drupal_get_http_header('status'), 0, 3 ) === "403") {
+        if (isset(arg()[0]) and arg()[0] == "messages") {
+            //Remove the header and footer for all messaging pages
+            unset($page['footer']);
+            unset($page['header']);
+
+            if (!isset(arg()[1])){
+                //Render messages inbox page
+                set_page_content_inbox($page);
+            } else {
+                if (!has_role_manager($user)){
+                    if (isset(arg()[1]) and arg()[1] == "new") {
+                        //Render "new message" page
+                        set_page_content_new_message($page);
+                    }
+                    if (isset(arg()[1]) and arg()[1] == "view") {
+                        //Render "view message" page
+                        set_page_content_view_message($page);
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+/********************************************************************
+ * set_page_content_new_message                                     *
+ ********************************************************************
+ * Description: Called on hook_page_alter()                         *
+ *              Alter structure and visibility of elements on       *
+ *              private messaging "New Message" page                *
+ * Arguments:   &$page                                              *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function set_page_content_new_message(&$page){
+    global $user;
+
+    if (!has_role_manager($user)){
+        unset($page['content']['system_main']['subject']);
+        $page['content']['system_main']['recipient']['#type'] = "hidden";
+        $page['content']['system_main']['recipient']['#theme'] = "hidden";
+        unset($page['content']['system_main']['recipient']['#description']);
+        unset($page['content']['system_main']['recipient']['#title']);
+        unset($page['content']['system_main']['body']['value']['#title']);
+        unset($page['content']['system_main']['body']['format']);
+
+        $tutor_ad = node_load(base64_decode($_GET['nid']));
+        $page['content']['system_main']['wrapper'] = get_message_header($tutor_ad ,$tutor_ad->uid);
+
+        $page['content']['system_main']['message_input_main'] = get_message_input($page, true);
+        unset($page['content']['system_main']['body']);
+        unset($page['content']['system_main']['actions']);
+        unset($page['content']['system_main']['message_input_main']['button']['cancel']);
+
+        $page['content']['system_main']['body']['#weight'] = 1;
+        $page['content']['system_main']['actions']['#weight'] = 2;
+        $page['content']['system_main']['wrapper']['#weight'] = 3;
+    }
+}
+
+
+/********************************************************************
+ * set_page_content_view_message                                    *
+ ********************************************************************
+ * Description: Called on hook_page_alter()                         *
+ *              Alter structure and visibility of elements on       *
+ *              private messaging "View Message" page               *
+ * Arguments:   &$page                                              *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function set_page_content_view_message(&$page){
+    global $user;
+
+    drupal_add_js(drupal_get_path("module", "gj_deanhopkins_privatemsg"). "/js/gj_deanhopkins_privatemsg.js");
+
+    $thread_id = $page['content']['system_main']['#thread']['thread_id'];
+    $tutor_ad = node_load(get_tutor_ad_nid_by_thread_id($thread_id));
+
+    $recipient_uid = 0;
+    if (has_role_tutor($user) || has_role_manager($user)){
+        $participants = $page['content']['system_main']['#thread']['participants'];
+        foreach ($participants as $participant){
+            if ($participant->uid != $user->uid){
+                $recipient = $participant;
+                break;
+            }
+        }
+        $recipient_uid = $recipient->uid;
+    }
+    if (has_role_parent($user)){
+        if ($tutor_ad){
+            $recipient_uid = $tutor_ad->uid;
+        } else {
+            $participants = $page['content']['system_main']['#thread']['participants'];
+            foreach ($participants as $participant){
+                if ($participant->uid != $user->uid){
+                    $recipient = $participant;
+                    break;
+                }
+            }
+            $recipient_uid = $recipient->uid;
+        }
+    }
+
+    $page['content']['system_main']['wrapper'] = get_message_header($tutor_ad, $recipient_uid);
+    $page['content']['system_main']['thread_wrapper'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('message-thread-container'),
+        ),
+    );
+
+    $page['content']['system_main']['thread_wrapper']['messages'] = $page['content']['system_main']['messages'];
+    unset($page['content']['system_main']['messages']);
+
+
+    unset($page['content']['system_main']['reply']['reply']);
+    unset($page['content']['system_main']['participants']);
+
+    $page['content']['system_main']['reply']['message_input_main'] = get_message_input($page, false);
+    unset($page['content']['system_main']['reply']['body']);
+    unset($page['content']['system_main']['reply']['actions']);
+    unset($page['content']['system_main']['reply']['message_input_main']['button']['cancel']);
+    unset($page['content']['system_main']['reply']['message_input_main']['message']['value']['#title']);
+
+    $page['content']['system_main']['wrapper']['#weight'] = 1;
+    $page['content']['system_main']['thread_wrapper']['#weight'] = 2;
+    $page['content']['system_main']['reply']['#weight'] = 3;
+}
+
+/********************************************************************
+ * set_page_content_inbox                                           *
+ ********************************************************************
+ * Description: Called on hook_page_alter()                         *
+ *              Alter structure and visibility of elements on       *
+ *              private messaging "Inbox" page                      *
+ * Arguments:   &$page                                              *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function set_page_content_inbox(&$page){
+    global $user;
+
+    $page['threads'] = get_inbox_threads();
+
+    if (!has_role_manager($user)){
+        unset($page['content']['system_main']['updated']['actions']);
+        unset($page['content']['system_main']['updated']['list']);
+        $page['content']['system_main']['wrapper'] = get_inbox_header();
+
+        $page['content']['system_main']['threads'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array(''),
+            ),
+        );
+
+        $threads = $page['threads'];
+        $threads_display = array();
+        foreach ($threads as $thread){
+            $thread_id = $thread['thread_id'];
+            $tutor_ad_id = get_tutor_ad_nid_by_thread_id($thread_id);
+            $tutor_ad = node_load($tutor_ad_id);
+
+            $participants = $thread['participants'];
+            foreach ($participants as $participant){
+                if ($participant->uid != $user->uid){
+                    $recipient = $participant;
+                    break;
+                }
+            }
+            $recipient_uid = $recipient->uid;
+
+            $threads_display[$thread_id]['container'] = array(
+                '#type' => 'container',
+                '#attributes' => array(
+                    'class' => array(''),
+                ),
+            );
+
+            $threads_display[$thread_id]['container']['row'] = array(
+                '#type' => 'container',
+                '#attributes' => array(
+                    'class' => array('row flex inbox-message-row'),
+                ),
+            );
+
+            $threads_display[$thread_id]['container']['row']['left-col'] = array(
+                '#type' => 'container',
+                '#attributes' => array(
+                    'class' => array('col-md-1'),
+                ),
+            );
+
+            $threads_display[$thread_id]['container']['row']['left-col']['img'] = array(
+                '#type' => 'markup',
+                '#markup' => get_message_avatar_markup($recipient, $tutor_ad),
+            );
+
+            $threads_display[$thread_id]['container']['row']['right-col'] = array(
+                '#type' => 'container',
+                '#attributes' => array(
+                    'class' => array('col-md-11 inbox-message-row-right-col'),
+                ),
+            );
+
+            $threads_display[$thread_id]['container']['row']['right-col']['top-row'] = array(
+                '#type' => 'container',
+                '#attributes' => array(
+                    'class' => array('row'),
+                ),
+            );
+
+            $threads_display[$thread_id]['container']['row']['right-col']['top_row']['name_container'] = array(
+                '#type' => 'container',
+                '#attributes' => array(
+                    'class' => array('message-inbox-name'),
+                ),
+            );
+
+            $markup = "<a href='" . url('messages/view/' . $thread['thread_id']) . "'>";
+            if (has_role_manager($recipient)){
+                $markup .= "Customer Services";
+            } else {
+                $markup .= ucwords(get_user_firstname($recipient_uid)) . " " . ucwords(get_user_lastname($recipient_uid)[0]) . ".";
+                if (has_role_tutor($recipient)){
+                    $markup .= "<span class='message-inbox-university'>" . get_tutor_ad_first_degree($tutor_ad) . "</span>";
+                }
+            }
+
+            $read_all = true;
+            foreach ($thread['messages'] as $message){
+                if ($message->is_new){
+                    $read_all = false;
+                    break;
+                }
+            }
+            if (!$read_all){
+                $markup .= "<span class='thread-unread'>Unread</span>";
+            }
+
+            $markup .= "</a>";
+
+            $threads_display[$thread_id]['container']['row']['right-col']['top_row']['name_container']['name'] = array(
+                '#type' => 'markup',
+                '#markup' => $markup
+            );
+
+
+            $thread_messages = $thread['messages'];
+            end($thread_messages);
+            $key = key($thread_messages);
+            reset($thread_messages);
+
+
+            $threads_display[$thread_id]['container']['row']['right-col']['top_row']['time_container'] = array(
+                '#type' => 'container',
+                '#attributes' => array(
+                    'class' => array('message-inbox-time'),
+                ),
+            );
+
+            $threads_display[$thread_id]['container']['row']['right-col']['top_row']['time_container']['time'] = array(
+                '#type' => 'markup',
+                '#markup' => time_elapsed_string("@" . $thread_messages[$key]->timestamp)
+            );
+
+            $threads_display[$thread_id]['container']['row']['right-col']['bottom-row'] = array(
+                '#type' => 'container',
+                '#attributes' => array(
+                    'class' => array('inbox-text-container'),
+                ),
+            );
+
+            $markup = "<a href='" . url('messages/view/' . $thread['thread_id']) . "'>";
+            $markup .= substr($thread_messages[$key]->body, 0, 250) . "...";
+            $markup .= "</a>";
+
+            $threads_display[$thread_id]['container']['row']['right-col']['bottom-row']['thread'] = array(
+                '#type' => 'markup',
+                '#markup' => "<p>" . $markup . "</p>"
+            );
+
+            $threads_display[$thread_id]['hr'] = array(
+                '#type' => 'markup',
+                '#markup' => "<hr />"
+            );
+
+            $page['content']['system_main']['threads'] = $threads_display;
+
+            $page['content']['system_main']['wrapper']['#weight'] = 1;
+            $page['content']['system_main']['threads']['#weight'] = 2;
+        }
+    }
+
+
+}
+
+/********************************************************************
+ * get_inbox_threads                                                *
+ ********************************************************************
+ * Description: Gets list of message threads for user's inbox       *
+ * Arguments:                                                       *
+ * Return:      Array of thread objects                             *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_inbox_threads(){
+    global $user;
+
+    $threads_ret = array();
+    $thread_qry = privatemsg_sql_list($user)->execute();
+    if ($thread_qry->rowCount() > 0){
+        $threads = $thread_qry->fetchAll(PDO::FETCH_OBJ);
+        foreach ($threads as $thread){
+            array_push($threads_ret, privatemsg_thread_load($thread->thread_id));
+        }
+    }
+
+    return $threads_ret;
+}
+
+/********************************************************************
+ * get_message_input                                                *
+ ********************************************************************
+ * Description: Called on hook_page_alter()                         *
+ *              Generate the "Send Message" input block for new /   *
+ *              reply message                                       *
+ * Arguments:   $page, $is_new_thread                               *
+ * Return:      $message_input_main - renderable array              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_message_input($page, $is_new_thread){
+    $message_input_container = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('message-input-container'),
+        ),
+    );
+
+    $message_input_main = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('message-input-main'),
+        ),
+    );
+
+    if ($is_new_thread){
+        $message_input_main['message'] = $page['content']['system_main']['body'];
+    } else {
+        $message_input_main['message'] = $page['content']['system_main']['reply']['body'];
+    }
+    $message_input_main['message']['value']['#attributes'] = array(
+        'class' => array('message-input')
+    );
+
+    $message_input_main['message']['value']['#attributes']['placeholder'] = t("Type a message...");
+
+
+    if ($is_new_thread){
+        $message_send_button = $page['content']['system_main']['actions'];
+    } else {
+        $message_send_button= $page['content']['system_main']['reply']['actions'];
+    }
+    $message_send_button['#attributes'] = array(
+        'class' => array('message-send')
+    );
+
+    $message_send_button['submit']['#attributes'] = array(
+        'class' => array('btn-message-send')
+    );
+    $message_send_button['submit']['#value'] = "Send";
+
+    $message_input_container['message_input_main'] = $message_input_main;
+    $message_input_container['message_send_button'] = $message_send_button;
+
+    return $message_input_container;
+}
+
+/********************************************************************
+ * get_message_header                                               *
+ ********************************************************************
+ * Description: Called on hook_page_alter()                         *
+ *              Generate the message title header block for new /   *
+ *              reply message                                       *
+ * Arguments:   $tutor_ad, $uid                                     *
+ * Return:      $wrapper - renderable array                         *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_message_header($tutor_ad, $uid){
+    global $user;
+
+    $recipient = user_load($uid);
+
+    $wrapper = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('container-fluid message-tutor-header'),
+        ),
+    );
+
+    $wrapper['row'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('row message-header-row'),
+        ),
+    );
+
+    $wrapper['row']['left_col'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('message-header-col display-flex'),
+        ),
+    );
+
+    $wrapper['row']['left_col']['img'] = array(
+        '#type' => 'markup',
+        '#markup' => get_message_avatar_markup($recipient, $tutor_ad),
+    );
+
+    $wrapper['row']['middle_col'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('message-header-col'),
+        ),
+    );
+
+    $wrapper['row']['middle_col']['top_row'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('row'),
+        ),
+    );
+
+    $wrapper['row']['middle_col']['top_row']['name_container'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('message-tutor-name'),
+        ),
+    );
+
+    if (has_role_manager($recipient)){
+        $markup = "Customer Services";
+    } else {
+        $markup = ucwords(get_user_firstname($uid)) . " " . ucwords(get_user_lastname($uid)[0]) . ".";
+    }
+
+    $wrapper['row']['middle_col']['top_row']['name_container']['name'] = array(
+        '#type' => 'markup',
+        '#markup' => $markup
+    );
+
+
+
+    if (has_role_tutor($recipient) && !has_role_manager($user)){
+        $wrapper['row']['middle_col']['top_row']['rating_container'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('message-tutor-rating'),
+            ),
+        );
+
+        $wrapper['row']['middle_col']['top_row']['rating_container']['fivestar'] = array(
+            '#type' => 'markup',
+            '#markup' => get_tutor_ad_star_rating_display($tutor_ad, true)
+        );
+    }
+
+    $wrapper['row']['middle_col']['bottom_row'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('row'),
+        ),
+    );
+
+    if (has_role_tutor($recipient) && !has_role_manager($user)){
+        $wrapper['row']['middle_col']['bottom_row']['uni_container'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('message-tutor-uni'),
+            ),
+        );
+        $wrapper['row']['middle_col']['bottom_row']['uni_container']['uni'] = array(
+            '#type' => 'markup',
+            '#markup' => get_tutor_ad_first_uni($tutor_ad)
+        );
+    }
+
+    if (has_role_manager($recipient)){
+        $wrapper['row']['middle_col']['bottom_row']['uni_container'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('message-tutor-uni'),
+            ),
+        );
+        $wrapper['row']['middle_col']['bottom_row']['uni_container']['uni'] = array(
+            '#type' => 'markup',
+            '#markup' => "Got any questions? Message our customer services team directly below. We try to reply to every query within 24 hours"
+        );
+    }
+
+    if (has_role_parent($recipient)){
+        $wrapper['row']['middle_col']['bottom_row']['tcid_container'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('message-tutor-uni message-tutor-tcid'),
+            ),
+        );
+        $wrapper['row']['middle_col']['bottom_row']['tcid_container']['tcid'] = array(
+            '#type' => 'markup',
+            '#markup' => "Parent user ID: " . $recipient->tcid['und'][0]['value']
+        );
+    }
+
+    $wrapper['row']['right_col'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('message-header-col message-header-price'),
+        ),
+    );
+
+    if (has_role_tutor($recipient) && !has_role_manager($user)){
+        $wrapper['row']['right_col']['price_container'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('message-tutor-price'),
+            ),
+        );
+
+        $markup = '<span class="header-price">
+                        <span class="header-price-label">From </span>
+                        <span class="header-price-value">£' . get_tutor_ad_lowest_price($tutor_ad) . '</span>
+                        <span class="header-price-label">/hr</span>
+                    </span>';
+
+        $wrapper['row']['right_col']['price_container']['price'] = array(
+            '#type' => 'markup',
+            '#markup' => $markup
+        );
+    }
+
+    $wrapper['hr'] = array(
+        '#type' => 'markup',
+        '#markup' => "<hr style='margin-top:0px; position: absolute; left: 0; width: 100%;'/>"
+    );
+
+    return $wrapper;
+}
+
+/********************************************************************
+ * get_inbox_header                                                 *
+ ********************************************************************
+ * Description: Called on hook_page_alter()                         *
+ *              Generate the inbox header block for inbox page      *
+ * Arguments:                                                       *
+ * Return:      $wrapper - renderable array                         *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_inbox_header(){
+    $wrapper = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('container-fluid message-inbox-header'),
+        ),
+    );
+
+    $wrapper['row'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('row'),
+        ),
+    );
+
+    $wrapper['row']['col'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('col-md-12'),
+        ),
+    );
+
+    $wrapper['row']['col']['title-container'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+            'class' => array('message-inbox-title'),
+        ),
+    );
+
+    $wrapper['row']['col']['title-container']['title'] = array(
+        '#type' => 'markup',
+        '#markup' => "<p>Messages</p>"
+    );
+
+
+
+
+    $wrapper['hr'] = array(
+        '#type' => 'markup',
+        '#markup' => "<hr />"
+    );
+
+    return $wrapper;
+}
+
+/********************************************************************
+ * get_message_avatar_markup                                        *
+ ********************************************************************
+ * Description: Generate the avatar used in messaging for           *
+ *              recipients based on roles.                          *
+ * Arguments:   $recipient, $tutor_ad                               *
+ * Return:      $markup - html string                               *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_message_avatar_markup($recipient, $tutor_ad=false){
+    $markup = "";
+    if (has_role_tutor($recipient)){
+        $markup = "<div class='message-user-picture'><img src=" . file_create_url(get_tutor_ad_picture_uri($tutor_ad)) . " /></div>";
+    } else if (has_role_parent($recipient)){
+        $markup = generate_initial_avatar($recipient->uid);
+    } else if (has_role_manager($recipient)){
+        $markup = "<div class='message-user-picture'><img src=" . file_create_url(drupal_get_path('module', 'gj_deanhopkins_privatemsg') . "/img/manager_avatar.svg")  . " /></div>";
+    }
+    return $markup;
+}
+
+/********************************************************************
+ * time_elapsed_string                                              *
+ ********************************************************************
+ * Description: Converts date time to human readable date ie:       *
+ *              2 hours ago, Yesterday, Last week                   *
+ * Arguments:   $datetime, $full                                    *
+ * Return:      string human readable time                          *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function time_elapsed_string($datetime, $full = false) {
+    $now = new DateTime;
+    $ago = new DateTime($datetime);
+    $diff = $now->diff($ago);
+
+    $diff->w = floor($diff->d / 7);
+    $diff->d -= $diff->w * 7;
+
+    $string = array(
+        'y' => 'year',
+        'm' => 'month',
+        'w' => 'week',
+        'd' => 'day',
+        'h' => 'hour',
+        'i' => 'minute',
+        's' => 'second',
+    );
+    foreach ($string as $k => &$v) {
+        if ($diff->$k) {
+            $v = $diff->$k . ' ' . $v . ($diff->$k > 1 ? 's' : '');
+        } else {
+            unset($string[$k]);
+        }
+    }
+
+    if (!$full) $string = array_slice($string, 0, 1);
+    return $string ? implode(', ', $string) . ' ago' : 'just now';
+}

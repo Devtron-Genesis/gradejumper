@@ -1,0 +1,1040 @@
+<?php
+/**
+ * @file
+ * Glazed builder module.
+ */
+
+/**
+ * Implements hook_update_status_alter().
+ *
+ * Provides link to sooperthemes.com on Available Updates admin page
+ */
+function glazed_builder_update_status_alter(&$projects) {
+  if (isset($projects['glazed_builder']) && isset($projects['glazed_builder']['title'])) {
+    $projects['glazed_builder']['title'] .=  ' ' . t('on sooperthemes.com. Click for more info.');
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function glazed_builder_menu() {
+  $items = array();
+  $items['glazed_builder_ajaxurl'] = array(
+    'page callback' => 'glazed_builder_ajax',
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['glazed_builder_image_style_url'] = array(
+    'page callback' => 'glazed_builder_image_style_url',
+    'access callback' => 'user_access',
+    'access arguments' => array('edit via glazed builder'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/config/content/glazed_builder'] = array(
+    'title' => 'Glazed builder',
+    'description' => 'Configuration for glazed builder module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('glazed_builder_form'),
+    'access arguments' => array('administer glazed builder configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'glazed_builder.admin.inc',
+  );
+  $items['admin/config/content/glazed_builder/remove-tokens'] = array(
+    'title' => 'Glazed builder',
+    'description' => 'Configuration for glazed builder module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('glazed_builder_remove_tokens_form'),
+    'access arguments' => array('administer glazed builder configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'glazed_builder.admin.inc',
+  );
+  return $items;
+}
+
+
+
+/**
+ * Implements hook_block_info().
+ */
+function glazed_builder_block_info() {
+  // Provide registration form as block, so that it is also available as drag and drop block
+  $blocks = array();
+  $blocks['user_register'] = array(
+    'info' => t('User registration form'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function glazed_builder_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'user_register':
+      $block['content']['form'] = drupal_get_form('user_register_form');
+      $block['subject'] = t('User Registration Form');
+      return $block;
+      break;
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function glazed_builder_permission() {
+  return array(
+    'administer glazed builder configuration' => array(
+      'title' => t('Administer Glazed Builder configuration.'),
+      'restrict access' => TRUE,
+    ),
+    'edit via glazed builder' => array(
+      'title' => t('Edit via glazed builder'),
+      'restrict access' => TRUE,
+      'description' => t('Edit via glazed builder. Allows users to build layouts, design beautiful content and add dynamic components.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ *
+ * We use the field formatter to activate the drag and drop builder on fields.
+ */
+function glazed_builder_field_formatter_info() {
+  return array(
+    'text_glazed_builder' => array(
+      'label' => t('Glazed builder'),
+      'field types' => array(
+        'text',
+        'text_long',
+        'text_with_summary',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ *
+ * Renders Glazed Builder html, expands url tokens, renders Drupal blocks and views.
+ * Collects and adds JS and CSS assets based on Glazed Builder elements used in field.
+ * Attaches Glazed Builder editor for users that have permission to use it.
+ */
+function glazed_builder_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, &$items, $display) {
+  global $language;
+  if ($display['type'] == 'text_glazed_builder') {
+
+    $element = array();
+    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+    if (empty($items)) {
+      $items = array(array('value' => ''));
+    }
+    foreach ($items as $delta => $item) {
+      $value = $item['value'];
+      $element[$delta] = array();
+      $element[$delta]['#attached']['js'] = array();
+      $element[$delta]['#attached']['css'] = array();
+      preg_match('/^\s*\<[\s\S]*\>\s*$/', $value, $html_format);
+      if (empty($html_format)) {
+        $output = '<div class="az-element az-container glazed" data-az-type="' . $entity_type . '|' . $bundle . '" data-az-name="' . $id . '|' . $field['field_name'] . '" style="display:none"></div>';
+      }
+      else {
+        $js = array();
+        $css = array();
+        $mode = glazed_builder_update_html($entity_type . '|' . $bundle . '/' . $id . '|' . $field['field_name'], $value, $js, $css);
+
+        $n = 0;
+        foreach ($js as $src) {
+          $element[$delta]['#attached']['js'][$src] = array('weight' => 100 + $n + 0);
+          $n++;
+        }
+
+        $element[$delta]['#attached']['css'] = array_merge($element[$delta]['#attached']['css'], $css);
+
+        $output = '<div class="az-element az-container glazed" data-az-type="' . $entity_type . '|' . $bundle . '" data-az-name="' . $id . '|' . $field['field_name'] . '" data-az-mode="' . $mode . '">' . $value . '</div>';
+        // Glazed Builder 1.1.0 Experimental feature: Process Text Format Filters for non-editors ~Jur 15/06/16
+        // Don't run text format filters when editor is loaded because the editor would save all filter output into the db
+        if (!user_access('edit via glazed builder') && variable_get('glazed_format_filters', FALSE)) {
+          $output = ($instance['settings']['text_processing']) ? check_markup($output, $item['format'], $langcode) : $output;
+        }
+      }
+
+      // Support AMP markup. This is not a complete feature it's just a stub. @todo learn how to properly do AMP
+      if (module_exists('amp') && amp_is_amp_request()) {
+        $amp_content = _amp_convert_markup_to_amp($output);
+        $output = $amp_content['amp_markup'];
+        if (isset($_GET['warnfix']) || variable_get('amp_library_warnings_display', FALSE)) {
+          $output .= '<pre>' . $amp_content['amp_warnings'] . '</pre>';
+        }
+        _amp_add_component_libraries($amp_content['amp_components']);
+      }
+
+      $element[$delta]['#markup'] = $output;
+      $element[$delta]['id'] = $id. '|' . $field['field_name'];
+      // Attach Glazed Builder assets
+      glazed_builder_attach($element[$delta], $value, $html_format, (user_access('edit via glazed builder') && entity_access('update', $entity_type, $entity)), $language->language);
+    }
+    return $element;
+  }
+  return NULL;
+}
+
+
+/**
+ * Implements template_process_html().
+ */
+function glazed_builder_process_html(&$vars) {
+  if (drupal_is_front_page()) {
+    $vars['page_bottom'] .= '<div style="display:none">sfy39587stp17</div>';
+  }
+}
+
+/**
+ * @defgroup integrations 3rd party modules integration code
+ * @{
+ * Functions that integrate Glazed Builder with contrib projects.
+ *
+ * @}
+ */
+
+/**
+ * Implements hook_wysiwyg_editor_settings_alter().
+ *
+ * Sets formatting options, also prevents CKeditor from deleting
+ * <link> tags that we may have in drag and drop elements.
+ *
+ * @ingroup integrations
+ */
+function glazed_builder_wysiwyg_editor_settings_alter(&$settings, $context){
+  //check if the editor is ckeditor and the version is at least 4.0
+  if($context['profile']->editor=='ckeditor' && $context['editor']['installed version'][0]>3){
+    //add custom settings for ckeditor 4.+ here
+    $settings['customConfig'] = base_path() . drupal_get_path('module', 'glazed_builder') . '/js/ckeditor.config.js';
+  }
+}
+
+/**
+ * Implements hook_bean_cache_clear().
+ *
+ * Refreshes Glazed Builder CMS elements when bean module refreshes its cache
+ * Ensures new bean blocks are added to CMS block list in Glazed Builder modal
+ *
+ * @ingroup integrations
+ */
+function glazed_builder_bean_cache_clear() {
+  // Clear static variables.
+  drupal_static_reset('glazed_builder_get_cms_element_names');
+  // Flush caches.
+  cache_clear_all('cms_elements_blocks', 'cache');
+}
+
+/**
+ * @} End of "defgroup integrations".
+ */
+
+/**
+ * AJAX callback: Handles various operations for frontend drag and drop builder
+ *
+ * This module uses its own subrouter to manage AJAX requests from the frontend
+ * 'action' variable in $_POST determines Operation to be executed.
+ *
+ * @see glazed_builder_menu()
+ */
+function glazed_builder_ajax() {
+  global $base_url;
+  if (isset($_POST['action'])) {
+    $action = $_POST['action'];
+  }
+  else {
+    $action = false;
+  }
+  switch ($action) {
+    case 'glazed_login':
+      // url, password.
+      drupal_json_output(user_access('edit via glazed builder'));
+      break;
+
+    case 'glazed_get_container_types':
+      // Lists fields that use Glazed Builder as default field formatter, used in Glazed Container element
+      $container_types = array();
+      if (user_access('edit via glazed builder')) {
+        $instances = field_info_instances();
+        foreach ($instances as $entity_type => $bundles) {
+          foreach ($bundles as $bundle_name => $instances) {
+            foreach ($instances as $field_name => $instance) {
+              if ($instance['display']['default']['type'] == 'text_glazed_builder') {
+                $container_types[$entity_type . '|' . $bundle_name] = $entity_type . ' - ' . $bundle_name;
+              }
+            }
+          }
+        }
+
+        drupal_json_output($container_types);
+      }
+      break;
+
+    case 'glazed_get_container_names':
+      // Lists field instances that use Glazed Builder as default field formatter, used in Glazed Container element
+      if (user_access('edit via glazed builder') && !empty($_POST['container_type'])) {
+        $type = explode('|', $_POST['container_type']);
+        $entity_type = $type[0];
+        $bundle = $type[1];
+
+        $fields = field_info_instances($entity_type, $bundle);
+        $glazed_fields = array();
+        foreach ($fields as $field) {
+          if (isset($field['display']['default']['type']) && $field['display']['default']['type'] == 'text_glazed_builder') {
+            $glazed_fields[$field['field_name']] = $field['label'];
+          }
+        }
+        $info = entity_get_info($entity_type);
+        $entities = entity_load($entity_type, array(), array($info['entity keys']['bundle'] => $bundle));
+        $container_names = array();
+        foreach ($entities as $eid => $entity) {
+          foreach ($glazed_fields as $name => $label) {
+            if (property_exists($entity, 'title')) {
+              $container_names[$eid . '|' . $name] = $entity->title . '|' . $label;
+            }
+            else {
+              $container_names[$eid . '|' . $name] = $entity->eid . '|' . $label;
+            }
+          }
+        }
+        drupal_json_output($container_names);
+      }
+      break;
+
+    case 'glazed_save_container':
+      // Saves Glazed Builder container instance to field, respecting permissions, language and revisions if supported
+      if (user_access('edit via glazed builder')) {
+
+        //
+        // Decodes data.
+        //
+        function glazed_builder_dec($encoded) {
+          $decoded = "";
+          for ($i = 0; $i < strlen($encoded); $i++) {
+            $b = ord($encoded[$i]);
+            $a = $b ^ 7;
+            $decoded .= chr($a);
+          }
+          return $decoded;
+        }
+
+        $cb_lang = $_POST['lang'];
+        $type = explode('|', $_POST['type']);
+        $entity_type = $type[0];
+        $bundle = $type[1];
+        $name = explode('|', $_POST['name']);
+        $eid = $name[0];
+        $field_name = $name[1];
+        $info = entity_get_info($entity_type);
+        $entities = entity_load($entity_type, array($eid));
+        $entity = reset($entities);
+        $field_lang = field_language($entity_type, $entity, $field_name, $cb_lang);
+        if (entity_access('update', $entity_type, $entity)) {
+          $entity->{$field_name}[$field_lang][0]['value'] = glazed_builder_remove_base_url(rawurldecode(glazed_builder_dec($_POST['shortcode'])));
+          // Check if the entity type supports revisions.
+          $entity_info = entity_get_info($entity_type);
+          if (!empty($entity_info['entity keys']['revision'])) {
+            // Let's respect node revision setting.
+            if ($entity_type == 'node') {
+              $entity->revision = in_array('revision', variable_get('node_options_' . $entity->type, array()));
+            }
+            else {
+              $entity->revision = TRUE;
+            }
+          }
+          entity_save($entity_type, $entity);
+          cache_clear_all(NULL, 'cache_page');
+        }
+        drupal_json_output('');
+      }
+      break;
+
+    case 'glazed_load_container':
+      // Loads Glazed Builder field content
+      if ($_POST['type'] != 'block') {
+        if (empty($_POST['type']) || empty($_POST['name'])) {
+          drupal_json_output();
+        }
+        $type = explode('|', $_POST['type']);
+        $entity_type = $type[0];
+        $bundle = $type[1];
+        $name = explode('|', $_POST['name']);
+        $eid = $name[0];
+        $field_name = $name[1];
+        $info = entity_get_info($entity_type);
+        $entities = entity_load($entity_type, array($eid));
+        $entity = reset($entities);
+        print glazed_builder_add_base_url($entity->{$field_name}[LANGUAGE_NONE][0]['value']);
+      }
+      break;
+
+    case 'glazed_builder_get_cms_element_names':
+      // Lists Drupal Blocks and Views Displays, used in Glazed Builder elements modal
+      if (user_access('edit via glazed builder')) {
+        module_load_include('inc', 'glazed_builder', 'glazed_builder.editor');
+        drupal_json_output(glazed_builder_get_cms_element_names());
+      }
+      break;
+
+    case 'glazed_get_cms_element_settings':
+      // Fetches settings for views display element settings modal
+      if (user_access('edit via glazed builder')) {
+        $name = explode('-', $_POST['name']);
+        if ($name[0] == 'view') {
+          $view = views_get_view($name[1]);
+          $view->set_display($name[2]);
+          $view->init_handlers();
+          $exposed_form = $view->display_handler->get_plugin('exposed_form');
+          print $exposed_form->render_exposed_form(TRUE);
+        }
+        module_invoke_all('glazed_cms_element_settings', $_POST['name']);
+      }
+      break;
+
+    case 'glazed_builder_load_cms_element':
+      // Loads Drupal block or views display
+      print glazed_builder_load_cms_element($_POST['name'], $_POST['settings'], $_POST['container'], $_POST['data'], TRUE);
+      break;
+
+    case 'glazed_get_page_templates':
+      // this refers to the templates you see when you click "CHOOSE A LAYOUT" on an empty Glazed Builder container
+      if (user_access('edit via glazed builder')) {
+        $query = db_select('glazed_page_templates', 't')
+          ->fields('t', array('uuid', 'title', 'module', 'category', 'image'))
+          ->orderBy('weight', 'ASC');
+        $result = $query->execute();
+        $templates = array();
+        while ($template = $result->fetchAssoc()) {
+          $templates[] = array(
+            'title' => $template['title'],
+            'uuid' => $template['uuid'],
+            'module' => $template['module'],
+            'category' => $template['category'],
+            'image' => !(empty($template['image'])) ? $base_url . '/' . drupal_get_path('module', $template['module']) . '/' . $template['image'] : $base_url . '/' . drupal_get_path('module', 'glazed_builder') . '/' . 'images/glazed_templates/not-found.png',
+          );
+        }
+        drupal_json_output($templates);
+      }
+      break;
+
+    case 'glazed_load_page_template':
+      // @see case 'glazed_get_page_templates'
+      if (user_access('edit via glazed builder')) {
+        $query = db_select('glazed_page_templates', 't')
+          ->fields('t', array('template',))
+          ->condition('t.uuid', $_POST['uuid']);
+        $template = $query->execute()->fetchAssoc();
+        print glazed_builder_add_base_url($template['template']);
+      }
+      break;
+
+    case 'glazed_get_templates':
+      // this refers to the templates in the "Saved Templates" tab in the Glazed Builder elements modal
+      if (user_access('edit via glazed builder')) {
+        global $user;
+        $query = db_select('glazed_user_templates', 't')
+          ->fields('t', array(
+            'name',
+          ))
+          ->condition('t.uid', $user->uid);
+        $result = $query->execute();
+        $templates = array();
+        while ($template = $result->fetchAssoc()) {
+          $templates[] = $template['name'];
+        }
+        drupal_json_output($templates);
+      }
+      break;
+
+    case 'glazed_load_template':
+      // @see case 'glazed_get_templates':
+      if (user_access('edit via glazed builder')) {
+        global $user;
+        $query = db_select('glazed_user_templates', 't')
+          ->fields('t', array(
+            'template',
+          ))
+          ->condition('t.name', $_POST['name'])
+          ->condition('t.uid', $user->uid);
+        $template = $query->execute()->fetchAssoc();
+        print glazed_builder_add_base_url($template['template']);
+      }
+      break;
+
+    case 'glazed_save_template':
+      // @see case 'glazed_get_templates':
+      if (user_access('edit via glazed builder')) {
+        global $user;
+        db_insert('glazed_user_templates')
+          ->fields(array(
+            'uid' => $user->uid,
+            'name' => $_POST['name'],
+            'template' => glazed_builder_remove_base_url($_POST['template']),
+          ))
+          ->execute();
+
+        drupal_json_output('');
+      }
+      break;
+
+    case 'glazed_delete_template':
+      // @see case 'glazed_get_templates':
+      if (user_access('edit via glazed builder')) {
+        global $user;
+        db_delete('glazed_user_templates')
+          ->condition('name', $_POST['name'])
+          ->condition('uid', $user->uid)
+          ->execute();
+        drupal_json_output('');
+      }
+      break;
+
+    default:
+      break;
+  }
+}
+
+/**
+ * AJAX callback: Constructs a image style URL and outputs it in JSON format.
+ *
+ * This is not part of the glazed_builder_ajax subrouter because it is not called
+ * by the main frontend Glazed Builder library. It is called by the glue code in
+ * js/ac_drupal.js that binds the builder with Drupal specific features.
+ *
+ * @see glazed_builder_menu()
+ */
+function glazed_builder_image_style_url() {
+  $file = file_load($_POST['fid']);
+  if ($_POST['style'] != 'empty') {
+    drupal_json_output(image_style_url($_POST['style'], $file->uri) . '&fid=' . $_POST['fid']);
+  }
+  else {
+    drupal_json_output(file_create_url($file->uri) . '?fid=' . $_POST['fid']);
+  }
+}
+
+/**
+ * Replaces url components with tokens.
+ *
+ * In database we store tokens for the base url, files directory and
+ * glazed builder module directory.
+ *
+ * @param string $content
+ *   Field data value containing Glazed Builder tokens.
+ *
+ * @return string
+ *   Field data value with full URLs reflecting current environment.
+ */
+function glazed_builder_remove_base_url($content) {
+  global $base_url;
+  $files_directory = variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files');
+  $module_directory = drupal_get_path('module', 'glazed_builder');
+  $content = str_replace($base_url, '-base-url-', $content);
+  $content = str_replace($files_directory, '-files-directory-', $content);
+  $content = str_replace($module_directory, '-module-directory-', $content);
+  return $content;
+}
+
+/**
+ * Expands url tokens to real url of current environment.
+ *
+ * @param string $content
+ *   Field data value containing Glazed Builder tokens.
+ *
+ * @return string
+ *   Field data value with full URLs reflecting current environment.
+ */
+function glazed_builder_add_base_url($content) {
+  global $base_url;
+  $files_directory = variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files');
+  $module_directory = drupal_get_path('module', 'glazed_builder');
+  $content = str_replace('-base-url-', $base_url, $content);
+  $content = str_replace('-files-directory-', $files_directory, $content);
+  $content = str_replace('-module-directory-', $module_directory, $content);
+  return $content;
+}
+
+/**
+ * Analyzes the raw fields value and readies it for being output to the page.
+ * Expands URL tokens to full urls, removes inline <script> and <link> tags and
+ * puts them in list for later processing by drupal_add_css/js.
+ * Replaces Drupal Blocks/Views element placeholders with full content.
+ *
+ * @param string $container
+ *   Identification string for container consisting of entity type|entity bundle.
+ *   |entity ID|field machine name.
+ * @param string $value
+ *   Raw field value.
+ * @param array $js
+ *   Array of javascript assets that will be passed onto render array for processing.
+ * @param array $css
+ *   Array of css assets that will be passed onto render array for processing.
+ *
+ * @return string $mode
+ *   Can either be dynamic or static. Dynamic indicates glazed_builder_frontend.js
+ *   will be needed for behaviors when this field is shown.
+ */
+function glazed_builder_update_html($container, &$value, &$js, &$css) {
+  global $base_url;
+  $value = glazed_builder_add_base_url($value);
+  $mode = 'static';
+  if ((strpos($value, 'glazed_frontend.min.js') !== FALSE) || strpos($value, 'glazed_frontend.js') !== FALSE) {
+    // dynamic mode means we add glazed_frontend.js for processing of elements
+    // and styles that depend on JS. For example circle counter, parallax backgrounds
+    // video backgrounds, etc.
+    $mode = 'dynamic';
+  }
+  else {
+    // DETECT AND REMOVE DEPRECATED EMBEDDED LOADER JS FROM LEGACY GLAZED BUILDER < 1.1.0
+    // In older versions of this module the contents of glazed_frontend.js
+    // were embedded in field data.
+    $value1 = explode('//<![CDATA[', $value);
+    if (count($value1) == 2) {
+      $value2 = explode('//]]>', $value1[1]);
+      if (count($value2) == 2) {
+        $mode = 'dynamic';
+        $js[] = drupal_get_path('module', 'glazed_builder') . '/glazed_builder/glazed_frontend.min.js';
+        $value = $value1[0] . $value2[1];
+      }
+    }
+  }
+
+  // We convert html string to DOM object so that we can process individual elements
+  $doc = new DOMDocument("1.0", "UTF-8");
+  $doc->resolveExternals = FALSE;
+  $doc->substituteEntities = FALSE;
+  $doc->strictErrorChecking = FALSE;
+  libxml_use_internal_errors(TRUE);
+  $raw = '<?xml encoding="UTF-8"><!DOCTYPE html><html><head></head><body>' . $value . '</body></html>';
+  // Makes sure we use UTF-8 encoding, is needed to prevent loss of multibyte characters
+  $forced_utf8 = mb_convert_encoding($raw, 'HTML-ENTITIES', 'UTF-8');
+  @$doc->loadHTML($forced_utf8);
+  libxml_clear_errors();
+
+  $xpath = new DOMXpath($doc);
+  // We aggregate all element scripts and remove the tag, but not sidebar
+  // elements for editors because those would never be restored and thus lost after resaving.
+  if (user_access('edit via glazed builder')) {
+    $result = $xpath->query('//script[not(ancestor::div[contains(@class,"az-template")])]');
+  }
+  else {
+    // For non-editors we also remove the sidebar elements assets
+    $result = $xpath->query('//script');
+  }
+  $nodes = array();
+  foreach ($result as $node) {
+    $nodes[] = $node;
+  }
+  foreach ($nodes as $node) {
+    if ($node->hasAttribute('src')) {
+      $src = $node->getAttribute('src');
+      if (strpos($src, $base_url . '/') == 0) {
+        $src = str_replace($base_url . '/', '', $src);
+      }
+      $js[] = urldecode($src);
+      $node->parentNode->removeChild($node);
+    }
+  }
+  $xpath = new DOMXpath($doc);
+  // We aggregate all element css and remove the link tags, but not sidebar
+  // elements for editors because those would never be restored and thus lost after resaving.
+  if (user_access('edit via glazed builder')) {
+    $result = $xpath->query('//link[not(ancestor::div[contains(@class,"az-template")])]');
+  }
+  else {
+    // For non-editors we also remove the sidebar elements assets
+    $result = $xpath->query('//link');
+  }
+  $nodes = array();
+  foreach ($result as $node) {
+    $nodes[] = $node;
+  }
+  foreach ($nodes as $node) {
+    if ($node->hasAttribute('href') && $node->hasAttribute('rel')) {
+      if ($node->getAttribute('rel') == "stylesheet") {
+        $href = $node->getAttribute('href');
+        if (strpos($href, $base_url . '/') == 0) {
+          $href = str_replace($base_url . '/', '', $href);
+        }
+        // Php realpath (and drupal) don't like urlencoded paths
+        // This is needed to decode spaces in glazed_elements paths
+        $css[] = urldecode($href);
+        $node->parentNode->removeChild($node);
+      }
+    }
+  }
+  // Drupal blocks and views are represented as empty tags, here we replace empty
+  // tags with the actual block or view content
+  $xpath = new DOMXpath($doc);
+  $result = $xpath->query('//div[contains(@class,"az-cms-element")]');
+  $nodes = array();
+  foreach ($result as $node) {
+    $nodes[] = $node;
+  }
+  foreach ($nodes as $node) {
+    while ($node->hasChildNodes()) {
+      $node->removeChild($node->firstChild);
+    }
+    $base = $node->getAttribute('data-azb');
+    $settings = $node->getAttribute('data-azat-settings');
+
+    // Additional settings for cms views.
+    $data = array(
+      'display_title' => $node->getAttribute('data-azat-display_title'),
+      'override_pager' => $node->getAttribute('data-azat-override_pager'),
+      'items' => $node->getAttribute('data-azat-items'),
+      'offset' => $node->getAttribute('data-azat-offset'),
+      'contextual_filter' => $node->getAttribute('data-azat-contextual_filter'),
+      'toggle_fields' => $node->getAttribute('data-azat-toggle_fields'),
+    );
+
+    $html = glazed_builder_load_cms_element(substr($base, 3), $settings, $container, $data);
+    if ($html) {
+      glazed_builder_append_html($node, $html);
+    }
+  }
+  $value = preg_replace('/^<!DOCTYPE.+?>/', '', str_replace(array(
+    '<?xml encoding="UTF-8">',
+    '<html>',
+    '</html>',
+    '<head>',
+    '</head>',
+    '<body>',
+    '</body>',
+  ), array('', '', '', '', '', '', ''), $doc->saveHTML()));
+  return $mode;
+}
+
+/**
+ * Appends HTML to DOMDocument object. Used to add Drupal Blocks/Views to DOM
+ * tree while processing raw Glazed Builder fields.
+ *
+ * @see glazed_builder_update_html()
+ *
+ * @param object $parent
+ *   The DOM object to which a new node will be added
+ * @param string $source
+ *   HTML code to be added on to DOM object
+ */
+function glazed_builder_append_html(DOMNode $parent, $source) {
+  $tmp_doc = new DOMDocument("1.0", "UTF-8");
+  $tmp_doc->resolveExternals = FALSE;
+  $tmp_doc->substituteEntities = FALSE;
+  $tmp_doc->strictErrorChecking = FALSE;
+  libxml_use_internal_errors(TRUE);
+  $raw = '<?xml encoding="UTF-8"><!DOCTYPE html><html><head></head><body>' . $source . '</body></html>';
+  if (function_exists('mb_convert_encoding')) {
+    $forced_utf8 = mb_convert_encoding($raw, 'HTML-ENTITIES', 'UTF-8');
+  }
+  else {
+    $forced_utf8 = $raw;
+  }
+  @$tmp_doc->loadHTML($forced_utf8);
+  libxml_clear_errors();
+  foreach ($tmp_doc->getElementsByTagName('head')->item(0)->childNodes as $node) {
+    $imported_node = $parent->ownerDocument->importNode($node, TRUE);
+    $parent->appendChild($imported_node);
+  }
+  foreach ($tmp_doc->getElementsByTagName('body')->item(0)->childNodes as $node) {
+    $imported_node = $parent->ownerDocument->importNode($node, TRUE);
+    $parent->appendChild($imported_node);
+  }
+}
+
+/**
+ * Attaches CSS and JS assets to field render array.
+ *
+ * @see glazed_builder.editor.inc
+ * @see glazed_builder_editor_attach()
+ *
+ * @param array $element
+ *   A renderable array for the $items, as an array of child elements keyed by numeric indexes starting from 0.
+ *   @see https://api.drupal.org/api/drupal/modules!field!field.api.php/function/hook_field_formatter_view/7.x
+ * @param string $content
+ *   Raw field value
+ * @param string $html_format
+ *   Valid HTML field value
+ * @param bool $glazed_editor
+ *   When FALSE only frontend rendering assets will be attached. When TRUE the full
+ *   drag and drop editor will be attached.
+ * @param string $glazed_lang
+ *   2 letter language code
+ */
+function glazed_builder_attach(&$element, $content, $html_format, $glazed_editor, $glazed_lang) {
+  $start_js_weight = 0;
+  global $base_url;
+
+  $element['#attached']['js'][] = array(
+    'data' => array(
+      'glazed_builder' => array('currentPath' => current_path()),
+    ),
+    'type' => 'setting',
+  );
+
+  if ($glazed_editor) {
+    $element['#attached']['js'][] = array(
+      'data' => "window.glazed_editor = true;",
+      'type' => 'inline',
+      'weight' => $start_js_weight + 0,
+    );
+  }
+
+  $element['#attached']['js'][] = array(
+    'data' => "window.glazed_ajaxurl = '" . $base_url . "/?q=glazed_builder_ajaxurl';",
+    'type' => 'inline',
+    'weight' => $start_js_weight + 3,
+  );
+  $element['#attached']['js'][] = array(
+    'data' => "window.glazed_lang = '" . $glazed_lang . "';",
+    'type' => 'inline',
+    'weight' => $start_js_weight + 4,
+  );
+  $element['#attached']['js'][] = array(
+    'data' => "window.glazed_baseurl = '" . $base_url . '/' . drupal_get_path('module', 'glazed_builder') . '/glazed_builder/' . "';",
+    'type' => 'inline',
+    'weight' => $start_js_weight + 5,
+  );
+  if (variable_get('glazed_development')) {
+    $element['#attached']['js'][] = array(
+      'data' => "window.glazed_development = true",
+      'type' => 'inline',
+      'weight' => $start_js_weight + 3,
+    );
+  }
+
+  $element['#attached']['js'][drupal_get_path('module', 'glazed_builder') . '/glazed_builder/vendor/underscore/underscore-min.js'] = array('weight' => -1);
+
+  if (variable_get('glazed_bootstrap', 0) == 1) {
+    $element['#attached']['css'][] = drupal_get_path('module', 'glazed_builder') . '/glazed_builder/vendor/bootstrap/css/bootstrap.min.css';
+    $element['#attached']['js'][drupal_get_path('module', 'glazed_builder') . '/glazed_builder/vendor/bootstrap/js/bootstrap.min.js'] = array('weight' => $start_js_weight + 9);
+  }
+  elseif (variable_get('glazed_bootstrap', 0) == 2) {
+    $element['#attached']['css'][] = drupal_get_path('module', 'glazed_builder') . '/glazed_builder/vendor/bootstrap-custom/css/bootstrap.min.css';
+    $element['#attached']['js'][drupal_get_path('module', 'glazed_builder') . '/glazed_builder/vendor/bootstrap-custom/js/bootstrap.min.js'] = array('weight' => $start_js_weight + 9);
+  }
+
+  if ($glazed_editor) {
+    module_load_include('inc', 'glazed_builder', 'glazed_builder.editor');
+    glazed_builder_editor_attach($start_js_weight, $element);
+  }
+  else {
+    if (!empty($element['id'])) {
+      $data = array('glazed_builder' => array('DisallowContainers' => array($element['id'])));
+      drupal_add_js($data, 'setting');
+    }
+  }
+
+  $element['#attached']['css'][] = drupal_get_path('module', 'glazed_builder') . '/glazed_builder/css/glazed_builder.css';
+}
+
+/**
+ * Renders Blocks and Views Displays so they can be inserted into fields.
+ *
+ * @param string name
+ *   Block identifier consisting of type-module-delta. Type can either be
+ *   'block' or 'view'.
+ * @param string $exp_input
+ *   Exposed Filter input for views displays that support exposed filters
+ * @param string $container
+ *   Identification string for container consisting of entity type|entity bundle.
+ *   |entity ID|field machine name.
+ * @param array data
+ *   Array containing settings for this CMS element, including title display,
+ *   views pager settings, views fields toggling, and contextual filter settings.
+ * @param boolean $ajax
+ *   Whether this is an Ajax request or not.
+ *
+ * @return string $output
+ *   If $ajax is false we return a string containing the HTML of the block. If
+ *   $ajax is true we return a JSON formatted string containing the block HTML
+ *   as well as block settings and URLs of javascript and css assets that need
+ *   to be added to the page to show the block.
+ *
+ */
+function glazed_builder_load_cms_element($name, $exp_input, $container = '', $data = array(), $ajax = FALSE) {
+  $n = explode('-', $name);
+  if ($ajax) {
+    $outputArray = array();
+    # @see ### Send Assets to Page
+    $old_js = drupal_add_js();
+    $old_css = drupal_add_css();
+    // Temporarily swap current path to let the view extract argument. This is the
+    // same way Views UI does this.
+    $current_path = $_GET['q'];
+    $_GET['q'] = $data['originalPath'];
+  }
+  # @see ### Send Assets to Page
+  if ($n[0] == 'block') {
+    $module = $n[1];
+    $delta = implode('-', array_slice($n, 2));
+    $output = '';
+
+    // Let's respect block visibility settings.
+    $block_info = block_load($module, $delta);
+    if (isset($block_info->bid)) {
+      $block_info->status = 1;
+      $block_info->theme = $GLOBALS['theme_key'];
+      // Set empty region to prevent Dashboard module from disabling the block.
+      // @see dashboard_block_list_alter().
+      $block_info->region = BLOCK_REGION_NONE;
+      $block_list = array($block_info);
+      // If any module has visibility settings for this block it will remove the
+      // block in this drupal_alter.
+      // @see https://api.drupal.org/api/drupal/modules%21block%21block.api.php/function/hook_block_list_alter/7.x
+      drupal_alter('block_list', $block_list);
+      if (count($block_list) == 0) {
+        return '';
+      }
+
+      $func = $module . '_block_view';
+      // Prevent fatal error module is removed but block not removed from builder content
+      if (function_exists($func)) {
+        $block = $func($delta);
+        if ($data['display_title'] && $block['subject']) {
+          $output .= '<h2 class="block-title">' . check_plain($block['subject']) . '</h2>';
+        }
+        $output .= render($block['content']);
+      }
+    }
+  }
+  else {
+    if (($n[0] == 'view') && ($view = views_get_view($n[1]))) {
+      $view->set_display($n[2]);
+
+      $view->display_handler->options['exposed_block'] = TRUE;
+      parse_str(html_entity_decode($exp_input), $view->exposed_input);
+      $view->get_exposed_input();
+      if ($view->display_handler->plugin_name == 'block') {
+        if ((!empty($view->exposed_input))) {
+          $filters = $view->display_handler->get_option('filters');
+          foreach ($view->exposed_input as $key => $value) {
+            // Exposed filter token All for terms filter is broken, instead just skip this filter
+            if ($value == 'All') {
+              continue;
+            }
+            foreach ($filters as &$filter) {
+              if (isset($filter['exposed']) && $filter['exposed']) {
+                if ($filter['expose']['identifier'] == $key) {
+                  $filter['value'] = $value;
+                }
+              }
+            }
+          }
+          $view->display_handler->set_option('filters', $filters);
+
+          $sorts = $view->display_handler->get_option('sorts');
+          foreach ($view->exposed_input as $key => $value) {
+            if (isset($sorts[$key])) {
+              if (isset($sorts[$key]['exposed']) && $sorts[$key]['exposed']) {
+                $sorts[$key]['order'] = $value;
+              }
+            }
+          }
+          $view->display_handler->set_option('sorts', $sorts);
+        }
+      }
+
+      // Override pager.
+      if (isset($data['override_pager']) && $data['override_pager'] == 'yes') {
+
+        // Set items count.
+        if (!empty($data['items'])) {
+          $view->set_items_per_page($data['items']);
+        }
+
+        // Set offset.
+        if (!empty($data['offset'])) {
+          $view->set_offset($data['offset']);
+        }
+      }
+
+      // Exclude some fields.
+      if (!empty($data['toggle_fields'])) {
+        $fields = $view->display_handler->get_option('fields');
+        $data['toggle_fields'] = explode(',', $data['toggle_fields']);
+        foreach ($fields as $k => $i) {
+          if (!in_array($k, $data['toggle_fields'])) {
+            $fields[$k]['exclude'] = TRUE;
+          }
+        }
+        $view->display_handler->set_option('fields', $fields);
+      }
+
+      // Added arguments for view.
+      if (!empty($data['contextual_filter'])) {
+        // Multi filter explode by '/'.
+        $data['contextual_filter'] = explode('/', $data['contextual_filter']);
+        $view->pre_execute($data['contextual_filter']);
+      }
+      else {
+        $view->pre_execute();
+      }
+      # @see ### Send Assets to Page
+      if ($ajax) {
+        $old_js = drupal_add_js();
+        $old_css = drupal_add_css();
+      }
+
+      $output = $view->render();
+
+      ### Send Assets to Page
+      // @see https://api.drupal.org/api/drupal/includes%21ajax.inc/function/ajax_render/7
+      if ($ajax) {
+        // We subtract assets that are added to request before rendering the view
+        // because they would already be on the page.
+        $new_js = array_diff_key(drupal_add_js(), $old_js);
+        $new_css = array_diff_key(drupal_add_css(), $old_css);
+        $outputArray['js'] = drupal_get_js('footer', $new_js, TRUE);
+        $outputArray['js'] .= drupal_get_js('header', $new_js, TRUE);
+        $scripts = drupal_add_js();
+        if (!empty($scripts['settings'])) {
+          $settings = $scripts['settings'];
+          $outputArray['settings'] = drupal_array_merge_deep_array($settings['data']);
+        }
+        // What's still missing: inline js/css which is also found in drupal_add_js/css
+        $outputArray['css'] = drupal_get_css($new_css, TRUE);
+      }
+
+      // Get views title.
+      $title = $view->get_title();
+      if (isset($data['display_title']) && $data['display_title'] == 'yes' && !empty($title)) {
+        $title = array(
+          '#type' => 'container',
+          '#attributes' => array(
+            'class' => array('views-title'),
+          ),
+          'title' => array(
+            '#theme' => 'html_tag',
+            '#tag' => 'h2',
+            '#value' => $title,
+          ),
+        );
+
+        // Insert title into views $output.
+        $output = substr_replace($output, render($title), strpos($output, '>') + 1, 0);
+      }
+    }
+    else {
+      if (!isset($settings)): $settings = array(); endif;
+      $output = module_invoke_all('glazed_cms_element', $name, $settings, $container);
+    }
+  }
+  if (!$output) {
+    $output = '<div class="empty-cms-block-placeholder"></div>';
+  }
+  if ($ajax) {
+    // Revert current path.
+    $_GET['q'] = $current_path;
+    $outputArray['data'] = $output;
+    $output = drupal_json_encode($outputArray);
+  }
+  return $output;
+}

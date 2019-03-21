@@ -1,0 +1,669 @@
+<?php
+
+/************************************************************
+ * gj_deanhopkins_tutor_ad_menu                             *
+ ************************************************************
+ * Description: Register menu hooks. Implements hook_menu() *
+ * Arguments:                                               *
+ * Return:      $items                                      *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function gj_deanhopkins_tutor_ad_menu() {
+    $items['gj_deanhopkins_tutor_ad/uni_autocomplete'] = array(
+        'page callback' => '_gj_deanhopkins_tutor_ad_uni_autocomplete',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK
+    );
+
+    $items['admin/config/gj_deanhopkins_tutor_ad'] = array(
+        'title' => "Tutor Ad (gj_deanhopkins_tutor_ad)",
+        'description' => t("TutorAd Node Config."),
+        'position' => 'right',
+        'weight' => -5,
+        'access arguments' => array('administer site configuration'),
+        'page callback' => 'system_admin_menu_block_page',
+        'file' => 'system.admin.inc',
+        'file path' => drupal_get_path('module', 'system'),
+    );
+
+    $items['admin/config/gj_deanhopkins_tutor_ad/configuration'] = array(
+        'title' => 'Reference Settings',
+        'description' => t('Configure Tutor Ad References'),
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('gj_deanhopkins_tutor_ad_ref_config_form'),
+        'access arguments' => array('administer site configuration'),
+    );
+
+
+    return $items;
+}
+
+/************************************************************
+ * gj_deanhopkins_tutor_ad_node_info                        *
+ ************************************************************
+ * Description: Register node type.                         *
+ *              Implements hook_node_info()                 *
+ * Arguments:                                               *
+ * Return:      array defining node details                 *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function gj_deanhopkins_tutor_ad_node_info() {
+    return array(
+        'tutor_ad' => array(
+            'name' => t('Tutor Ad'),
+            'base' => 'tutor_ad',
+            'description' => t('Tutor Ad Description'),
+            'has_title' => FALSE,
+        )
+    );
+}
+
+/************************************************************
+ * tutor_ad_form                                            *
+ ************************************************************
+ * Description: Implements hook_form()                      *
+ * Arguments:   $node, $form_state                          *
+ * Return:      node_content_form()                         *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function tutor_ad_form($node, $form_state) {
+    return node_content_form($node, $form_state);
+}
+
+/*************************************************************
+ * gj_deanhopkins_tutor_ad_form_tutor_ad_node_form_alter     *
+ *************************************************************
+ * Description: Implements form_alter()                      *
+ *              Pre-processing tutor ad form elements:       *
+ *              -Set form action                             *
+ *              -Set autocomplete paths                      *
+ *              -Hide backend fields from user               *
+ *              -Set advert first/last name from userprofile *
+ * Arguments:   &$form, &$form_state, $form_id               *
+ * Return:                                                   *
+ *************************************************************
+ * Author:      Dean Hopkins                                 *
+ * Date:        10-12-2018                                   *
+ *************************************************************/
+function gj_deanhopkins_tutor_ad_form_tutor_ad_node_form_alter(&$form, &$form_state, $form_id) {
+    global $user;
+
+    $is_edit = !(!isset($form['#node']->nid) || isset($form['#node']->is_new));
+
+    if (isset($form['#prefix'])){
+        //change preview text
+        $preview_search_text = "Preview Your Search Listing";
+        $preview_search_subtext = variable_get('var_txt_preview_search_listing', t(get_lorem_ipsum()));
+        $preview_search_html = "<div style='margin-bottom: 30px;'>
+                                    <h3>" . $preview_search_text . "</h3>
+                                    <span class='preview-subtext'>" . $preview_search_subtext . "</span>
+                                 </div>";
+
+
+
+        $preview_full_text = "Preview Your Full Profile";
+        $preview_full_subtext = variable_get('var_txt_preview_full_profile', t(get_lorem_ipsum()));
+        $preview_full_html = "<div style='margin-bottom: 30px; margin-top: 25px'>
+                                    <h3>" . $preview_full_text . "</h3>
+                                    <span class='preview-subtext'>" . $preview_full_subtext . "</span>
+                                 </div>";
+
+        $form['#prefix'] = str_replace("<h3>Preview trimmed version</h3>", $preview_search_html, $form['#prefix']);
+        $form['#prefix'] = str_replace("<h3>Preview full version</h3>", $preview_full_html, $form['#prefix']);
+
+        $subtext_container = "<div class='preview-subtext'>";
+
+        $_SESSION['messages']['status'][0] = "Preview, amend or submit your application.";
+    }
+
+    //set form action to custom handler
+    $form['actions']['submit']['#submit'][] = 'gj_deanhopkins_tutor_ad_form_submit';
+
+    //set university autocomplete paths as they are added
+    for ($x = 0; $x <= sizeof($form['field_col_add_degree']['und']); $x++){
+        if (isset($form['field_col_add_degree']['und'][$x])){
+            $form['field_col_add_degree']['und'][$x]['field_degree_university']['und'][0]['value']['#autocomplete_path'] = 'gj_deanhopkins_tutor_ad/uni_autocomplete';
+            $form['field_col_add_degree']['und'][$x]['field_degree_university']['und'][0]['value']['#type'] = 'term_ref_autocomplete_field';
+        }
+    }
+
+    //hide availability backend text field
+    //this text field is controlled indirectly via the availability widget. hidden from user.
+    $form['field_my_availability_for_tutori']['#prefix'] = '<div style="display:none;">';
+    $form['field_my_availability_for_tutori']['#suffix'] = '</div>';
+
+
+    if (!has_role_manager($user) && !has_role_admin($user)){
+        //Set first/last name values for tutor ad based on user profile
+        $user_first_name = get_user_firstname($user->uid);
+        $user_last_name = get_user_lastname($user->uid);
+
+        if($user_first_name) {
+            $form['field_tutor_first_name']['und'][0]['value']['#value'] = $user_first_name;
+            $form['field_tutor_second_name']['und'][0]['value']['#value'] = $user_last_name;
+        }
+    }
+
+
+    //prevent resize textarea
+    $form['field_tutor_full_description'][LANGUAGE_NONE][0]['value']['#resizable'] = FALSE;
+    $form['field_tutor_about_sessions'][LANGUAGE_NONE][0]['value']['#resizable'] = FALSE;
+
+    //set field collection "add new" labels
+    $form['field_col_add_degree']['und']['add_more']['#value'] = "Add another Degree   ";
+    $form['field_col_add_an_a_level_grade']['und']['add_more']['#value'] = "Add another A Level   ";
+    $form['field_col_subject_level_pricing']['und']['add_more']['#value'] = "Add another row   ";
+
+    if (($form['nid']['#value'])){
+        $form['actions']['submit']['#value'] = 'Save changes';
+    } else {
+        $form['actions']['submit']['#value'] = 'Submit application';
+    }
+
+    //set placeholders
+    $form['field_tutor_full_description']['und'][0]['value']['#attributes']['placeholder'] = variable_get('var_txt_about_me_placeholder', t(get_lorem_ipsum()));
+    $form['field_tutor_about_sessions']['und'][0]['value']['#attributes']['placeholder'] = variable_get('var_txt_about_sessions_placeholder', t(get_lorem_ipsum()));
+    $form['field_enter_a_youtube_profile_vi']['und'][0]['value']['#attributes']['placeholder'] = t("Enter YouTube");
+
+    $keys = element_children($form['field_col_add_degree']['und']);
+    foreach ($keys as $key) {
+        if (is_numeric($key)) {
+            //set placeholder values for qualification fields added dynamically
+            $form['field_col_add_degree']['und'][$key]['field_degree_university']['und'][0]['value']['#attributes']['placeholder'] = t('Enter a university');
+            $form['field_col_add_degree']['und'][$key]['field_degree_name']['und'][0]['value']['#attributes']['placeholder'] = t("Enter your degree title eg 'Pure Mathematics BSc'");
+        }
+    }
+
+    $form['field_col_subject_level_pricing']['#prefix'] = "<div id='div-edit-subject-level-pricing'>";
+    $form['field_col_subject_level_pricing']['#suffix'] = "</div>";
+
+    foreach(element_children($form['field_col_subject_level_pricing']['und']) as $index){
+        $key = (string)$index;
+        if ($key != "add_more"){
+            $selected = isset($form_state['values']['field_col_subject_level_pricing']['und'][$key]['field_offered_subject']['und'][0]) ? $form_state['values']['field_col_subject_level_pricing']['und'][$key]['field_offered_subject']['und'][0] : null;
+
+            $form['field_col_subject_level_pricing']['und'][$key]['field_offered_subject']['und']['#ajax'] = array(
+                'callback' => 'gj_deanhopkins_tutor_ad_subject_level_callback',
+            );
+
+            $form['field_col_subject_level_pricing']['und'][$key]['field_offered_level']['und']['#ajax'] = array(
+                'callback' => 'gj_deanhopkins_tutor_ad_subject_level_callback',
+            );
+
+            if ($selected){
+                $form['field_col_subject_level_pricing']['und'][$key]['field_offered_level']['und']['#options'] = gj_deanhopkins_tutor_ad_get_subject_levels($selected, $form_state['values']['field_col_subject_level_pricing']['und'], $index);
+            } else {
+                if (isset($form['field_col_subject_level_pricing']['und'][$key]['field_offered_level']['und']['#options'])){
+                    unset($form['field_col_subject_level_pricing']['und'][$key]['field_offered_level']['und']['#options']);
+                }
+            }
+
+            if ($is_edit){
+                $selected = isset($form_state['field']['field_col_subject_level_pricing']['und']['entity'][$key]->field_offered_subject['und'][0]['tid']) ? $form_state['field']['field_col_subject_level_pricing']['und']['entity'][$key]->field_offered_subject['und'][0] : null;
+                if ($selected){
+                    $form['field_col_subject_level_pricing']['und'][$key]['field_offered_level']['und']['#options'] = gj_deanhopkins_tutor_ad_get_subject_levels($selected, $form_state['values']['field_col_subject_level_pricing']['und'], $index);
+                }
+            }
+        }
+    }
+
+
+    $field_col_instances = $form['field_col_add_reference']['und'];
+    $keys = element_children($field_col_instances);
+    foreach ($keys as $key) {
+        $review_by_prefix = "<span class='tutor-ad-edit-review-by'>Review by ";
+        // Skip the 'add_more' element.;
+        if (is_numeric($key)) {
+            //set placeholder values for reference fields added dynamically
+            $form['field_col_add_reference']['und'][$key]['field_reference_first_name']['und'][0]['value']['#attributes']['placeholder'] = t('Enter first name');
+            $form['field_col_add_reference']['und'][$key]['field_reference_last_name_init']['und']['#options']['_none'] = t('Select');
+            $form['field_col_add_reference']['und'][$key]['field_reference_text']['und'][0]['value']['#attributes']['placeholder'] = variable_get('var_txt_review_text_placeholder', t(get_lorem_ipsum()));
+
+            if (isset($form['field_col_add_reference']['und'][$key]['field_reference_first_name']['und'][0]['value']['#default_value'])){
+                $review_by_prefix .= $form['field_col_add_reference']['und'][$key]['field_reference_first_name']['und'][0]['value']['#default_value'];
+                $review_by_prefix .= " " . $form['field_col_add_reference']['und'][$key]['field_reference_last_name_init']['und']['#default_value'][0];
+            }
+            $review_by_prefix .= ".</span>";
+
+            if ($key > 0 || ($key == 0 && sizeof($keys) > 2)){
+                $form['field_col_add_reference']['und'][$key]['field_reference_star_rating']['#prefix'] = $review_by_prefix . "
+                    <div class='row'><div class='col-md-12'><span class='tutor-ad-edit-label'> Star rating</span>
+                ";
+            } else {
+                $form['field_col_add_reference']['und'][$key]['field_reference_star_rating']['#prefix'] = "
+                    <div class='row'><div class='col-md-12'><span class='tutor-ad-edit-label'> Star rating</span>
+                ";
+            }
+
+
+
+            $form['field_col_add_reference']['und'][$key]['field_reference_first_name']['#prefix'] = "
+                <div class='row'><div class='col-md-3 tutor-ad-edit-ref-name'><span class='tutor-ad-edit-label'> First name</span>
+            ";
+            $form['field_col_add_reference']['und'][$key]['field_reference_first_name']['#suffix'] = "
+                </div>
+            ";
+
+            $form['field_col_add_reference']['und'][$key]['field_reference_last_name_init']['#prefix'] = "
+                <div class='col-md-3'><span class='tutor-ad-edit-label'> Last name initial</span>
+            ";
+            $form['field_col_add_reference']['und'][$key]['field_reference_last_name_init']['#suffix'] = "
+                </div></div><br />
+            ";
+
+            $form['field_col_add_reference']['und'][$key]['field_reference_text']['#prefix'] = "
+                <div class='row'><div class='col-md-12'><span class='tutor-ad-edit-label'> Review</span>
+            ";
+            $form['field_col_add_reference']['und'][$key]['field_reference_text']['#suffix'] = "
+                </div></div>
+            ";
+
+
+            if ($key > 0){
+                $form['field_col_add_reference']['und'][0]['remove_button']['#value'] = "Delete";
+                $form['field_col_add_reference']['und'][$key]['remove_button']['#value'] = "Delete";
+
+                $form['field_col_add_reference']['und'][0]['remove_button']['#suffix'] = "<hr />";
+                $form['field_col_add_reference']['und'][$key]['remove_button']['#suffix'] = "<hr />";
+
+                //$form['field_col_add_reference']['und'][$key]['field_reference_text']['und'][0]['value']['#attributes']['readonly'] = 'readonly';
+            }
+
+        }
+
+    }
+
+    if (!isset($form['#node']->nid) || isset($form['#node']->is_new)) {
+        // This is a new node. (Add)
+    }
+    else {
+        //This is an existing node. (Edit)
+        $form['field_tutor_accept_tos']['#value'] = 1;
+        $form['field_tutor_accept_tos']['und']['#value'] = 1;
+    }
+
+    $form['field_col_add_reference']['und']['add_more']['#value'] = "Add another reference   ";
+
+    $form['#validate'][] = 'gj_deanhopkins_tutor_ad_form_validate';
+}
+
+/************************************************************
+ * gj_deanhopkins_tutor_ad_form_validate                    *
+ ************************************************************
+ * Description: Validation callback for new tutor ad form   *
+ *              Ensure minimum references are added         *
+ * Arguments:   $form, $form_state                          *
+ * Return:                                                  *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function gj_deanhopkins_tutor_ad_form_validate($form, &$form_state){
+    if (sizeof(element_children($form['field_col_add_reference']['und'])) < ((int)variable_get('tutor_ad_min_refs') + 1)) {
+        form_set_error('title', 'Minimum of 3 references required.');
+    }
+
+    if (!$form['field_tutor_accept_tos']['und']['#checked']){
+        form_set_error('field_tutor_accept_tos', t('Accept Terms and Conditions field is required.'));
+    }
+}
+
+/************************************************************
+ * gj_deanhopkins_tutor_ad_form_submit                      *
+ ************************************************************
+ * Description: Handle form submission and redirect         *
+ *              to /dashboard                               *
+ * Arguments:   &$form, &$form_state                        *
+ * Return:                                                  *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function gj_deanhopkins_tutor_ad_form_submit(&$form, &$form_state) {
+    drupal_prepare_form($form['#id'], $form, $form_state);
+    drupal_process_form($form['#id'], $form, $form_state);
+
+    $form_state['redirect'] = '/tutor-application-submitted';
+}
+
+/************************************************************
+ * gj_deanhopkins_tutor_ad_node_submit                      *
+ ************************************************************
+ * Description: Handle pre-submission:                      *
+ *              -Set tutor ad title                         *
+ * Arguments:   &$node                                      *
+ * Return:                                                  *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function gj_deanhopkins_tutor_ad_node_submit(&$node) {
+    global $user;
+
+    if ($node->form_id == "tutor_ad_node_form"){
+        if (!has_role_admin($user) && !has_role_manager($user)){
+            $tutor_ad_title = _generate_tutor_ad_title($node);
+            $node->field_tutor_ad_title['und'][0]['value'] = $tutor_ad_title;
+            $node->title = $tutor_ad_title;
+        }
+    }
+}
+
+/****************************************************************
+ * _generate_tutor_ad_title                                     *
+ ****************************************************************
+ * Description: Generate a tutor advert title in format:        *
+ *              [Tutor-First-Name]-[University]-[Subject]-Tutor *
+ * Arguments:   $node                                           *
+ * Return:      title string ($tutor_ad_title)                  *
+ ****************************************************************
+ * Author:      Dean Hopkins                                    *
+ * Date:        10-12-2018                                      *
+ ****************************************************************/
+function _generate_tutor_ad_title($node){
+    $subject_tid = $node->field_col_subject_level_pricing['und'][0]["field_offered_subject"]["und"][0]["tid"];
+    $university = $node->field_col_add_degree['und'][0]['field_degree_university']['und'][0]['value'];
+    $first_name = ucwords($node->field_tutor_first_name['und'][0]['value']);
+
+    //get subject title
+    //if a level tid is returned, display parent subject
+    $subject_term = taxonomy_term_load($subject_tid);
+    if ($subject_term->term_type['und'][0]['value'] == "Level"){
+        $parents = taxonomy_get_parents($subject_tid);
+        $subject_term = array_pop($parents);
+    }
+
+    //concatenate to format
+    $tutor_ad_title = $first_name . "-" . $university . "-" . $subject_term->name . "-Tutor";
+    //replace spaces with hyphens
+    $tutor_ad_title = str_replace(' ', '-', $tutor_ad_title);
+
+    return $tutor_ad_title;
+}
+
+/****************************************************************
+ * gj_deanhopkins_tutor_ad_preprocess_node                      *
+ ****************************************************************
+ * Description: Set theme suggestions for teaser template       *
+ * Arguments:   $vars                                           *
+ * Return:                                                      *
+ ****************************************************************
+ * Author:      Dean Hopkins                                    *
+ * Date:        10-12-2018                                      *
+ ****************************************************************/
+function gj_deanhopkins_tutor_ad_preprocess_node(&$vars) {
+    if($vars['view_mode'] == 'teaser') {
+        $vars['theme_hook_suggestions'][] = 'node__' . $vars['node']->type . '__teaser';
+    }
+}
+
+/****************************************************************
+ * gj_deanhopkins_tutor_ad_theme                                *
+ ****************************************************************
+ * Description: Register template paths. Implements hook_theme()*
+ * Arguments:   $existing, $type, $theme, $path                 *
+ * Return:      $theme                                          *
+ ****************************************************************
+ * Author:      Dean Hopkins                                    *
+ * Date:        10-12-2018                                      *
+ ****************************************************************/
+function gj_deanhopkins_tutor_ad_theme($existing, $type, $theme, $path) {
+    $theme = array();
+
+    $theme['tutor_ad_node_form'] = array(
+        'render element' => 'form',
+        'template' => 'node--add--tutor_ad',
+        'path' => drupal_get_path('module', 'gj_deanhopkins_tutor_ad') . '/templates',
+    );
+
+
+    $theme['node__tutor_ad'] = array(
+        'render element' => 'content',
+        'base hook' => 'page',
+        'template' => 'node--tutor_ad',
+        'path' => drupal_get_path('module', 'gj_deanhopkins_tutor_ad') . '/templates',
+    );
+
+
+    $theme['node__tutor_ad__teaser'] = array(
+        'render element' => 'content',
+        'base hook' => 'node',
+        'template' => 'node--tutor_ad--teaser',
+        'path' => drupal_get_path('module', 'gj_deanhopkins_tutor_ad') . '/templates',
+    );
+
+    return $theme;
+}
+
+/************************************************************
+ * gj_deanhopkins_tutor_ad_subject_level_callback           *
+ ************************************************************
+ * Description: Subject level dynamic select ajax callback  *
+ * Arguments:   $form, $form_state                          *
+ * Return:                                                  *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function gj_deanhopkins_tutor_ad_subject_level_callback($form, &$form_state){
+    $commands = array();
+    $commands[] = ajax_command_replace('#div-edit-subject-level-pricing', drupal_render($form['field_col_subject_level_pricing']));
+    return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+/************************************************************
+ * gj_deanhopkins_tutor_ad_get_subject_levels               *
+ ************************************************************
+ * Description: Return levels available for given subject   *
+ * Arguments:   $selected                                   *
+ * Return:      $ret (assosciative array of level tid/name  *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function gj_deanhopkins_tutor_ad_get_subject_levels($selected, $field_col_items, $current_key){
+    $ret = array();
+
+    $selected_subject_tid = $selected['tid'];
+    $level_terms = taxonomy_get_children($selected_subject_tid);
+
+    foreach ($level_terms as $level){
+        $already_chosen = FALSE;
+        foreach(element_children($field_col_items) as $index){
+            $key = (string)$index;
+            if ($key != "add_more"){
+                if ($field_col_items[$key]['field_offered_level']['und'][0]['tid'] == $level->tid
+                    && $current_key != $index){
+                    $already_chosen = TRUE;
+                    break;
+                }
+            }
+        }
+
+        if (!$already_chosen){
+            $ret[$level->tid] = $level->name;
+        }
+    }
+
+    return $ret;
+}
+
+/*******************************************************************
+ * _gj_deanhopkins_tutor_ad_uni_autocomplete                       *
+ *******************************************************************
+ * Description: Ajax autocomplete from taxonomy terms              *
+ *              vocabulary: taxonomy_degree_institutions           *
+ * Arguments:   $raw_tags_typed (live user input)                  *
+ * Return:      json list of matching taxonomy terms               *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        10-12-2018                                         *
+ *******************************************************************/
+function _gj_deanhopkins_tutor_ad_uni_autocomplete($raw_tags_typed = '') {
+    $term_matches = array();
+    if (strlen($raw_tags_typed) > 2){
+        // The user enters a comma-separated list of tags. We only autocomplete the last tag.
+        //$tids = _term_ref_autocomplete_parse_input($raw_tags_typed);
+        $tags_typed = drupal_explode_tags($raw_tags_typed);
+        //$tag_last = (count($tids) == count($tags_typed)) ? '' : drupal_strtolower(array_pop($tags_typed));
+        $tag_last = drupal_strtolower(array_pop($tags_typed));
+
+        if ($tag_last != '') {
+            $vids = [taxonomy_vocabulary_machine_name_load('taxonomy_degree_institutions')->vid];
+
+            $query = db_select('taxonomy_term_data', 't');
+            $query->addTag('translatable');
+            $query->addTag('term_access');
+
+            // Select rows that match by term name.
+            $tags_return = $query
+                ->fields('t', array('tid', 'name'))
+                ->condition('t.vid', $vids)
+                ->condition('t.name', '%' . db_like($tag_last) . '%', 'LIKE')
+                ->execute()
+                ->fetchAllKeyed();
+
+            $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
+
+            foreach ($tags_return as $tid => $name) {
+                $term_matches[$tid]['display'] = $prefix . $name;
+                $term_matches[$tid]['position'] = 1;
+                $term_matches[$tid]['name'] = $name;
+
+                if (count($term_matches) > 6){
+                    array_shift($term_matches);
+                }
+            }
+        }
+
+        drupal_json_output($term_matches);
+    }
+}
+
+/*******************************************************************
+ * gj_deanhopkins_get_price_per_hour_values                        *
+ *******************************************************************
+ * Description: Get price per hour taxonomy terms for select       *
+ *              Taxonomy: taxonomy_price_per_hour                  *
+ * Arguments:                                                      *
+ * Return:      list of matching taxonomy terms                    *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        10-12-2018                                         *
+ *******************************************************************/
+function gj_deanhopkins_get_price_per_hour_values(){
+    $term_matches = array();
+    $vid = taxonomy_vocabulary_machine_name_load('taxonomy_price_per_hour')->vid;
+
+    $query = db_select('taxonomy_term_data', 't');
+    $query->addTag('translatable');
+    $query->addTag('term_access');
+
+    // Select rows that match by term name.
+    $tags_return = $query
+        ->fields('t', array('tid', 'name'))
+        ->condition('t.vid', $vid)
+        ->execute()
+        ->fetchAllKeyed();
+
+
+    foreach ($tags_return as $tid => $name) {
+        $term_matches[$tid] = $name;
+    }
+    return $term_matches;
+}
+
+/****************************************************************
+ * field_hier_subject_level_hierarchical_select_default_configs *
+ ****************************************************************
+ * Description: Set default configs for subject level           *
+ *              hierarchical selects used in tutor ad           *
+ * Arguments:   $form, $form_state                              *
+ * Return:                                                      *
+ ****************************************************************
+ * Author:      Dean Hopkins                                    *
+ * Date:        10-12-2018                                      *
+ ****************************************************************/
+function field_hier_subject_level_hierarchical_select_default_configs() {
+    $configs = array();
+    $config = array(
+        'save_lineage' => '0',
+        'enforce_deepest' => '1',
+        'resizable' => '0',
+        'level_labels' => array(
+            'status' => 0,
+            'labels' => array(
+                '0' => '',
+                '1' => '',
+            ),
+        ),
+        'dropbox' => array(
+            'status' => 0,
+            'title' => 'All selections',
+            'limit' => '0',
+            'reset_hs' => '1',
+            'sort' => 1,
+        ),
+        'editability' => array(
+            'status' => 0,
+            'item_types' => array(
+                '0' => '',
+                '1' => '',
+            ),
+            'allowed_levels' => array(
+                '0' => 1,
+                '1' => 1,
+            ),
+            'allow_new_levels' => 0,
+            'max_levels' => '1',
+        ),
+        'entity_count' => array(
+            'enabled' => 0,
+            'require_entity' => 0,
+            'settings' => array(
+                'count_children' => 0,
+                'entity_types' => array(
+                    'node' => array(
+                        'count_node' => array(
+                            'article' => 0,
+                            'page' => 0,
+                            'cb_drag_drop_page' => 0,
+                            'tutor_ad' => 0,
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        'animation_delay' => 400,
+        'special_items' => array(),
+        'render_flat_select' => 0,
+        'config_id' => 'taxonomy-field_hier_subject_level',
+    );
+
+    $configs['taxonomy-field_hier_subject_level'] = $config;
+    return $configs;
+}
+
+function gj_deanhopkins_tutor_ad_fivestar_widgets(){
+    $widgets = array(
+        drupal_get_path('module', 'gj_deanhopkins_tutor_ad') . '/widgets/fontawesome/fontawesome-star.css' => 'fontawesome-star',
+    );
+
+    return $widgets;
+}
+
+//Include admin configuration functions
+include('gj_deanhopkins_tutor_ad_admin_config.php');
+
+
+//Include field display functions
+include('gj_deanhopkins_tutor_ad_field_display.php');
+
+//Include block functions
+include('gj_deanhopkins_tutor_ad_blocks.php');

@@ -1,0 +1,372 @@
+<?php
+
+/*******************************************************************
+ * gj_dh_proactive_response_install                              *
+ *******************************************************************
+ * Description: Implements hook_install()                          *
+ *              -Refresh content types (to register our new type)  *
+ *              -Create content type fields                        *
+ * Arguments:                                                      *
+ * Return:                                                         *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        2019-02-08                                         *
+ *******************************************************************/
+function gj_dh_proactive_response_install() {
+    _create_tutoring_request_content_type();
+    _create_tutoring_request_fields();
+}
+
+/*******************************************************************
+ * gj_dh_proactive_response_uninstall                            *
+ *******************************************************************
+ * Description: Implements hook_install()                          *
+ *              -Delete node type                                  *
+ *              -Delete node type fields                           *
+ * Arguments:                                                      *
+ * Return:                                                         *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        2019-02-08                                         *
+ *******************************************************************/
+function gj_dh_proactive_response_uninstall() {
+    /*
+    $node_type = 'tutoring_request';
+    node_type_delete($node_type);
+    _delete_tutoring_request_fields();
+    */
+}
+
+/*******************************************************************
+ * _create_tutoring_request_content_type                           *
+ *******************************************************************
+ * Description: Rebuild node types to register our own defined in  *
+ *              module.                                            *
+ * Arguments:                                                      *
+ * Return:                                                         *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        2019-02-08                                         *
+ *******************************************************************/
+function _create_tutoring_request_content_type(){
+    node_types_rebuild();
+    $types = node_type_get_types();
+}
+
+/*******************************************************************
+ * _create_tutoring_request_fields                            *
+ *******************************************************************
+ * Description: Create field bases and instances attached to       *
+ *              content type / node                                *
+ * Arguments:                                                      *
+ * Return:                                                         *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        2019-02-08                                         *
+ *******************************************************************/
+function _create_tutoring_request_fields() {
+    foreach (_get_tutoring_request_field_bases() as $field) {
+        field_create_field($field);
+    }
+    foreach (_get_tutoring_request_field_instances() as $fieldinstance) {
+        $fieldinstance['entity_type'] = 'node';
+        $fieldinstance['bundle'] = 'tutoring_request';
+        print_r($fieldinstance);
+        field_create_instance($fieldinstance);
+    }
+}
+
+/*******************************************************************
+ * _get_tutoring_request_field_bases                          *
+ *******************************************************************
+ * Description: Generate field base data for content type          *
+ * Arguments:                                                      *
+ * Return:      Array of field bases                               *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        2019-02-08                                         *
+ *******************************************************************/
+function _get_tutoring_request_field_bases() {
+    $t = get_t();
+    return array(
+        'tutor_rqst_about_me' => array(
+            'field_name' => 'tutor_rqst_about_me',
+            'label' => $t('About Me'),
+            'type' => 'text_long'
+        ),
+        'tutor_rqst_avail_txt' => array(
+            'field_name' => 'tutor_rqst_avail_txt',
+            'label' => $t('Tutor Availability'),
+            'type' => 'text_long'
+        ),
+        'tutor_rqst_date_advert_sent' => array(
+            'field_name' => 'tutor_rqst_date_advert_sent',
+            'label' => $t('Date Advert Sent'),
+            'module' => 'date',
+            'settings' => array(
+                'cache_count' => 4,
+                'cache_enabled' => 0,
+                'granularity' => array(
+                    'day' => 'day',
+                    'hour' => 'hour',
+                    'minute' => 'minute',
+                    'month' => 'month',
+                    'second' => 0,
+                    'year' => 'year',
+                ),
+                'timezone_db' => 'UTC',
+                'todate' => '',
+                'tz_handling' => 'site',
+            ),
+            'translatable' => 0,
+            'type' => 'datetime',
+        ),
+        'tutor_rqst_date_parent_responded' => array(
+            'field_name' => 'tutor_rqst_date_parent_responded',
+            'label' => $t('Date Parent Responded'),
+            'module' => 'date',
+            'settings' => array(
+                'cache_count' => 4,
+                'cache_enabled' => 0,
+                'granularity' => array(
+                    'day' => 'day',
+                    'hour' => 'hour',
+                    'minute' => 'minute',
+                    'month' => 'month',
+                    'second' => 0,
+                    'year' => 'year',
+                ),
+                'timezone_db' => 'UTC',
+                'todate' => '',
+                'tz_handling' => 'site',
+            ),
+            'translatable' => 0,
+            'type' => 'datetime',
+        ),
+        'tutor_rqst_search_request_nid' => array(
+            'field_name' => 'tutor_rqst_search_request_nid',
+            'label' => $t('Parent Search Request Reference'),
+            'module' => 'number',
+            'type' => 'number_integer',
+        ),
+        'tutor_rqst_tutor_ad_nid' => array(
+            'field_name' => 'tutor_rqst_tutor_ad_nid',
+            'label' => $t('Tutor Ad Reference'),
+            'module' => 'number',
+            'type' => 'number_integer',
+        ),
+
+    );
+}
+
+/***********************************************************************
+ * _get_tutoring_request_field_instances                          *
+ ***********************************************************************
+ * Description: Generate field instance data for tutor ad content type *
+ * Arguments:                                                          *
+ * Return:      Array of field instances                               *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-02-08                                             *
+ ***********************************************************************/
+function _get_tutoring_request_field_instances() {
+    $t = get_t();
+    return array(
+        'tutor_rqst_about_me' => array(
+            'field_name' => 'tutor_rqst_about_me',
+            'type' => 'text',
+            'label' => $t('About Me'),
+            'widget' => array(
+                'type' => 'text_textarea'
+            ),
+            'required' => TRUE
+        ),
+        'tutor_rqst_avail_txt' => array(
+            'field_name' => 'tutor_rqst_avail_txt',
+            'type' => 'text',
+            'label' => $t('Tutor Availability'),
+            'widget' => array(
+                'type' => 'text_textarea'
+            ),
+            'required' => TRUE
+        ),
+        'tutor_rqst_date_advert_sent' => array(
+            'field_name' => 'tutor_rqst_date_advert_sent',
+            'type' => 'text',
+            'label' => $t('Date Advert Sent'),
+            'display' => array(
+                'default' => array(
+                    'label' => 'above',
+                    'module' => 'date',
+                    'settings' => array(
+                        'field_formatter_class' => '',
+                        'format_type' => 'long',
+                        'fromto' => 'both',
+                        'multiple_from' => '',
+                        'multiple_number' => '',
+                        'multiple_to' => '',
+                        'show_remaining_days' => FALSE,
+                    ),
+                    'type' => 'date_default',
+                    'weight' => 3,
+                ),
+                'teaser' => array(
+                    'label' => 'above',
+                    'settings' => array(),
+                    'type' => 'hidden',
+                    'weight' => 0,
+                ),
+            ),
+            'settings' => array(
+                'default_value' => 'now',
+                'default_value2' => 'same',
+                'default_value_code' => '',
+                'default_value_code2' => '',
+                'user_register_form' => FALSE,
+            ),
+            'widget' => array(
+                'module' => 'date',
+                'settings' => array(
+                    'increment' => 1,
+                    'input_format' => 'd/m/Y - g:i:sa',
+                    'input_format_custom' => '',
+                    'label_position' => 'above',
+                    'text_parts' => array(),
+                    'year_range' => '-3:+3',
+                ),
+                'type' => 'date_text',
+                'weight' => 34,
+            ),
+            'required' => FALSE
+        ),
+        'tutor_rqst_date_parent_responded' => array(
+            'field_name' => 'tutor_rqst_date_parent_responded',
+            'type' => 'text',
+            'label' => $t('Date Parent Responded'),
+            'display' => array(
+                'default' => array(
+                    'label' => 'above',
+                    'module' => 'date',
+                    'settings' => array(
+                        'field_formatter_class' => '',
+                        'format_type' => 'long',
+                        'fromto' => 'both',
+                        'multiple_from' => '',
+                        'multiple_number' => '',
+                        'multiple_to' => '',
+                        'show_remaining_days' => FALSE,
+                    ),
+                    'type' => 'date_default',
+                    'weight' => 3,
+                ),
+                'teaser' => array(
+                    'label' => 'above',
+                    'settings' => array(),
+                    'type' => 'hidden',
+                    'weight' => 0,
+                ),
+            ),
+            'settings' => array(
+                'default_value' => 'now',
+                'default_value2' => 'same',
+                'default_value_code' => '',
+                'default_value_code2' => '',
+                'user_register_form' => FALSE,
+            ),
+            'widget' => array(
+                'module' => 'date',
+                'settings' => array(
+                    'increment' => 1,
+                    'input_format' => 'd/m/Y - g:i:sa',
+                    'input_format_custom' => '',
+                    'label_position' => 'above',
+                    'text_parts' => array(),
+                    'year_range' => '-3:+3',
+                ),
+                'type' => 'date_text',
+                'weight' => 34,
+            ),
+            'required' => FALSE
+        ),
+        'tutor_rqst_search_request_nid' => array(
+            'field_name' => 'tutor_rqst_search_request_nid',
+            'type' => 'text',
+            'label' => $t('Parent Search Request Reference'),
+            'display' => array(
+                'default' => array(
+                    'label' => 'above',
+                    'module' => 'number',
+                    'settings' => array(
+                        'decimal_separator' => '.',
+                        'field_formatter_class' => '',
+                        'prefix_suffix' => TRUE,
+                        'scale' => 0,
+                        'thousand_separator' => '',
+                    ),
+                    'type' => 'number_integer',
+                ),
+                'teaser' => array(
+                    'label' => 'above',
+                    'settings' => array(),
+                    'type' => 'hidden',
+                ),
+            ),
+            'widget' => array(
+                'module' => 'number',
+                'settings' => array(),
+                'type' => 'number',
+            ),
+            'required' => TRUE
+        ),
+        'tutor_rqst_tutor_ad_nid' => array(
+            'field_name' => 'tutor_rqst_tutor_ad_nid',
+            'type' => 'text',
+            'label' => $t('Tutor Ad Reference'),
+            'display' => array(
+                'default' => array(
+                    'label' => 'above',
+                    'module' => 'number',
+                    'settings' => array(
+                        'decimal_separator' => '.',
+                        'field_formatter_class' => '',
+                        'prefix_suffix' => TRUE,
+                        'scale' => 0,
+                        'thousand_separator' => '',
+                    ),
+                    'type' => 'number_integer',
+                ),
+                'teaser' => array(
+                    'label' => 'above',
+                    'settings' => array(),
+                    'type' => 'hidden',
+                ),
+            ),
+            'widget' => array(
+                'module' => 'number',
+                'settings' => array(),
+                'type' => 'number',
+            ),
+            'required' => TRUE
+        ),
+    );
+}
+
+/***********************************************************************
+ * _delete_tutoring_request_fields                                 *
+ ***********************************************************************
+ * Description: Delete fields used by content type in uninstall        *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-02-08                                             *
+ ***********************************************************************/
+function _delete_tutoring_request_fields() {
+    foreach (array_keys(_get_tutoring_request_field_bases()) as $field) {
+        field_delete_field($field);
+    }
+    $instances = field_info_instances('node', 'tutoring_request');
+    foreach ($instances as $instance_name => $fieldinstance) {
+        field_delete_instance($fieldinstance);
+    }
+}

@@ -1,0 +1,414 @@
+<?php
+
+/**
+ * @file
+ * A link field formatter to create icon classes based on predefined titles.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function linkicon_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#linkicon':
+      return check_markup(file_get_contents(dirname(__FILE__) . "/README.txt"));
+  }
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function linkicon_field_formatter_info() {
+  return array(
+    'linkicon' => array(
+      'label' => t('Link icon, based on title'),
+      'field types' => array('link_field', 'text'),
+      'settings' => linkicon_defaults(),
+    ),
+  );
+}
+
+/**
+ * Defines linkicon defaults.
+ */
+function linkicon_defaults() {
+  return array(
+    'linkicon_prefix' => 'icon',
+    'linkicon_wrapper_class' => '',
+    'linkicon_global_title' => '',
+    'linkicon_size' => '',
+    'linkicon_no_text' => '',
+    'linkicon_position' => '',
+    'linkicon_load' => 0,
+    'linkicon_vertical' => 0,
+    'linkicon_tooltip' => 0,
+    'linkicon_maxlength' => '',
+    'linkicon_style' => '',
+    'linkicon_color' => '',
+    'linkicon_font' => '',
+    'linkicon_bundle' => '',
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function linkicon_theme($existing, $type, $theme, $path) {
+  return array(
+    'linkicon' => array(
+      'render element' => 'element',
+    ),
+    'linkicon_item' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+/**
+ * Formats a linkicon field widget.
+ */
+function theme_linkicon($variables) {
+  $element    = $variables['element'];
+  $build      = '';
+  $settings   = array();
+  $wrappers   = array();
+  $attributes = array();
+
+  foreach ($element['#config'] as $key => $value) {
+    $key = str_replace('linkicon_', '', $key);
+    $settings[$key] = $value;
+  }
+
+  $wrappers['class'][]   = 'item-list';
+  $wrappers['class'][]   = 'item-list--linkicon';
+  if ($settings['wrapper_class']) {
+    $wrappers['class'][] = check_plain($settings['wrapper_class']);
+  }
+  $wrappers['id']        = $element['#linkicon_id'];
+  $attributes['class'][] = 'linkicon';
+
+  if ($settings['load']) {
+    if (!$settings['vertical']) {
+      $attributes['class'][] = 'linkicon--inline';
+    }
+    if ($settings['color']) {
+      $attributes['class'][] = 'linkicon--color';
+      $attributes['class'][] = 'linkicon--' . $settings['color'];
+    }
+    if ($settings['style']) {
+      $attributes['class'][] = 'linkicon--' . $settings['style'];
+    }
+    if ($settings['size']) {
+      $attributes['class'][] = 'linkicon--' . $settings['size'];
+    }
+    if ($settings['tooltip']) {
+      $attributes['class'][] = 'linkicon--tooltip';
+    }
+    if ($settings['no_text']) {
+      $attributes['class'][] = 'linkicon--no-text';
+    }
+    if ($settings['position']) {
+      $attributes['class'][] = 'linkicon--' . $settings['position'];
+    }
+  }
+
+  $build .= '<div ' . drupal_attributes($wrappers) . '>';
+  $build .= '<ul ' . drupal_attributes($attributes) . '>';
+  foreach ($element['#items'] as $item) {
+    $build .= '<li>' . drupal_render($item) . '</li>';
+  }
+  $build .= '</ul>';
+  $build .= '</div>';
+
+  return $build;
+}
+
+/**
+ * Formats an individual linkicon item.
+ */
+function theme_linkicon_item($variables) {
+  extract($variables);
+  $element = $variables['element'];
+
+  $build = '';
+  $icon  = '';
+  $icon_name = $element['#icon_name'];
+
+  $title = '<span class="linkicon__text">' . $element['#title'] . '</span>';
+
+  if (!empty($element['#icon_bundle'])) {
+    // As of this writing, icon API has no consistent way to prefixing icon
+    // as appears on fontello, icomoon, fontawesome modules.
+    $icons[] = array(
+      '#theme'      => 'icon',
+      '#bundle'     => $element['#icon_bundle'],
+      '#icon'       => $icon_name,
+      '#attributes' => array('class' => array('linkicon__icon', 'icon')),
+    );
+    $icon = drupal_render($icons);
+
+    $title = !empty($icon) ? $title : '<span class="linkicon__noicon">' . $element['#title'] . '</span>';
+  }
+  else {
+    $element['#attributes']['class'][] = 'linkicon__icon';
+    // Adds consistent styling for Fontawesome >= 4, and non-fontello icons.
+    if (isset($element['#icon_prefix']) && $element['#icon_prefix'] != 'icon') {
+      $element['#attributes']['class'][] = 'icon';
+    }
+    $element['#attributes']['aria-hidden'] = 'true';
+    $icon = '<span ' . drupal_attributes($element['#attributes']) . '></span>';
+  }
+
+  $build = in_array($element['#position'], array('right', 'bottom')) ? $title . $icon : $icon . $title;
+
+  return $build;
+}
+
+/**
+ * Implements hook_field_formatter_prepare_view().
+ */
+function linkicon_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
+  // Unlike D8, we need to loop first to reach our settings.
+  foreach ($items as $entity_id => $entity_items) {
+    if (isset($instances[$entity_id]['settings']['title']) && $instances[$entity_id]['settings']['title'] == 'predefined' && isset($instances[$entity_id]['settings']['title_predefined']) && $instances[$entity_id]['settings']['title_predefined']) {
+      $title_predefined = linkicon_extract_allowed_values($instances[$entity_id]['settings']['title_predefined']);
+      $title_tooltip    = linkicon_extract_allowed_values($instances[$entity_id]['settings']['title_predefined'], TRUE);
+      foreach ($entity_items as $delta => $value) {
+        $items[$entity_id][$delta]['display_title'] = $title_predefined[$value['title']];
+        if (isset($title_tooltip[$value['title']])) {
+          $items[$entity_id][$delta]['tooltip'] = $title_tooltip[$value['title']];
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function linkicon_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  if (empty($items)) {
+    return $element;
+  }
+
+  if ($display['type'] != 'linkicon') {
+    return $element;
+  }
+
+  $path         = drupal_get_path('module', 'linkicon');
+  $settings     = $display['settings'];
+  $field_type   = $field['type'];
+  $field_name   = $instance['field_name'];
+  $prefix_class = check_plain($settings['linkicon_prefix']);
+
+  list($id, , $bundle) = entity_extract_ids($entity_type, $entity);
+
+  $contents = array();
+  foreach ($items as $delta => $item) {
+    // The A tag attributes.
+    $attributes = array();
+    $attributes['class'][] = 'linkicon__item';
+
+    // Linkicon requires both link text and URL available with proper
+    // validation during input, no need extra checks.
+    $icon_name     = $field_type == 'link_field' ? $item['title'] : strip_tags($item['value']);
+    $display_title = isset($item['display_title']) ? $item['display_title'] : $icon_name;
+    $tooltip       = isset($item['tooltip']) ? $item['tooltip'] : $display_title;
+
+    // If $icon_name is facebook, this creates: icon-facebook
+    $icon_class    = drupal_clean_css_identifier(drupal_strtolower($prefix_class . '-' . $icon_name));
+
+    // This is similar as widget setting Static title, only available at
+    // Display for more flexible options by view modes.
+    if (!empty($settings['linkicon_global_title']) && empty($settings['linkicon_no_text'])) {
+      $display_title = $settings['linkicon_global_title'];
+    }
+
+    // Sanitize $display_title before use since html is TRUE for the link.
+    $item['html'] = TRUE;
+    // Tokenized text is sanitized by default.
+    $display_title = token_replace($display_title, array($entity_type => $entity));
+    $character_maxlength = isset($settings['linkicon_maxlength']) && $settings['linkicon_maxlength'] ? $settings['linkicon_maxlength'] : 60;
+    $icon_element = array(
+      '#theme'       => 'linkicon_item',
+      '#position'    => $settings['linkicon_position'],
+      '#title'       => truncate_utf8($display_title, $character_maxlength, TRUE, TRUE),
+      '#attributes'  => array('class' => array($prefix_class, $icon_class)),
+      '#icon_bundle' => $settings['linkicon_bundle'] ? $settings['linkicon_bundle'] : FALSE,
+      '#icon_name'   => check_plain($icon_name),
+      '#icon_prefix' => $prefix_class,
+    );
+
+    $item['title'] = drupal_render($icon_element);
+
+    // Link module stores classes as spaced string.
+    if (!empty($item['attributes']['class'])) {
+      $attributes['class'] = array_merge(array($item['attributes']['class']), $attributes['class']);
+    }
+
+    // Unlike D8 link module, D7 link expect a spaced string, so feed it.
+    $item['attributes']['class'] = implode(" ", $attributes['class']);
+
+    // Our pure CSS3 tooltip depends on data-title.
+    if ($settings['linkicon_tooltip']) {
+      $tooltip = token_replace($tooltip, array($entity_type => $entity));
+      $item['attributes']['data-title'] = truncate_utf8($tooltip, $character_maxlength, TRUE, TRUE);
+    }
+
+    // We are done for the item, pass it over to link to do its job.
+    $contents[$delta] = array(
+      '#theme'   => 'link_formatter_link_default',
+      '#element' => $item,
+      '#field'   => $instance,
+      '#display' => $display,
+    );
+  }
+
+  // Build own wrapper for greater control.
+  $linkicon_id = drupal_clean_css_identifier("linkicon-{$entity_type}-{$bundle}-{$field_name}-{$id}");
+  $element[0] = array(
+    '#theme'       => 'linkicon',
+    '#linkicon_id' => $linkicon_id,
+    '#items'       => $contents,
+    '#config'      => $settings,
+  );
+
+  // Attached our assets if so configured.
+  if (!empty($settings['linkicon_load'])) {
+    $element[0]['#attached']['css'][] = array('data' => $path . '/css/linkicon.css');
+    if ($settings['linkicon_font'] && empty($settings['linkicon_bundle'])) {
+      $element[0]['#attached']['css'][] = array('data' => strip_tags($settings['linkicon_font']));
+    }
+  }
+
+  return $element;
+}
+
+/**
+ * Extracts link title textarea values into array for link title select options.
+ */
+function linkicon_extract_allowed_values($values, $is_tooltip = FALSE) {
+  $allowed_values = array();
+  if ($values) {
+    $list = explode("\n", strip_tags($values));
+
+    foreach ($list as $value) {
+      if (strpos($value, "|") !== FALSE) {
+        list($key, $title, $tooltip) = array_pad(array_map('trim', explode("|", $value, 3)), 3, NULL);
+        $allowed_values[$key] = $is_tooltip && !empty($tooltip) ? $tooltip : $title;
+      }
+      else {
+        $allowed_values[$value] = $value;
+      }
+    }
+  }
+  return $allowed_values;
+}
+
+/**
+ * Implements hook_element_info_alter().
+ */
+function linkicon_element_info_alter(&$types) {
+  $types['link_field']['#process'][] = 'linkicon_field_process';
+}
+
+/**
+ * Implements hook_field_info_alter().
+ */
+function linkicon_field_info_alter(&$info) {
+  if (isset($info['link_field'])) {
+    $info['link_field']['settings']['title_predefined'] = '';
+    $info['link_field']['instance_settings']['title_predefined'] = '';
+  }
+}
+
+/**
+ * Overrides link_field_process() to use a select box.
+ */
+function linkicon_field_process($element, $form_state, $complete_form) {
+  $instance = field_widget_instance($element, $form_state);
+  $settings = $instance['settings'];
+
+  $element = link_field_process($element, $form_state, $complete_form);
+  if (isset($settings['title_predefined']) && $settings['title_predefined'] && $settings['title'] == 'predefined') {
+    $element['title']['#type'] = 'select';
+    $element['title']['#options'] = linkicon_extract_allowed_values($settings['title_predefined']);
+    $element['title']['#empty_option'] = t('- Select -');
+    // Remove irrelevant description.
+    unset($element['title']['#description']);
+    $element['#element_validate'] = array('_linkicon_element_validate_link_title');
+  }
+
+  return $element;
+}
+
+/**
+ * Validate predefined link title.
+ *
+ * Since Link title is not required, we make sure that it is not empty if the
+ * URL field is not. In the opposite, link.module does validation.
+ *
+ * @todo: error field receives no error class.
+ */
+function _linkicon_element_validate_link_title($element, &$form_state, $form) {
+  if (empty($element['#value']['title']) && !empty($element['#value']['url'])) {
+    form_set_error($element['#value']['title'], t('Title must be entered if URL is provided.'));
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function linkicon_form_field_ui_display_overview_form_alter(&$form, &$form_state) {
+  $path = drupal_get_path('module', 'linkicon');
+  // Needed for preview.
+  $form['#attached']['css'][] = $path . '/css/linkicon.css';
+  $form['#attached']['css'][] = $path . '/css/linkicon.field_ui.css';
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function linkicon_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  form_load_include($form_state, 'inc', 'linkicon', 'includes/linkicon.admin');
+
+  $elements = _linkicon_field_formatter_settings_form($field, $instance, $view_mode, $form, $form_state);
+  return $elements;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function linkicon_field_formatter_settings_summary($field, $instance, $view_mode) {
+  module_load_include('inc', 'linkicon', 'includes/linkicon.admin');
+
+  $summary = _linkicon_field_formatter_settings_summary($field, $instance, $view_mode);
+  return implode('<br />', $summary);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function linkicon_form_field_ui_field_edit_form_alter(&$form, $form_state) {
+  form_load_include($form_state, 'inc', 'linkicon', 'includes/linkicon.admin');
+  _linkicon_form_field_ui_field_edit_form_alter($form, $form_state);
+}
+
+/**
+ * Alters the existing link field widget settings form elements.
+ */
+function linkicon_field_widget_settings_form_alter(&$form, $settings) {
+  form_load_include($form_state, 'inc', 'linkicon', 'includes/linkicon.admin');
+  _linkicon_field_widget_settings_form_alter($form, $settings);
+}
+
+/**
+ * Validate path to icon font CSS file.
+ */
+function _linkicon_element_validate_font_path($element, &$form_state, $form) {
+  if (!empty($element['#value']) && !is_file($element['#value'])) {
+    form_set_error($element['#name'], t("<strong>@css_font_path</strong> doesn't exist.", array('@css_font_path' => $element['#value'])));
+  }
+}

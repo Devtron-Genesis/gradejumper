@@ -1,0 +1,21 @@
+.page-tutor-application-submitted .alert-success{
+  display: none;
+}
+
+.gj_application_submitted_wrpper {
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  padding-top: 100px;
+}
+
+.gj_as_image img {
+  width: 100px;
+}
+
+@media screen and (max-width: 767px) {
+  .gj_application_submitted_wrpper {
+    padding-top: 20px;
+  }
+}

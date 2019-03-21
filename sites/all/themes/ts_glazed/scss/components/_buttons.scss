@@ -1,0 +1,43 @@
+.btn {
+  border-radius: 34px;
+  border: 0 none;
+  text-align: center;
+
+  &-primary {
+    background-color: #3F73D2 !important;
+    color: #fff;
+  }
+
+  &-lg {
+    min-width: 203px;
+    font-size: 20px;
+    line-height: 48px;
+  }
+
+  &-md {
+    min-width: 164px;
+    font-size: 18px;
+    line-height: 36px;
+  }
+
+  // custom buttons
+  @at-root .page-subject {
+
+    .btn {
+      color: #fff;
+
+      &:hover {
+        box-shadow: 1px 1px 4px 0px rgba(96,96,96,1);
+      }
+    }
+  }
+
+  &-silver {
+    background-color: #F4F4F4 !important;
+    color: #1A1A1D !important;
+
+    &:hover {
+      box-shadow: 1px 1px 4px 0px rgba(96,96,96,1);
+    }
+  }
+}

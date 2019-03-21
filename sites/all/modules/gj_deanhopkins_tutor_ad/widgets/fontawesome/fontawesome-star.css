@@ -1,0 +1,100 @@
+/**
+ * Maintainer: http://www.developmenticon.com/
+ * Written by Himanshu Shakhar (developmenticon)
+ */
+
+/* Static View-only Star Version */
+.fivestar-fontawesome-star div.fivestar-widget-static .star {
+    text-indent: 0;
+    position: relative;
+    width: 15px;
+    height: 15px;
+}
+.fivestar-fontawesome-star div.fivestar-widget-static .star span.on,
+.fivestar-fontawesome-star div.fivestar-widget-static .star span.off {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+}
+.fivestar-fontawesome-star div.fivestar-widget-static .star,
+.fivestar-fontawesome-star div.fivestar-widget-static .star span.on,
+.fivestar-fontawesome-star div.fivestar-widget-static .star span.off {
+    background-image: none;
+    display: inline-block;
+    font: normal normal normal 16px/1 FontAwesome;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.fivestar-fontawesome-star div.fivestar-widget-static .star:before {
+    content:"\f005";
+    color: #cecdcd;
+    padding-right: 15px;
+}
+.fivestar-fontawesome-star div.fivestar-widget-static .star span.on:before {
+    content:"\f005";
+    color: #fdb825;
+    padding-right: 15px;
+}
+.fivestar-fontawesome-star div.fivestar-widget-static .star span.off:before {
+    content:"\f005";
+    color: #cecdcd;
+    padding-right: 15px;
+}
+
+
+/* Javascript Star Version */
+.fivestar-fontawesome-star div.fivestar-widget .cancel,
+.fivestar-fontawesome-star div.fivestar-widget .star {
+    text-indent: 0;
+    position: relative;
+    width: 15px;
+    height: 15px;
+}
+.fivestar-fontawesome-star div.fivestar-widget .cancel a,
+.fivestar-fontawesome-star div.fivestar-widget .star a {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.fivestar-fontawesome-star div.fivestar-widget .cancel,
+.fivestar-fontawesome-star div.fivestar-widget .cancel a,
+.fivestar-fontawesome-star div.fivestar-widget .star,
+.fivestar-fontawesome-star div.fivestar-widget .star a,
+.fivestar-fontawesome-star div.fivestar-widget div.hover a {
+    background-image: none;
+    display: inline-block;
+    font: normal normal normal 16px/1 FontAwesome;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.fivestar-fontawesome-star div.fivestar-widget .cancel:before {
+    content:"\f00d";
+    color: #cecdcd;
+    padding-right: 15px;
+}
+.fivestar-fontawesome-star div.fivestar-widget .cancel a:before {
+    content:"\f00d";
+    color: #999;
+    padding-right: 15px;
+}
+.fivestar-fontawesome-star div.fivestar-widget .star:before {
+    content:"\f006";
+    color: #cecdcd;
+    padding-right: 15px;
+}
+.fivestar-fontawesome-star div.fivestar-widget .star a:before {
+    content:"\f005";
+    color: #cecdcd;
+    padding-right: 15px;
+}
+.fivestar-fontawesome-star div.fivestar-widget .star.on a:before {
+    color: #fcd47e;
+}
+.fivestar-fontawesome-star div.fivestar-widget div.hover a:before,
+.fivestar-fontawesome-star div.fivestar-widget .star.hover a:before,
+.fivestar-fontawesome-star div.rating div a:hover:before {
+    color: #fdb825;
+}

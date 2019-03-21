@@ -1,0 +1,6 @@
+name = TutorSave Application Submitted
+description = This module stops user editing their tutor ads once they have been submitted, but are not yet live.
+package = GJ Custom
+core = 7.x
+version = "7.x-1.0"
+core = "7.x"

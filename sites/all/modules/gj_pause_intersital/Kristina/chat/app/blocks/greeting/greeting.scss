@@ -1,0 +1,16 @@
+.greeting{
+  display: flex;
+  justify-content: center;
+  padding-top: 30px;
+  margin-bottom: 100px;
+
+  &--hidden{
+    display: none;
+  }
+
+  &__message{
+    max-width: 300px;
+    text-align: center;
+    @include Raleway(26px, 700, 30px, $blue);
+  }
+}

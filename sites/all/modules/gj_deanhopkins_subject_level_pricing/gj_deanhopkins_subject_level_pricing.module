@@ -1,0 +1,413 @@
+<?php
+
+/********************************************************************
+ * gj_deanhopkins_subject_level_pricing_field_formatter_info        *
+ ********************************************************************
+ * Description: Implements hook_field_formatter_info()              *
+ *              Define the field formatter available for field      *
+ *              collections.                                        *
+ * Arguments:                                                       *
+ *                                                                  *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_subject_level_pricing_field_formatter_info() {
+  return array(
+    'field_collection_subject_level_pricing_view' => array(
+      'label' => t('Table of field collection items for Tutor Ad Subject Level Pricing field col'),
+      'field types' => array('field_collection'),
+      'settings' => array(
+        'edit' => t('Edit'),
+        'delete' => t('Delete'),
+        'add' => t('Add'),
+        'description' => TRUE,
+        'view_mode' => 'full',
+        'hide_empty' => FALSE,
+        'empty' => TRUE,
+      ),
+    ),
+  );
+}
+
+/********************************************************************
+ * gj_deanhopkins_subject_level_pricing_field_formatter_view        *
+ ********************************************************************
+ * Description: Implements hook_field_formatter_view()              *
+ *              Define the field formatter display output           *
+ * Arguments:   $entity_type, $entity, $field, $instance,           *
+ *              $langcode, $items, $display                         *
+ *                                                                  *
+ * Return:      $element (formatted field collection)               *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_subject_level_pricing_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  $settings = $display['settings'];
+  $view_mode = !empty($display['settings']['view_mode']) ? $display['settings']['view_mode'] : 'default';
+
+  // Don't display anything for an empty collection.
+  if (!empty($settings['hide_empty']) && empty($items)) {
+    return $element;
+  }
+
+  switch ($display['type']) {
+    case 'field_collection_subject_level_pricing_view':
+      $header = array();
+      $field_names = array();
+      foreach (field_info_instances('field_collection_item', $field['field_name']) as $field_collection_item) {
+        $item_view_mode = !empty($field_collection_item['display'][$view_mode]) ? $view_mode : 'default';
+        if ($field_collection_item['display'][$item_view_mode]['type'] != 'hidden') {
+          $weight = $field_collection_item['display'][$item_view_mode]['weight'];
+          $field_names[$weight] = $field_collection_item['field_name'];
+
+          if ($field_collection_item['display'][$item_view_mode]['label'] != 'hidden') {
+            $header[$weight] = array(
+              'data' => (
+              module_exists('i18n_field')) ? i18n_field_translate_property($field_collection_item, 'label') : $field_collection_item['label'],
+              'class' => $field_names[$weight],
+            );
+          }
+          else {
+            $header[$weight] = '';
+          }
+        }
+      }
+
+
+      ksort($header);
+      ksort($field_names);
+
+      $rows = array();
+      foreach ($items as $delta => $item) {
+        $field_collection = field_collection_field_get_entity($item);
+        if (empty($field_collection)) {
+          continue;
+        }
+        $view = $field_collection->view($view_mode);
+        $content = $view['field_collection_item'][$field_collection->identifier()];
+        $column = array();
+        foreach ($field_names as $field_name) {
+          if (isset($content[$field_name])) {
+            $content[$field_name]['#label_display'] = 'hidden';
+          }
+          else {
+            $content[$field_name] = array(
+              '#markup' => '<span class="empty_field"></span>',
+              '#empty' => TRUE,
+            );
+          }
+          $column[] = array(
+            'data' => $content[$field_name],
+            'class' => drupal_html_class($field_name),
+          );
+        }
+
+        $links = array(
+          '#theme' => 'links',
+          '#theme_wrapper' => 'item_list',
+          '#attributes' => array('class' => array('field-collection-view-links')),
+        );
+
+        foreach (array('edit', 'delete') as $op) {
+          if (!empty($settings[$op]) && entity_access($op == 'edit' ? 'update' : $op, 'field_collection_item', $field_collection)) {
+            $links['#links'][$op] = array(
+              'title' => t($settings[$op]),
+              'href' => $field_collection->path() . '/' . $op,
+              'query' => drupal_get_destination(),
+            );
+            $header['operations'] = t('Operations');
+          }
+        }
+
+        if (!empty($links['#links'])) {
+          $column[] = array(
+            'data' => $links,
+            'class' => "field-operations",
+          );
+        }
+
+        $rows[] = array(
+          'data' => $column,
+          'class' => array('field-collection-item'),
+        );
+      }
+
+      // Remove header if all labels are hidden.
+      if (!array_filter($header)) {
+        $header = array();
+      }
+
+      $element[0] = array(
+        '#theme' => '',
+        '#header' => $header,
+        '#rows' => $rows,
+        '#attributes' => array(
+          'class' => array(
+            drupal_clean_css_identifier('view-mode-' . $view_mode),
+          ),
+        ),
+      );
+
+      if (!empty($settings['empty'])) {
+        $element[0]['#settings']['empty'] = TRUE;
+      }
+      break;
+  }
+
+  field_collection_field_formatter_links($element, $entity_type, $entity, $field, $instance, $langcode, $items, $display);
+
+  return $element;
+}
+
+/********************************************************************
+ * gj_deanhopkins_subject_level_pricing_theme                       *
+ ********************************************************************
+ * Description: Implements hook_theme()                             *
+ *              Attach formatted to elements                        *
+ * Arguments:   $existing, $type, $theme, $path                     *
+ *                                                                  *
+ * Return:      theme array                                         *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_subject_level_pricing_theme($existing, $type, $theme, $path) {
+  $base = array(
+    'file' => 'theme.inc',
+    'path' => $path . '/theme',
+  );
+  return array(
+    'gj_deanhopkins_subject_level_pricing_multiple_value_field' => $base + array('render element' => 'element'),
+    'gj_deanhopkins_subject_level_pricing_multiple_value_fields' => $base + array('render element' => 'element'),
+    'table__field_collection_table' => $base + array(
+        'variables' => array(
+          'header' => NULL,
+          'rows' => NULL,
+          'attributes' => array(),
+          'caption' => NULL,
+          'colgroups' => array(),
+          'sticky' => TRUE,
+          'empty' => '',
+          'settings' => array(),
+        ),
+      ),
+  );
+}
+
+/********************************************************************
+ * gj_deanhopkins_subject_level_pricing_field_attach_form           *
+ ********************************************************************
+ * Description: Implements hook_field_attach_form()                 *
+ *              Define the field formatter display output           *
+ *              Apply formatter to edit fields used in form         *
+ * Arguments:   $entity_type, $entity, &$form, &$form_state         *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_subject_level_pricing_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
+  list(, , $bundle) = entity_extract_ids($entity_type, $entity);
+  // Host entity edit.
+  foreach (field_info_instances($entity_type, $bundle) as $field_name => $instance) {
+    if (isset($form[$field_name]) && $instance['widget']['type'] == 'field_collection_subject_level_pricing') {
+      $language = $form[$field_name]['#language'];
+      $form[$field_name][$language]['#theme'] = 'gj_deanhopkins_subject_level_pricing_multiple_value_fields';
+      $form[$field_name][$language]['#custom_settings'] = $instance['widget']['settings'];
+      $form[$field_name][$language]['#pre_render'][] = 'field_collection_table_pre_render_multiple_fields';
+    }
+    $field = field_info_field($field_name);
+    if ($field['type'] == 'field_collection'
+      && $field['cardinality'] == FIELD_CARDINALITY_UNLIMITED
+      && empty($form_state['programmed'])
+      && field_access('edit', $field, $entity_type)
+      && $instance['widget']['type'] == 'field_collection_subject_level_pricing'
+    ) {
+
+      $element_langcode = $form[$field_name]['#language'];
+      $element_wrapper = $form[$field_name][$element_langcode]['add_more']['#ajax']['wrapper'];
+      for ($i = 0; $i <= $form[$field_name][$element_langcode]['#max_delta']; $i++) {
+        if (isset($form[$field_name][$element_langcode][$i]['remove_button'])) {
+          $form[$field_name][$element_langcode][$i]['remove_button']['#ajax']['wrapper'] = $element_wrapper;
+        }
+      }
+    }
+  }
+
+  // Individual field collection item edit.
+  //
+  if ($entity_type == 'field_collection_item') {
+    $instance = $entity->instanceInfo();
+    if ($instance['widget']['type'] == 'field_collection_subject_level_pricing') {
+      $form['#theme'] = 'field_collection_table_multiple_value_field';
+      $form['#pre_render'][] = 'field_collection_table_pre_render_field';
+    }
+  }
+}
+
+/********************************************************************
+ * gj_deanhopkins_subject_level_pricing_pre_render_field            *
+ ********************************************************************
+ * Description: Implements hook_pre_render_field()                  *
+ *              Hide titles for fields rendered in table row        *
+ *              Callback for rendering field col as single row      *
+ * Arguments:   $element                                            *
+ *                                                                  *
+ * Return:      $element                                            *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_subject_level_pricing_pre_render_field($element) {
+  if (isset($element['#entity_type']) && isset($element['#bundle'])) {
+    foreach (field_info_instances($element['#entity_type'], $element['#bundle']) as $field_name => $instance) {
+      if (empty($element[$field_name])) {
+        continue;
+      }
+
+      $field = &$element[$field_name];
+      $field_info = field_info_field($field_name);
+      $language = $field['#language'];
+      if (isset($field[$language])) {
+        // Set the most common places for a title to display invisible.
+        $field['#title_display'] = 'invisible';
+        $field[$language]['#title_display'] = 'invisible';
+        foreach (element_children($field[$language]) as $child) {
+          if (array_key_exists('#type', $field[$language][$child]) &&
+            !in_array($field[$language][$child]['#type'], array(
+              'radio',
+              'checkbox',
+            ))
+          ) {
+            $field[$language][$child]['#title_display'] = 'invisible';
+          }
+          // Check the individual columns. Most commonly 'value'.
+          foreach ($field_info['columns'] as $column => $column_info) {
+            // Ensure column exist in form to prevent displaying empty
+            // table columns.
+            if (isset($field[$language][$child][$column])) {
+              $field[$language][$child][$column]['#title_display'] = 'invisible';
+            }
+            // Date module sometimes adds its own random titles inside value.
+            if (in_array($field_info['type'], array(
+              'date',
+              'datestamp',
+              'datetime',
+            ))) {
+              foreach (element_children($field[$language][$child][$column]) as $date_child) {
+                $field[$language][$child][$column][$date_child]['#title_display'] = 'invisible';
+              }
+            }
+          }
+        }
+      }
+      else {
+        $field['#label_display'] = 'hidden';
+      }
+    }
+  }
+  return $element;
+}
+
+/********************************************************************
+ * gj_deanhopkins_subject_level_pricing_pre_render_multiple_fields  *
+ ********************************************************************
+ * Description: Implements hook_pre_render_multiple_fields()        *
+ *              Hide titles for fields rendered in table row        *
+ *              Callback for rendering field col as multiple rows   *
+ * Arguments:   $element                                            *
+ *                                                                  *
+ * Return:      $element                                            *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_subject_level_pricing_pre_render_multiple_fields($element) {
+  foreach (element_children($element) as $key) {
+    // Skip the 'add_more' element.
+    if (is_numeric($key)) {
+      $element[$key] = gj_deanhopkins_subject_level_pricing_pre_render_field($element[$key]);
+    }
+  }
+  return $element;
+}
+
+/********************************************************************
+ * gj_deanhopkins_subject_level_pricing_entity_view                 *
+ ********************************************************************
+ * Description: Implements hook_entity_view()                       *
+ *              Attach theme info to elements                       *
+ * Arguments:   $entity, $type, $view_mode, $langcode               *
+ *                                                                  *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_subject_level_pricing_entity_view($entity, $type, $view_mode, $langcode) {
+  if (get_class($entity) != 'FieldCollectionItemEntity') {
+    return;
+  }
+  if ($instance = $entity->instanceInfo()) {
+    $display = field_get_display($instance, $view_mode, $entity->hostEntity());
+    if ($display['type'] == 'field_collection_subject_level_pricing_view') {
+      $entity->content['#theme'] = 'field_collection_table_multiple_value_field';
+      $entity->content['#pre_render'][] = 'field_collection_table_pre_render_field';
+    }
+  }
+}
+
+/********************************************************************
+ * gj_deanhopkins_subject_level_pricing_field_widget_info           *
+ ********************************************************************
+ * Description: Implements hook_field_widget_info()                 *
+ *              Register formatter widget type                      *
+ * Arguments:                                                       *
+ *                                                                  *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_subject_level_pricing_field_widget_info() {
+  return array(
+    'field_collection_subject_level_pricing' => array(
+      'label' => t('Tutor Ad Subject Level Pricing'),
+      'field types' => array('field_collection'),
+      'settings' => array(
+        'nodragging' => TRUE,
+        'title_on_top' => TRUE,
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+        'default value' => FIELD_BEHAVIOR_NONE,
+      ),
+    ),
+  );
+}
+
+/********************************************************************
+ * gj_deanhopkins_subject_level_pricing_field_widget_form           *
+ ********************************************************************
+ * Description: Implements hook_field_widget_form()                 *
+ *              Register formatter widget type for form elements    *
+ * Arguments:                                                       *
+ *                                                                  *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_subject_level_pricing_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  switch ($instance['widget']['type']) {
+    case 'field_collection_subject_level_pricing':
+      $instance['widget']['type'] = 'field_collection_embed';
+      $element = field_collection_field_widget_form($form, $form_state, $field, $instance, $langcode, $items, $delta, $element);
+      break;
+  }
+  return $element;
+}

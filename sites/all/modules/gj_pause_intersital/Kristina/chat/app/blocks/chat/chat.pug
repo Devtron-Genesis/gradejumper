@@ -1,0 +1,32 @@
+include ../greeting/greeting
+include ../connected/connected
+-var message1 = 'Thanks so much for your enquiry. Just give me a few moments to check our [Level] [Subject] tutors’ availability. I’ll post a link to your list here in a couple of minutes.'
+-var message2 = 'Once we’ve sent over your list, you can simply create a free account and start messaging tutors right away. You can even book a complimentary 15 minute meeting with any of your favourite tutors (without any commitment or obligation).'
+-var message3 = 'Great news, we’ve found some super [level] [subject] tutors for you! Click the button below to view your list. If you have any questions please call the London based team on 0207 XXX XXXX and we’ll be happy to help. Thanks again for choosing Gradejumpers! :)'
+
+mixin chat
+
+  +b.SECTION.chat
+    +greeting
+    +connected
+    +e.header--hidden
+      +e.manager
+        +e.picWrap
+          +e.IMG(src="../img/manager.jpg").pic
+        +e.headingWrap
+          +e.H1.heading Lisa J.
+          +e.SPAN.title GradeJumpers Customer Services
+      +e.SPAN.status Online now
+    +e.messagesWrap--hidden
+      +e.message--hidden
+        +e.P.messageText= message1
+      +e.message--hidden
+        +e.P.messageText= message2
+      +e.message--hidden
+        +e.P.messageText= message3
+      +e.typingWrap
+        +e.loaderWrap
+          +e.typingLoader
+        +e.SPAN.typing Lisa is typing
+    +e.A(href="").continue--hidden View my list of tutors
+    +e.SPAN.isLogout--hidden Lisa has logged out

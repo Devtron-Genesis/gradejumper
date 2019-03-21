@@ -1,0 +1,1536 @@
+<?php
+
+/********************************************************************
+ * gj_deanhopkins_search_menu                                       *
+ ********************************************************************
+ * Description: Implements hook_menu()                              *
+ *              Register module page callbacks and autocompletes    *
+ * Arguments:                                                       *
+ * Return:      $items                                              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_search_menu(){
+    $items['gj_deanhopkins_search/autocomplete'] = array(
+        'page callback' => '_gj_deanhopkins_search_autocomplete',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK
+    );
+
+    $items['search/tutor'] = array(
+        'page callback' => '_gj_deanhopkins_search_submit',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK
+    );
+
+    $items['subject/%'] = array(
+        'title' => '',
+        'page callback' => 'gj_deanhopkins_search_subject',
+        'page arguments' => array(1),
+        'access arguments' => array('access content'),
+    );
+
+    $items['level/%'] = array(
+        'title' => '',
+        'page callback' => 'gj_deanhopkins_search_level',
+        'page arguments' => array(1),
+        'access arguments' => array('access content'),
+    );
+
+    $items['level-subject/%/%'] = array(
+        'title' => '',
+        'page callback' => 'gj_deanhopkins_search_level_subject',
+        'page arguments' => array(1, 2),
+        'access arguments' => array('access content'),
+    );
+
+    return $items;
+}
+
+/********************************************************************
+ * gj_deanhopkins_search_theme                                      *
+ ********************************************************************
+ * Description: Implements hook_theme()                             *
+ *              Register templates for search form and block        *
+ * Arguments:                                                       *
+ * Return:      $existing, $type, $theme, $path                     *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_search_theme($existing, $type, $theme, $path){
+    return array(
+        'gj_deanhopkins_search_tutor_block_form' => array(
+            'variables' => array('output' => NULL, 'data' => NULL),
+            'template' => 'templates/block-gj_deanhopkins_search',
+        ),
+
+        'gj_deanhopkins_search_subject_form' => array(
+            'render element' => 'form',
+            'template' => 'templates/search-subject-form',
+        ),
+    );
+}
+
+/********************************************************************
+ * gj_deanhopkins_search_subject_form                               *
+ ********************************************************************
+ * Description: Register search form input elements                 *
+ * Arguments:   $form, &$form_state                                 *
+ * Return:                                                          *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_search_subject_form($form, &$form_state) {
+    $build = $form_state['build_info']['args'];
+    $args = reset($build);
+
+    $form['search_text'] = array(
+        '#type' => 'term_ref_autocomplete_field',
+        '#required' => TRUE,
+        '#autocomplete_path' => 'gj_deanhopkins_search/autocomplete/',
+        '#attributes' => array('class'=> array('field-search-text'),
+            'placeholder' => t(' Enter a subject...')),
+    );
+
+    $form['submit'] = array(
+        '#value' => 'Find tutors',
+        '#type' => 'submit',
+    );
+
+    $form['#theme'] = 'gj_deanhopkins_search_subject_form';
+
+    $form['#action'] = url('search/tutor');
+    $form['#method'] = 'POST';
+
+    return $form;
+}
+
+/********************************************************************
+ * _gj_deanhopkins_search_submit                                    *
+ ********************************************************************
+ * Description: Search form submit handler.                         *
+ *              Determine search type and redirect to relevant page *
+ * Arguments:                                                       *
+ * Return:                                                          *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function _gj_deanhopkins_search_submit() {
+    //check if term is subject or subject-level and redirect as per spec
+    $terms = _get_subject_terms_from_string($_POST['search_text']);
+    $subject = false;
+    $level = false;
+    if (isset($terms['subject'])){
+        $subject = true;
+    }
+    if (isset($terms['level'])){
+        $level = true;
+    }
+
+    $subject_str = $terms['subject'];
+    $level_str = $terms['level'];
+
+    $tid = get_subject_level_terms_from_string($_POST['search_text'])['tid'];
+
+    /*
+    if (!is_subject_level_over_threshold($subject_str, $level_str, $tid)){
+        $options = array('query' => array('subject' => $subject_str, 'level' => $level_str));
+        drupal_goto('/search-request', $options);
+    }*/
+
+    if ($subject && !$level){
+        $options = array('query' => array('threshold' => 'true'));
+        drupal_goto('subject/' . $terms['subject'], $options);
+    }
+    if ($subject && $level){
+        $options = array('query' => array('threshold' => 'true'));
+        drupal_goto('level-subject/' . $terms['level'] . '/' . $terms['subject'], $options);
+    }
+    if (!$subject && $level){
+        $options = array('query' => array('threshold' => 'true'));
+        drupal_goto('level/' . $terms['level'], $options);
+    }
+}
+
+function _check_search_qry_string_for_redirect(){
+    if (isset($_GET['managed_search'])){
+        return false;
+    }
+    if (isset($_GET['threshold']) && strtolower($_GET['threshold']) == "true"){
+        return false;
+    } else {
+        return true;
+    }
+}
+
+
+/********************************************************************
+ * gj_deanhopkins_search_subject                                    *
+ ********************************************************************
+ * Description: Page callback for search by subject                 *
+ * Arguments:   $subject                                            *
+ * Return:      $page                                               *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_search_subject($subject){
+    if (_check_search_qry_string_for_redirect()){
+        $node = node_view(node_load('881'));
+        $page = array
+        (   'content' => $node,
+            'gj_deanhopkins_search_subject' => array
+            (
+                '#content' => $node,
+                '#hide_search_block' => TRUE,
+            ),
+        );
+        return $page;
+    };
+
+    //Get tutor ad node teasers
+    $tid = _get_subject_term_id_from_string($subject);
+    $node_teasers = array();
+    $queries = get_search_subject_db_query();
+
+    $limit = 10;
+    $start = isset($_REQUEST['page']) ? $_REQUEST['page'] * $limit : 0;
+    $count_result = db_query($queries['count_qry'], array(':tid' => $tid))->fetch();
+    $query_items = db_query_range($queries['select_qry'],$start,$limit, array(':tid' => $tid));
+    $items = $query_items->fetchAll();
+
+    foreach ($items as $item) {
+        $nid = $item->nid;
+        $n = node_view(node_load($nid), 'teaser');
+        if ($n){
+            array_push($node_teasers, $n);
+        }
+    }
+
+    pager_default_initialize($count_result->total, $limit, $element = 0);
+    $pager = theme('pager');
+
+
+    //Attach node teasers to page
+    $page = array
+    (
+        'gj_deanhopkins_search_subject' => array
+        (
+            '#contents' => $node_teasers,
+            '#result_count' => $count_result->total,
+            '#pager' => array
+            (
+                '#theme' => 'pager',
+            ),
+        ),
+    );
+
+    return $page;
+}
+
+/********************************************************************
+ * gj_deanhopkins_search_level                                      *
+ ********************************************************************
+ * Description: Page callback for search by level                   *
+ * Arguments:   $level                                              *
+ * Return:      $page                                               *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_search_level($level){
+    if (_check_search_qry_string_for_redirect()){
+        $node = node_view(node_load('881'));
+        $page = array
+        (   'content' => $node,
+            'gj_deanhopkins_search_subject' => array
+            (
+                '#content' => $node,
+                '#hide_search_block' => TRUE,
+            ),
+        );
+        return $page;
+    };
+
+    //get tutor ad node teasers
+    $node_teasers = array();
+
+    $queries = get_search_level_db_query();
+
+    $limit = 10;
+    $start = isset($_REQUEST['page']) ? $_REQUEST['page'] * $limit : 0;
+    $count_result = db_query($queries['count_qry'], array(':level_name' => $level))->fetch();
+    $query_items = db_query_range($queries['select_qry'],$start,$limit, array(':level_name' => $level));
+    $items = $query_items->fetchAll();
+
+    foreach ($items as $item) {
+        $nid = $item->nid;
+        $n = node_view(node_load($nid), 'teaser');
+        if ($n){
+            array_push($node_teasers, $n);
+        }
+    }
+
+    pager_default_initialize($count_result->total, $limit, $element = 0);
+    $pager = theme('pager');
+
+
+    //Attach node teasers to page
+    $page = array
+    (
+        'gj_deanhopkins_search_subject' => array
+        (
+            '#contents' => $node_teasers,
+            '#result_count' => $count_result->total,
+            '#pager' => array
+            (
+                '#theme' => 'pager',
+            ),
+        ),
+    );
+
+    return $page;
+}
+
+/********************************************************************
+ * gj_deanhopkins_search_level_subject                              *
+ ********************************************************************
+ * Description: Page callback for search by level & subject         *
+ * Arguments:   $level, $subject                                    *
+ * Return:      $page                                               *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_search_level_subject($level_str, $subject_str){
+    global $user;
+
+    //Get tutor ad node teasers
+    $subject_tid = _get_subject_term_id_from_string($subject_str);
+    $levels = taxonomy_get_children($subject_tid);
+
+    $subject_level = null;
+    foreach ($levels as $child_level){
+        if (strtolower($child_level->name) == strtolower($level_str)){
+            $subject_level = $child_level;
+            break;
+        }
+    }
+    $level_tid = $subject_level->tid;
+
+    if (!user_is_anonymous()){
+        $requests = _get_parent_search_requests_by_uid_and_subject_level_tid($user->uid, $level_tid);
+        if (sizeof($requests) > 0){
+            $request = array_pop($requests);
+            $options = array('query' => array('managed_search' => base64_encode(date("M,d,Y h:i:s A"))));
+            if (!isset($_GET['managed_search'])){
+                drupal_goto('level-subject/' . $level_str . '/' . $subject_str, $options);
+            }
+        }
+    }
+
+    if (!is_subject_level_enabled_by_manager($level_tid) && !isset($_GET['managed_search'])){
+        $node = node_view(node_load('1020'));
+        $node['#node']->title = "";
+        $page = array
+        (   'content' => $node,
+            'gj_deanhopkins_search_subject' => array
+            (
+                '#content' => $node,
+                '#hide_search_block' => TRUE,
+            ),
+        );
+        return $page;
+    } else {
+        if (!isset($_GET['threshold']) && !isset($_GET['managed_search'])){
+            $options = array('query' => array('threshold' => 'true'));
+            drupal_goto('level-subject/' . $level_str . '/' . $subject_str, $options);
+        }
+    }
+
+
+    if (_check_search_qry_string_for_redirect()){
+        $node = node_view(node_load('1020'));
+        $page = array
+        (   'content' => $node,
+            'gj_deanhopkins_search_subject' => array
+            (
+                '#content' => $node,
+                '#hide_search_block' => TRUE,
+            ),
+        );
+        return $page;
+    };
+
+
+    $node_teasers = array();
+    $queries = get_search_level_subject_db_query();
+
+    $limit = 10;
+    $start = isset($_REQUEST['page']) ? $_REQUEST['page'] * $limit : 0;
+    $count_result = db_query($queries['count_qry'], array(':tid' => $level_tid))->fetch();
+    $query_items = db_query_range($queries['select_qry'],$start,$limit, array(':tid' => $level_tid));
+    $items = $query_items->fetchAll();
+
+    foreach ($items as $item) {
+        $nid = $item->nid;
+        $n = node_view(node_load($nid), 'teaser');
+        if ($n){
+            array_push($node_teasers, $n);
+        }
+    }
+
+    pager_default_initialize($count_result->total, $limit, $element = 0);
+    $pager = theme('pager');
+
+
+    //Attach node teasers to page
+    $page = array
+    (
+        'gj_deanhopkins_search_subject' => array
+        (
+            '#contents' => $node_teasers,
+            '#result_count' => $count_result->total,
+            '#pager' => array
+            (
+                '#theme' => 'pager',
+            ),
+        ),
+    );
+
+    return $page;
+}
+
+/********************************************************************
+ * gj_deanhopkins_search_page_alter                                 *
+ ********************************************************************
+ * Description: Implements hook_page_alter()                        *
+ *              Build search results page elements                  *
+ * Arguments:   &$page                                              *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_search_page_alter(&$page)
+{
+    if (!drupal_get_http_header('status') or !substr(drupal_get_http_header('status'), 0, 3) === "403") {
+        if (isset(arg()[0]) and (arg()[0] == "subject" || arg()[0] == "level-subject" || arg()[0] == "level")) {
+            if (!isset($page['content']['system_main']['gj_deanhopkins_search_subject']['#hide_search_block'])){
+                drupal_add_js(drupal_get_path("module", "gj_deanhopkins_search"). "/js/gj_deanhopkins_search.js");
+                drupal_add_css(drupal_get_path("module", "gj_deanhopkins_search"). "/css/gj_deanhopkins_search.css");
+
+                $search_type = arg()[0];
+                $search_term_label = get_search_label_from_args();
+
+                $sort_select_markup = "<select id='search_sort_type' class='form-control search-sort-select' onchange='gj_deanhopkins_search_sort(this)'>";
+                if ($_GET['sort'] == "lowest_price"){
+                    $sort_select_markup .= "<option value='best_match' >Best Match</option>";
+                    $sort_select_markup .= "<option value='lowest_price' selected='selected'>Lowest Price</option>";
+                } else {
+                    $sort_select_markup .= "<option value='best_match' selected='selected'>Best Match</option>";
+                    $sort_select_markup .= "<option value='lowest_price'>Lowest Price</option>";
+                }
+                $sort_select_markup .= "</select>";
+
+                $results_display = array();
+
+                $results = $page['content']['system_main']['gj_deanhopkins_search_subject']['#contents'];
+
+                $results_display['wrapper'] = array(
+                    '#type' => 'container',
+                    '#attributes' => array(
+                        'class' => array('container search-results-wrapper'),
+                    ),
+                );
+
+                $results_display['wrapper']['search-header'] = array(
+                    '#type' => 'container',
+                    '#attributes' => array(
+                        'class' => array('row search-header-row'),
+                    ),
+                );
+
+                $results_display['wrapper']['search-header']['search-header-left'] = array(
+                    '#type' => 'container',
+                    '#attributes' => array(
+                        'class' => array('col-md-8 search-header-left'),
+                    ),
+                );
+
+                $results_display['wrapper']['search-header']['search-header-left']['row-1'] = array(
+                    '#type' => 'markup',
+                    '#markup' => "<p class='search-header-1'>Subject Experts</p>"
+                );
+
+                $results_display['wrapper']['search-header']['search-header-left']['row-2'] = array(
+                    '#type' => 'markup',
+                    '#markup' => "<p class='search-header-2'>Top Private Online " . $search_term_label . " Tutors</p>"
+                );
+
+
+                $results_display['wrapper']['search-header']['search-header-left']['row-3'] = array(
+                    '#type' => 'markup',
+                    '#markup' => "<p class='search-header-3'>" . (string)$page['content']['system_main']['gj_deanhopkins_search_subject']['#result_count'] . " private " . $search_term_label . " Tutors. Find the best " . $search_term_label . " Tutors and Tuition</p>"
+                );
+
+
+                $results_display['wrapper']['search-header']['search-header-right'] = array(
+                    '#type' => 'container',
+                    '#attributes' => array(
+                        'class' => array('col-md-3 search-header-right'),
+                    ),
+                );
+
+                $results_display['wrapper']['search-header']['search-header-right']['row-1'] = array(
+                    '#type' => 'container',
+                    '#attributes' => array(
+                        'class' => array(''),
+                    ),
+                );
+
+                $results_display['wrapper']['search-header']['search-header-right']['row-1']['label'] = array(
+                    '#type' => 'markup',
+                    '#markup' => "<p>Sort by</p>"
+                );
+
+                $results_display['wrapper']['search-header']['search-header-right']['row-2'] = array(
+                    '#type' => 'container',
+                    '#attributes' => array(
+                        'class' => array(''),
+                    ),
+                );
+
+                $results_display['wrapper']['search-header']['search-header-right']['row-2']['input'] = array(
+                    '#type' => 'markup',
+                    '#markup' => $sort_select_markup
+                );
+
+
+                $results_display['wrapper']['hr'] = array(
+                    '#type' => 'markup',
+                    '#markup' => "<hr />"
+                );
+
+                $results_display['wrapper-mobile'] = array(
+                    '#type' => 'container',
+                    '#attributes' => array(
+                        'class' => array('search-results-wrapper-mobile'),
+                    ),
+                );
+
+                $results_display['wrapper-mobile']['search-header-mobile'] = array(
+                    '#type' => 'container',
+                    '#attributes' => array(
+                        'class' => array('search-header-row search-header-row-mobile center-text'),
+                    ),
+                );
+
+
+                $results_display['wrapper-mobile']['search-header-mobile']['row-1-text'] = array(
+                    '#type' => 'markup',
+                    '#markup' => "<p class='search-header-1-mobile center-text'>Specialist Online " . $search_term_label . " Tutors</p>"
+                );
+
+
+
+
+                $results_display['wrapper-mobile']['search-header-mobile']['row-2-text'] = array(
+                    '#type' => 'markup',
+                    '#markup' => "<p class='search-header-2-mobile center-text'>[" . (string)sizeof($results) . "] Online " . $search_term_label . " Tutors.</p>"
+                );
+
+
+
+
+                $results_display['wrapper-mobile']['search-header-mobile']['row-3'] = array(
+                    '#type' => 'container',
+                    '#attributes' => array(
+                        'class' => array('search-sort-mobile'),
+                    ),
+                );
+
+                $results_display['wrapper-mobile']['search-header-mobile']['row-3']['left'] = array(
+                    '#type' => 'container',
+                    '#attributes' => array(
+                        'class' => array('search-sort-mobile-left'),
+                    ),
+                );
+
+                $results_display['wrapper-mobile']['search-header-mobile']['row-3']['left']['label'] = array(
+                    '#type' => 'markup',
+                    '#markup' => "<span>Sort: </span>"
+                );
+
+                $results_display['wrapper-mobile']['search-header-mobile']['row-3']['right'] = array(
+                    '#type' => 'container',
+                    '#attributes' => array(
+                        'class' => array('search-sort-mobile-right'),
+                    ),
+                );
+
+
+                $results_display['wrapper-mobile']['search-header-mobile']['row-3']['right']['input'] = array(
+                    '#type' => 'markup',
+                    '#markup' => $sort_select_markup
+                );
+
+
+
+
+                $count = 1;
+                foreach ($results as $result){
+                    $results_display['wrapper'][$count]['content'] = $result;
+                    $results_display['wrapper-mobile'][$count]['content'] = $result;
+
+                    if ($count == 3){
+                        $results_display['wrapper'][$count]['info'] = get_block_satisfaction_guaranteed(false);
+                        $results_display['wrapper-mobile'][$count]['info'] = get_block_satisfaction_guaranteed(true);
+                    }
+
+                    if ($count == 7){
+                        $results_display['wrapper'][$count]['info'] = get_block_no_hidden_fees(false);
+                        $results_display['wrapper-mobile'][$count]['info'] = get_block_no_hidden_fees(true);
+                    }
+
+                    $count++;
+                }
+
+
+
+                $page['content']['system_main']['results'] = $results_display;
+
+                $page['content']['system_main']['results']['wrapper']['pager'] = $page['content']['system_main']['gj_deanhopkins_search_subject']['#pager'];
+                $page['content']['system_main']['results']['wrapper-mobile']['pager'] = $page['content']['system_main']['gj_deanhopkins_search_subject']['#pager'];
+
+
+                $page['content']['system_main']['results']['wrapper']['seo_block'] = _get_search_seo_block($page, $search_type);
+                $page['content']['system_main']['results']['wrapper-mobile']['seo_block'] = _get_search_seo_block($page, $search_type);
+            } else {
+
+            }
+        }
+    }
+}
+
+function _get_seo_block_items($search_type){
+    $items = array();
+    if ($search_type == "subject") {
+        $vocab = 'taxonomy_popular_levels';
+    } else if ($search_type == "level") {
+        $vocab = 'taxonomy_popular_subjects';
+    }
+
+    $vocabulary = taxonomy_vocabulary_machine_name_load($vocab);
+    $terms = entity_load('taxonomy_term', FALSE, array('vid' => $vocabulary->vid));
+
+    foreach ($terms as $term){
+        if (sizeof($items) < 9){
+            array_push($items, $term->name);
+        } else {
+            break;
+        }
+    }
+
+    return $items;
+}
+
+function _get_search_seo_block($page, $search_type){
+    if ($search_type != "level-subject"){
+
+        if ($search_type == "subject"){
+            $title = t("Tutoring for all levels and abilities.");
+        } else if ($search_type == "level"){
+            $title = t("Find private " . arg()[1] . " tutors in other subjects.");
+        }
+
+        if ($search_type == "subject"){
+            $description = t('GradeJumpers provide academic and adult learning support
+   across all ages and levels. Find your a commission-free private tutor to match your needs:');
+        } else if ($search_type == "level"){
+            $description = t('GradeJumpers is growing community of specialist online tutors across the UK offering high quality ' . arg()[1] . ' tutoring and tuition:');
+        }
+
+
+        $items = _get_seo_block_items($search_type);
+
+
+        $ret = array();
+
+        $ret['seo_block'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('seo-block-container col-md-4 col-sm-12'),
+            ),
+        );
+
+        $ret['seo_block']['title'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('seo-block-title'),
+            ),
+        );
+
+        if ($search_type == "subject"){
+            $markup = '<p class="seo-block-small">A trusted community of specialist tutors</p>';
+        } else if ($search_type == 'level'){
+            $markup = '<p class="seo-block-small">A trusted community of smarter tutors</p>';
+        }
+
+        $ret['seo_block']['title']['pre-title'] = array(
+            '#type' => 'markup',
+            '#markup' => $markup,
+        );
+
+        $ret['seo_block']['title']['content'] = array(
+            '#type' => 'markup',
+            '#markup' => $title,
+        );
+
+
+
+        $ret['seo_block']['description'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('seo-block-description'),
+            ),
+        );
+
+        $ret['seo_block']['description']['content'] = array(
+            '#type' => 'markup',
+            '#markup' => $description,
+        );
+
+
+        $ret['seo_block']['items'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('items-container'),
+            ),
+        );
+
+        $counter = 0;
+        foreach ($items as $item){
+            $ret['seo_block']['items'][$counter] = array(
+                '#type' => 'container',
+                '#attributes' => array(
+                    'class' => array('seo-block-item'),
+                ),
+            );
+
+            if ($search_type == "level"){
+                $url = url('level-subject/' . arg()[1] . '/' . $item);
+            } else {
+                $url = url('level-subject/' . $item . '/' . arg()[1]);
+            }
+            $ret['seo_block']['items'][$counter]['content'] = array(
+                '#type' => 'markup',
+                '#markup' => '<a href="' . $url . '">' . $item . '</a>',
+            );
+
+            $counter++;
+        }
+
+
+        return $ret;
+    } else {
+        return array();
+    }
+}
+
+/********************************************************************
+ * gj_deanhopkins_search_block_info                                 *
+ ********************************************************************
+ * Description: Implements hook_block_info()                        *
+ *              Register search block                               *
+ * Arguments:   &$page                                              *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_search_block_info() {
+    $blocks['gj_search'] = array(
+        // info: The name of the block.
+        'info' => t('GradeJumpers Search'),
+    );
+
+    return $blocks;
+}
+
+/********************************************************************
+ * gj_deanhopkins_search_block_view                                 *
+ ********************************************************************
+ * Description: Implements hook_block_view()                        *
+ *              Define search block view                            *
+ * Arguments:   $delta                                              *
+ * Return:      $block                                              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_search_block_view($delta = '') {
+    // The $delta parameter tells us which block is being requested.
+    switch ($delta) {
+        case 'gj_search':
+            $block['subject'] = t('');
+            $block['content'] = _block_search_tutor_content();
+            break;
+    }
+
+    return $block;
+}
+
+/********************************************************************
+ * _block_search_tutor_content                                      *
+ ********************************************************************
+ * Description: Inject JS and CSS, apply theme for search block     *
+ * Arguments:                                                       *
+ * Return:      $theme                                              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function _block_search_tutor_content(){
+    module_load_include('inc', 'gj_deanhopkins_search', 'gj_deanhopkins_search.form');
+
+    drupal_add_js(drupal_get_path("module", "gj_deanhopkins_search"). "/js/gj_deanhopkins_search.js");
+    drupal_add_css(drupal_get_path("module", "gj_deanhopkins_search"). "/css/gj_deanhopkins_search.css");
+    $form = drupal_get_form('gj_deanhopkins_search_tutor_block_form');
+
+    return theme('gj_deanhopkins_search_tutor_block_form', array('form' => $form));
+}
+
+/********************************************************************
+ * _gj_deanhopkins_search_autocomplete                              *
+ ********************************************************************
+ * Description: Ajax autocomplete callback for search form          *
+ * Arguments:                                                       *
+ * Return:      $field_name,  $raw_tags_typed = ''                  *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function _gj_deanhopkins_search_autocomplete($field_name,  $raw_tags_typed = '') {
+    $term_matches = array();
+    if (strlen($raw_tags_typed) > 2){
+        $field = field_info_field($field_name);
+
+        // The user enters a comma-separated list of tags. We only autocomplete the last tag.
+        //$tids = _term_ref_autocomplete_parse_input($raw_tags_typed);
+        $tags_typed = drupal_explode_tags($raw_tags_typed);
+        //$tag_last = (count($tids) == count($tags_typed)) ? '' : drupal_strtolower(array_pop($tags_typed));
+        $tag_last = drupal_strtolower(array_pop($tags_typed));
+
+        $matches = array();
+        $names_matched = array();
+
+        if ($tag_last != '') {
+            $vids = [taxonomy_vocabulary_machine_name_load('taxonomy_subject_levels')->vid];
+
+            $query = db_select('taxonomy_term_data', 't');
+            $query->addTag('translatable');
+            $query->addTag('term_access');
+
+            // Select rows that match by term name.
+            $tags_return = $query
+                ->fields('t', array('tid', 'name'))
+                ->condition('t.vid', $vids)
+                ->condition('t.name', '%' . db_like($tag_last) . '%', 'LIKE')
+                ->execute()
+                ->fetchAllKeyed();
+
+            $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
+
+            foreach ($tags_return as $tid => $name) {
+                $tag = taxonomy_term_load($tid);
+                $term_type = $tag->term_type[LANGUAGE_NONE][0]['value'];
+
+                if ($term_type == "Level"){
+                    if (!in_array($name, $names_matched)){
+                        $term_matches[$tid]['display'] = $prefix . $name;
+                        $term_matches[$tid]['position'] = 1;
+                        $term_matches[$tid]['name'] = $name;
+                        array_push($names_matched, $name);
+                    }
+
+                    $ancestors = array_reverse(taxonomy_get_parents_all($tid));
+
+                    foreach ($ancestors as $ancestor) {
+                        $ancestorName = $ancestor->name;
+                        if (!in_array($ancestorName, $names_matched)){
+                            // Term names containing commas or quotes must be wrapped in quotes.
+                            if (strpos($ancestorName, ',') !== FALSE || strpos($ancestorName, '"') !== FALSE) {
+                                $ancestorName = '"' . str_replace('"', '""', $ancestorName) . '"';
+                            }
+                            $term_matches[$ancestor->tid]['display'] = $prefix . $ancestorName . " (" . $name . ")";
+                            $term_matches[$ancestor->tid]['position'] = 2;
+                            $term_matches[$ancestor->tid]['name'] = $ancestorName . " (" . $name . ")";
+                        }
+                    }
+                } elseif ($term_type == "Subject"){
+                    if (!in_array($name, $names_matched)){
+                        $term_matches[$tid]['display'] = $prefix . $name;
+                        $term_matches[$tid]['position'] = 1;
+                        $term_matches[$tid]['name'] = $name;
+                        array_push($names_matched, $name);
+                    }
+
+                    $children = array_reverse(taxonomy_get_children($tid));
+
+                    foreach ($children as $child) {
+                        $childName = $child->name;
+                        if (!in_array($childName, $names_matched)){
+                            // Term names containing commas or quotes must be wrapped in quotes.
+                            if (strpos($childName, ',') !== FALSE || strpos($childName, '"') !== FALSE) {
+                                $childName = '"' . str_replace('"', '""', $childName) . '"';
+                            }
+                            $term_matches[$child->tid]['display'] = $prefix . $name . " (" . $childName . ")";
+                            $term_matches[$child->tid]['position'] = 2;
+                            $term_matches[$child->tid]['name'] = $name . " (" . $childName . ")";
+                        }
+                    }
+                }
+            }
+        }
+    }
+    drupal_json_output($term_matches);
+}
+
+/********************************************************************
+ * get_info_block                                                   *
+ ********************************************************************
+ * Description: Generate renderable content for the promotional     *
+ *              information blocks on search results pages          *
+ * Arguments:   $mobile, $header_text, $content_text                *
+ * Return:      $block                                              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_info_block($mobile, $header_text, $content_text){
+    $block = array();
+
+    if ($mobile){
+        $block['wrapper'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('row info-block-container info-block-container-mobile'),
+            ),
+        );
+
+        $block['wrapper']['left-col'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('col-sm-1 teaser-user-picture-wrapper info-block-left-mobile'),
+            ),
+        );
+
+        $block['wrapper']['left-col']['user-picture'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array(''),
+            ),
+        );
+
+        $block['wrapper']['left-col']['user-picture']['img'] = array(
+            '#type' => 'markup',
+            '#markup' => "<img class='info-block-image info-block-image-mobile' src='" . file_create_url(drupal_get_path('module', 'gj_deanhopkins_tutor_ad') . "/img/satisfaction_guaranteed.svg") . "'' />"
+        );
+
+        $block['wrapper']['right-col'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('col-sm-10 info-block-right-mobile'),
+            ),
+        );
+
+        $block['wrapper']['right-col']['header'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('row'),
+            ),
+        );
+
+        $block['wrapper']['right-col']['header']['text'] = array(
+            '#type' => 'markup',
+            '#markup' => "<span class='info-block-header-mobile'>" . $header_text . "</span>"
+        );
+
+        $block['wrapper']['right-col']['content'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('row'),
+            ),
+        );
+
+        $block['wrapper']['right-col']['content']['text'] = array(
+            '#type' => 'markup',
+            '#markup' => "<span class='info-block-text-mobile'>" . $content_text . "</span>"
+        );
+    } else {
+        $block['wrapper'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('row info-block-container'),
+            ),
+        );
+
+        $block['wrapper']['left-col'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('col-md-2 teaser-user-picture-wrapper'),
+            ),
+        );
+
+        $block['wrapper']['left-col']['user-picture'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array(''),
+            ),
+        );
+
+        $block['wrapper']['left-col']['user-picture']['img'] = array(
+            '#type' => 'markup',
+            '#markup' => "<img class='info-block-image' src='" . file_create_url(drupal_get_path('module', 'gj_deanhopkins_tutor_ad') . "/img/satisfaction_guaranteed.svg") . "'' />"
+        );
+
+        $block['wrapper']['right-col'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('col-md-7'),
+            ),
+        );
+
+        $block['wrapper']['right-col']['header'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('row'),
+            ),
+        );
+
+        $block['wrapper']['right-col']['header']['text'] = array(
+            '#type' => 'markup',
+            '#markup' => "<span class='info-block-header'>" . $header_text . "</span>"
+        );
+
+        $block['wrapper']['right-col']['content'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('row'),
+            ),
+        );
+
+        $block['wrapper']['right-col']['content']['text'] = array(
+            '#type' => 'markup',
+            '#markup' => "<span class='info-block-text'>" . $content_text . "</span>"
+        );
+    }
+
+
+    return $block;
+}
+
+/********************************************************************
+ * get_block_satisfaction_guaranteed                                *
+ ********************************************************************
+ * Description: Generate renderable content for the promotional     *
+ *              information block: "Satisfaction guaranteed"        *
+ * Arguments:   $mobile                                             *
+ * Return:      $block                                              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_block_satisfaction_guaranteed($mobile=false)
+{
+    return get_info_block(
+        $mobile,
+        "100% Satisfaction Guaranteed",
+        variable_get('var_txt_satisfaction_guaranteed', t(get_lorem_ipsum()))
+    );
+}
+
+/********************************************************************
+ * get_block_no_hidden_fees                                         *
+ ********************************************************************
+ * Description: Generate renderable content for the promotional     *
+ *              information block: "No Hidden Fees"                 *
+ * Arguments:   $mobile                                             *
+ * Return:      $block                                              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_block_no_hidden_fees($mobile=false){
+    return get_info_block(
+        $mobile,
+        "No hidden Fees.",
+        variable_get('var_txt_no_hidden_fees', t(get_lorem_ipsum()))
+    );
+}
+
+/********************************************************************
+ * _get_subject_terms_from_string                                   *
+ ********************************************************************
+ * Description: Determine subject / level term ID from text string  *
+ * Arguments:   $sub                                                *
+ * Return:      $ret (subject / level term ids)                     *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function _get_subject_terms_from_string($sub){
+    $ret = array();
+
+    $vid = taxonomy_vocabulary_machine_name_load('taxonomy_subject_levels')->vid;
+    $subject_array = explode('(',$sub);
+    $subject_parent = $subject_array[0];
+    $parent_term = db_query("SELECT tid, name FROM {taxonomy_term_data} WHERE vid = :vid AND name = :name",array('vid'=> $vid,'name'=>$subject_parent))->fetch();
+
+    if($parent_term){
+        $parent_term_id = $parent_term->tid;
+        $parent_term = taxonomy_term_load($parent_term_id);
+        $term = taxonomy_term_load($parent_term_id);
+        if ($term->term_type[LANGUAGE_NONE][0]['value'] == 'Subject'){
+            $ret['subject'] = $parent_term->name;
+        } else {
+            $ret['level'] = $parent_term->name;
+        }
+
+        if(isset($subject_array[1]) && $subject_array[1] != ''){
+            $child_subject = trim($subject_array[1], ')');
+            $dbTerm = db_query("SELECT td.tid, td.name FROM {taxonomy_term_data} td"
+                ." LEFT JOIN {taxonomy_term_hierarchy} th ON th.tid = td.tid"
+                . " WHERE td.vid = :vid AND td.name = :name AND th.parent=:parent",
+                array('vid'=> $vid,'name'=>$child_subject,'parent' => $parent_term_id))->fetch();
+
+            if($dbTerm){
+                $term = taxonomy_term_load($dbTerm->tid);
+                if ($term->term_type[LANGUAGE_NONE][0]['value'] == 'Level'){
+                    $ret['level'] = $term->name;
+                }
+            }
+        }
+    }
+
+    return $ret;
+}
+
+function _get_subject_term_id_from_string($sub){
+    $vid = taxonomy_vocabulary_machine_name_load('taxonomy_subject_levels')->vid;
+    $subject = 0;
+    $subject_array = explode('(',$sub);
+    $subject_parent = $subject_array[0];
+    $child_subject = '';
+    $term_tid = 0;
+    $parent_term = db_query("SELECT tid, name FROM {taxonomy_term_data} WHERE vid = :vid AND name = :name",array('vid'=> $vid,'name'=>$subject_parent))->fetch();
+
+    if($parent_term){
+        $subject = $parent_term->tid;
+
+        if(isset($subject_array[1]) && $subject_array[1] != ''){
+            $child_subject = trim($subject_array[1], ')');
+            $term = db_query("SELECT td.tid, td.name FROM {taxonomy_term_data} td"
+                ." LEFT JOIN {taxonomy_term_hierarchy} th ON th.tid = td.tid"
+                . " WHERE td.vid = :vid AND td.name = :name AND th.parent=:parent",
+                array('vid'=> TAXONOMY_SUBJECT,'name'=>$child_subject,'parent' => $subject))->fetch();
+
+            if($term){
+                $subject = $term->tid;
+            }
+        }
+
+    }
+
+    return $subject;
+}
+
+/********************************************************************
+ * get_search_label_from_args                                       *
+ ********************************************************************
+ * Description: Determine search label from args.                   *
+ *              ie "A-Level", "A-Level Maths", "Maths"              *
+ * Arguments:                                                       *
+ * Return:      $search_term_label string                           *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_search_label_from_args(){
+    $subject = null;
+    $level = null;
+    $search_term_label = null;
+    if (arg()[0] == "subject" && isset(arg()[1])){
+        $subject = arg()[1];
+        $search_term_label = $subject;
+    } else if (arg()[0] == "level-subject" && isset(arg()[1]) && isset(arg()[2])){
+        $level = arg()[1];
+        $subject = arg()[2];
+        $search_term_label = $level . " " . $subject;
+    } else if (arg()[0] == "level" && isset(arg()[1])){
+        $level = arg()[1];
+        $search_term_label = $level;
+    }
+
+    return $search_term_label;
+}
+
+/********************************************************************
+ * get_search_subject_db_query                                      *
+ ********************************************************************
+ * Description: Generate SQL query for search by subject            *
+ * Arguments:                                                       *
+ * Return:      $qry_str                                            *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_search_subject_db_query(){
+    $select_str = "SELECT SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id as nid,
+                    AVG(STAR_RATING_FIELD.field_reference_star_rating_rating) as average_rating,
+                    COUNT(STAR_RATING_FIELD.field_reference_star_rating_rating) as num_ratings,
+                    MIN(PRICE_FIELD.field_subject_level_price_value) as lowest_price
+                FROM field_data_field_offered_subject OFFERED_SUBJECT_FIELD
+                JOIN field_data_field_col_subject_level_pricing SUBJECT_LEVEL_PRICE_FIELD_COL
+                    ON OFFERED_SUBJECT_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value
+                JOIN taxonomy_term_hierarchy TAX_TERM_HIERARCHY
+                    ON TAX_TERM_HIERARCHY.tid = OFFERED_SUBJECT_FIELD.field_offered_subject_tid
+                JOIN field_data_field_subject_level_price PRICE_FIELD
+                    ON PRICE_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value
+                JOIN field_data_field_col_add_reference FDFCAR
+                    ON FDFCAR.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN field_data_field_tutor_available FDFTA
+                    ON FDFTA.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN node
+                    ON node.nid = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN field_data_field_reference_star_rating STAR_RATING_FIELD
+                    ON FDFCAR.field_col_add_reference_value = STAR_RATING_FIELD.entity_id
+                WHERE SUBJECT_LEVEL_PRICE_FIELD_COL.bundle = 'tutor_ad'
+                    AND OFFERED_SUBJECT_FIELD.bundle = 'field_col_subject_level_pricing'
+                    AND ((OFFERED_SUBJECT_FIELD.field_offered_subject_tid = :tid) OR (TAX_TERM_HIERARCHY.parent = :tid))
+                    AND FDFTA.field_tutor_available_value = 'Yes'
+                    AND node.status = 1
+                GROUP BY nid";
+
+    $best_match_qry = " ORDER BY average_rating DESC, num_ratings DESC, lowest_price ASC";
+    $lowest_price_qry = " ORDER BY lowest_price ASC, average_rating DESC, num_ratings DESC";
+
+    if (isset($_GET['sort']) && ($_GET['sort'] == "lowest_price")){
+        $select_str .= $lowest_price_qry;
+    } else {
+        $select_str .= $best_match_qry;
+    }
+
+
+    $count_str = "SELECT COUNT(*) as total FROM (
+                  SELECT SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id as nid,
+                    AVG(STAR_RATING_FIELD.field_reference_star_rating_rating) as average_rating,
+                    COUNT(STAR_RATING_FIELD.field_reference_star_rating_rating) as num_ratings,
+                    MIN(PRICE_FIELD.field_subject_level_price_value) as lowest_price
+                FROM field_data_field_offered_subject OFFERED_SUBJECT_FIELD
+                JOIN field_data_field_col_subject_level_pricing SUBJECT_LEVEL_PRICE_FIELD_COL
+                    ON OFFERED_SUBJECT_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value
+                JOIN taxonomy_term_hierarchy TAX_TERM_HIERARCHY
+                    ON TAX_TERM_HIERARCHY.tid = OFFERED_SUBJECT_FIELD.field_offered_subject_tid
+                JOIN field_data_field_subject_level_price PRICE_FIELD
+                    ON PRICE_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value
+                JOIN field_data_field_col_add_reference FDFCAR
+                    ON FDFCAR.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN field_data_field_tutor_available FDFTA
+                    ON FDFTA.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN node
+                    ON node.nid = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN field_data_field_reference_star_rating STAR_RATING_FIELD
+                    ON FDFCAR.field_col_add_reference_value = STAR_RATING_FIELD.entity_id
+                WHERE SUBJECT_LEVEL_PRICE_FIELD_COL.bundle = 'tutor_ad'
+                    AND OFFERED_SUBJECT_FIELD.bundle = 'field_col_subject_level_pricing'
+                    AND ((OFFERED_SUBJECT_FIELD.field_offered_subject_tid = :tid) OR (TAX_TERM_HIERARCHY.parent = :tid))
+                    AND FDFTA.field_tutor_available_value = 'Yes'
+                    AND node.status = 1
+                GROUP BY nid
+                ) as select_qry;";
+
+    return array("select_qry" => $select_str, "count_qry" => $count_str);
+}
+
+/********************************************************************
+ * get_search_level_db_query                                        *
+ ********************************************************************
+ * Description: Generate SQL query for search by level              *
+ * Arguments:                                                       *
+ * Return:      $qry_str                                            *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_search_level_db_query(){
+    $select_str = "SELECT SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id as nid,
+                    AVG(STAR_RATING_FIELD.field_reference_star_rating_rating) as average_rating,
+                    COUNT(STAR_RATING_FIELD.field_reference_star_rating_rating) as num_ratings,
+                    MIN(PRICE_FIELD.field_subject_level_price_value) as lowest_price
+                FROM field_data_field_offered_level OFFERED_LEVEL_FIELD
+                JOIN field_data_field_col_subject_level_pricing SUBJECT_LEVEL_PRICE_FIELD_COL
+                    ON OFFERED_LEVEL_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value
+                JOIN field_data_field_subject_level_price PRICE_FIELD
+                    ON PRICE_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value
+                JOIN field_data_field_col_add_reference FDFCAR
+                    ON FDFCAR.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN field_data_field_reference_star_rating STAR_RATING_FIELD
+                    ON FDFCAR.field_col_add_reference_value = STAR_RATING_FIELD.entity_id
+                JOIN field_data_field_tutor_available FDFTA
+                    ON FDFTA.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN node
+                    ON node.nid = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN taxonomy_term_data TAX_TERM_DATA on OFFERED_LEVEL_FIELD.field_offered_level_tid = TAX_TERM_DATA.tid
+                WHERE SUBJECT_LEVEL_PRICE_FIELD_COL.bundle = 'tutor_ad'
+                    AND OFFERED_LEVEL_FIELD.bundle = 'field_col_subject_level_pricing'
+                    AND TAX_TERM_DATA.name = :level_name
+                    AND FDFTA.field_tutor_available_value = 'Yes'
+                    AND node.status = 1
+                GROUP BY nid";
+
+
+    $best_match_qry = " ORDER BY average_rating DESC, num_ratings DESC, lowest_price ASC";
+    $lowest_price_qry = " ORDER BY lowest_price ASC, average_rating DESC, num_ratings DESC";
+
+    if (isset($_GET['sort']) && ($_GET['sort'] == "lowest_price")){
+        $select_str .= $lowest_price_qry;
+    } else {
+        $select_str .= $best_match_qry;
+    }
+
+    $count_str = "SELECT COUNT(*) as total FROM (
+                  SELECT SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id as nid,
+                    AVG(STAR_RATING_FIELD.field_reference_star_rating_rating) as average_rating,
+                    COUNT(STAR_RATING_FIELD.field_reference_star_rating_rating) as num_ratings,
+                    MIN(PRICE_FIELD.field_subject_level_price_value) as lowest_price
+                FROM field_data_field_offered_level OFFERED_LEVEL_FIELD
+                JOIN field_data_field_col_subject_level_pricing SUBJECT_LEVEL_PRICE_FIELD_COL
+                    ON OFFERED_LEVEL_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value
+                JOIN field_data_field_subject_level_price PRICE_FIELD
+                    ON PRICE_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value
+                JOIN field_data_field_col_add_reference FDFCAR
+                    ON FDFCAR.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN field_data_field_reference_star_rating STAR_RATING_FIELD
+                    ON FDFCAR.field_col_add_reference_value = STAR_RATING_FIELD.entity_id
+                JOIN field_data_field_tutor_available FDFTA
+                    ON FDFTA.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN node
+                    ON node.nid = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN taxonomy_term_data TAX_TERM_DATA on OFFERED_LEVEL_FIELD.field_offered_level_tid = TAX_TERM_DATA.tid
+                WHERE SUBJECT_LEVEL_PRICE_FIELD_COL.bundle = 'tutor_ad'
+                    AND OFFERED_LEVEL_FIELD.bundle = 'field_col_subject_level_pricing'
+                    AND TAX_TERM_DATA.name = :level_name
+                    AND FDFTA.field_tutor_available_value = 'Yes'
+                    AND node.status = 1
+                GROUP BY nid
+                ) as select_qry;";
+
+    return array("select_qry" => $select_str, "count_qry" => $count_str);
+}
+
+/********************************************************************
+ * get_search_level_subject_db_query                                *
+ ********************************************************************
+ * Description: Generate SQL query for search by subject & level    *
+ * Arguments:                                                       *
+ * Return:      $qry_str                                            *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_search_level_subject_db_query(){
+    $select_str = "SELECT SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id as nid,
+                    AVG(STAR_RATING_FIELD.field_reference_star_rating_rating) as average_rating,
+                    COUNT(STAR_RATING_FIELD.field_reference_star_rating_rating) as num_ratings,
+                    MIN(PRICE_FIELD.field_subject_level_price_value) as lowest_price
+                FROM field_data_field_offered_level OFFERED_LEVEL_FIELD
+                JOIN field_data_field_col_subject_level_pricing SUBJECT_LEVEL_PRICE_FIELD_COL
+                    ON OFFERED_LEVEL_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value
+                JOIN taxonomy_term_hierarchy TAX_TERM_HIERARCHY
+                    ON TAX_TERM_HIERARCHY.tid = OFFERED_LEVEL_FIELD.field_offered_level_tid
+                JOIN field_data_field_subject_level_price PRICE_FIELD
+                    ON PRICE_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value
+                JOIN field_data_field_col_add_reference FDFCAR
+                    ON FDFCAR.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN field_data_field_reference_star_rating STAR_RATING_FIELD
+                    ON FDFCAR.field_col_add_reference_value = STAR_RATING_FIELD.entity_id
+                JOIN field_data_field_tutor_available FDFTA
+                    ON FDFTA.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN node
+                    ON node.nid = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                WHERE SUBJECT_LEVEL_PRICE_FIELD_COL.bundle = 'tutor_ad'
+                    AND OFFERED_LEVEL_FIELD.bundle = 'field_col_subject_level_pricing'
+                    AND ((OFFERED_LEVEL_FIELD.field_offered_level_tid = :tid))
+                    AND FDFTA.field_tutor_available_value = 'Yes'
+                    AND node.status = 1
+                GROUP BY nid";
+
+    $best_match_qry = " ORDER BY average_rating DESC, num_ratings DESC, lowest_price ASC";
+    $lowest_price_qry = " ORDER BY lowest_price ASC, average_rating DESC, num_ratings DESC";
+
+    if (isset($_GET['sort']) && ($_GET['sort'] == "lowest_price")){
+        $select_str .= $lowest_price_qry;
+    } else {
+        $select_str .= $best_match_qry;
+    }
+
+    $count_str = "SELECT COUNT(*) as total FROM (
+                  SELECT SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id as nid,
+                    AVG(STAR_RATING_FIELD.field_reference_star_rating_rating) as average_rating,
+                    COUNT(STAR_RATING_FIELD.field_reference_star_rating_rating) as num_ratings,
+                    MIN(PRICE_FIELD.field_subject_level_price_value) as lowest_price
+                FROM field_data_field_offered_level OFFERED_LEVEL_FIELD
+                JOIN field_data_field_col_subject_level_pricing SUBJECT_LEVEL_PRICE_FIELD_COL
+                    ON OFFERED_LEVEL_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value
+                JOIN taxonomy_term_hierarchy TAX_TERM_HIERARCHY
+                    ON TAX_TERM_HIERARCHY.tid = OFFERED_LEVEL_FIELD.field_offered_level_tid
+                JOIN field_data_field_subject_level_price PRICE_FIELD
+                    ON PRICE_FIELD.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.field_col_subject_level_pricing_value
+                JOIN field_data_field_col_add_reference FDFCAR
+                    ON FDFCAR.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN field_data_field_reference_star_rating STAR_RATING_FIELD
+                    ON FDFCAR.field_col_add_reference_value = STAR_RATING_FIELD.entity_id
+                JOIN field_data_field_tutor_available FDFTA
+                    ON FDFTA.entity_id = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                JOIN node
+                    ON node.nid = SUBJECT_LEVEL_PRICE_FIELD_COL.entity_id
+                WHERE SUBJECT_LEVEL_PRICE_FIELD_COL.bundle = 'tutor_ad'
+                    AND OFFERED_LEVEL_FIELD.bundle = 'field_col_subject_level_pricing'
+                    AND ((OFFERED_LEVEL_FIELD.field_offered_level_tid = :tid))
+                    AND FDFTA.field_tutor_available_value = 'Yes'
+                    AND node.status = 1
+                GROUP BY nid
+                ) as select_qry;";
+
+    return array("select_qry" => $select_str, "count_qry" => $count_str);
+}
+
+/********************************************************************
+ * get_search_results_average_rating_display                        *
+ ********************************************************************
+ * Description: Generate rendered html to display average rating on *
+                search result pages                                 *
+ * Arguments:   $results                                            *
+ * Return:      $qry_str                                            *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function get_search_results_average_rating_display($results){
+    $count = 0;
+    $total_rating = 0;
+
+    foreach (element_children($results['wrapper']) as $index){
+        if (is_numeric($index)){
+            $tutor_ad = $results['wrapper'][$index]['content']['#node'];
+            $references = $tutor_ad->field_col_add_reference['und'];
+
+            foreach ($references as $reference){
+                $field_col = entity_load_unchanged('field_collection_item', $reference['value']);
+                $rating = $field_col->field_reference_star_rating['und'][0]['rating'];
+                $count += 1;
+                $total_rating += $rating;
+            }
+        }
+    }
+
+    $average_rating = $total_rating / $count;
+    $rating_out_of_five = $average_rating / 20;
+    $rating_round = round($rating_out_of_five, 1, PHP_ROUND_HALF_DOWN);
+
+    $html = "
+      <div class='serch-star-reviews'>
+        <div class='stars'>
+        ";
+
+    $html .= get_fivestar_display($average_rating, false, true);
+
+    if ($rating_round > -1){
+        $html .= "</div><div class='reviews white'>" . number_format((float)$rating_round, 2, '.', '') . " average</div>";
+    } else {
+        $html .= "</div><div class='reviews white'>No results.</div>";
+    }
+
+    return $html;
+}
+
+
+
+
+
+
+function get_subject_level_terms_from_string($sub){
+    $ret = array();
+
+    $vid = taxonomy_vocabulary_machine_name_load('taxonomy_subject_levels')->vid;
+    $subject_array = explode('(',$sub);
+    $subject_parent = $subject_array[0];
+    $parent_term = db_query("SELECT tid, name FROM {taxonomy_term_data} WHERE vid = :vid AND name = :name",array('vid'=> $vid,'name'=>$subject_parent))->fetch();
+
+    if($parent_term){
+        $parent_term_id = $parent_term->tid;
+        $parent_term = taxonomy_term_load($parent_term_id);
+        $term = taxonomy_term_load($parent_term_id);
+        if ($term->term_type[LANGUAGE_NONE][0]['value'] == 'Subject'){
+            $ret['tid'] = $parent_term->tid;
+        } else {
+            $ret['tid'] = $parent_term->tid;
+        }
+
+        if(isset($subject_array[1]) && $subject_array[1] != ''){
+            $child_subject = trim($subject_array[1], ')');
+            $dbTerm = db_query("SELECT td.tid, td.name FROM {taxonomy_term_data} td"
+                ." LEFT JOIN {taxonomy_term_hierarchy} th ON th.tid = td.tid"
+                . " WHERE td.vid = :vid AND td.name = :name AND th.parent=:parent",
+                array('vid'=> $vid,'name'=>$child_subject,'parent' => $parent_term_id))->fetch();
+
+            if($dbTerm){
+                $term = taxonomy_term_load($dbTerm->tid);
+                if ($term->term_type[LANGUAGE_NONE][0]['value'] == 'Level'){
+                    $ret['tid'] = $term->tid;
+                }
+            }
+        }
+    }
+
+    return $ret;
+}
+
+
+/********************************************************************
+ * get_level_subject_from_path                                      *
+ ********************************************************************
+ * Description: Returns array(level, subject) strings from path     *
+ * Arguments:   $path (optional) str ie 'search_type/level/subject' *
+ * Return:      $qry_str                                            *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        06-05-2019                                          *
+ ********************************************************************/
+function get_level_subject_from_path($path=null){
+    if (!$path){
+        $path = current_path();
+    }
+
+    $ret = array();
+    $path_vals = explode("/", $path);
+
+    if ($path_vals[0] == "level-subject"){
+        $ret['level'] = $path_vals[1];
+        $ret['subject'] = $path_vals[2];
+    } else if ($path_vals[0] == "level"){
+        $ret['level'] = $path_vals[1];
+        $ret['subject'] = null;
+    } else if ($path_vals[0] == "subject"){
+        $ret['level'] = null;
+        $ret['subject'] = $path_vals[1];
+    }
+
+    return $ret;
+}

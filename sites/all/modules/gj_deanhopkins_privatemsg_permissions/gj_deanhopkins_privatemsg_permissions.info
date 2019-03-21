@@ -1,0 +1,7 @@
+name = GradeJumpers Private Messages Permissions
+description = Control which roles can contact each other via privatemsg.
+core = 7.x
+package = "GJ Dean Hopkins"
+dependencies[] = privatemsg
+files[] = gj_deanhopkins_privatemsg_permissions.install
+files[] = gj_deanhopkins_privatemsg_permissions.module

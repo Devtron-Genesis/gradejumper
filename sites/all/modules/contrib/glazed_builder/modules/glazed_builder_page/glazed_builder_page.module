@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Glazed Drag and Drop Content Type feature.
+ */
+
+include_once 'glazed_builder_page.features.inc';

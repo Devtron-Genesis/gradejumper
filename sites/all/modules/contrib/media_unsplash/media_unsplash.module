@@ -1,0 +1,491 @@
+<?php
+
+/**
+ * @file
+ * Provides definition for unsplash media integration.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function media_unsplash_menu() {
+
+  $items['admin/config/media/unsplash'] = array(
+    'title' => 'Unsplash Media',
+    'description' => 'Settings for media_unsplash module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('media_unsplash_admin'),
+    'access arguments' => array('administer media browser'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'media_unsplash.admin.inc',
+  );
+
+  $items['file/add/unsplash'] = array(
+    'title' => 'Unsplash',
+    'description' => 'Add images from unsplash to your media library.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('media_unsplash_external'),
+    'access arguments' => array('access media browser'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'file_entity.pages.inc',
+    'file path' => drupal_get_path('module', 'file_entity'),
+  );
+
+  $items['unsplash/ajax'] = array(
+    'title' => 'Unsplash',
+    'page callback' => 'media_unsplash_ajax',
+    'theme callback' => 'ajax_base_page_theme',
+    'delivery callback' => 'ajax_deliver',
+    'access callback' => TRUE,
+    'description' => 'Unsplash callback for images loading.',
+    'type' => MENU_CALLBACK,
+    'file' => 'media_unsplash.pages.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function media_unsplash_theme($existing, $type, $theme, $path) {
+  return array(
+    'media_unsplash_list' => array(
+      'variables' => array(
+        'content' => NULL,
+        'pager' => NULL,
+        'css' => NULL,
+      ),
+      'template' => 'media-unsplash-list',
+      'path' => drupal_get_path('module', 'media_unsplash') . '/templates',
+    ),
+  );
+}
+
+/**
+ * Implements hook_forms().
+ */
+function media_unsplash_forms($form_id, $args) {
+  $forms = array();
+
+  // Create a copy of the upload wizard form for internet media.
+  if ($form_id == 'media_unsplash_external') {
+    $forms[$form_id] = array(
+      'callback' => 'file_entity_add_upload',
+    );
+  }
+
+  return $forms;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function media_unsplash_form_file_entity_add_upload_alter(&$form, &$form_state, $form_id) {
+  $step = $form['#step'];
+  $options = $form['#options'];
+
+  // Swap the upload field for an embed field when on the first step of the web
+  // tab.
+  if ($form_id == 'media_unsplash_external' && $step == 1) {
+    unset($form['upload']);
+
+    // Add JS & CSS.
+    drupal_add_js(drupal_get_path('module', 'media_unsplash') . '/js/media_unsplash.js');
+    drupal_add_css(drupal_get_path('module', 'media_unsplash') . '/css/media_unsplash.css');
+
+    drupal_add_library('system', 'drupal.ajax');
+
+    // Unsplash API require branded UTM links.
+    $branding = l(t('Unsplash'), 'https://unsplash.com/',
+      array(
+        'query' =>
+          array(
+            'utm_source' => 'drupal_media_module',
+            'utm_medium' => 'referral',
+            'utm_campaign' => 'api-credit',
+          ),
+        'external' => TRUE,
+        'attributes' => array('target' => '_blank'),
+      )
+    );
+
+    $form['unsplash_image'] = array(
+      '#title' => t('Photos by') . ' ' . $branding,
+      '#type' => 'textfield',
+      '#reguired' => 1,
+      '#attributes' => array('placeholder' => t('Enter search term')),
+    );
+
+    $form['unsplash_page'] = array(
+      '#type' => 'hidden',
+      '#value' => isset($form_state['storage']['unsplash_page']) ? $form_state['storage']['unsplash_page'] : 1,
+    );
+
+    $form['unsplash_code'] = array(
+      '#type' => 'hidden',
+      '#title' => t('File URL'),
+      '#description' => t('Enter a URL to a file.'),
+      '#maxlength' => 2083,
+      '#default_value' => isset($form_state['storage']['unsplash_code']) ? $form_state['storage']['unsplash_code'] : NULL,
+    );
+
+    $form['search'] = array(
+      '#type' => 'submit',
+      '#value' => t('Search'),
+      '#input' => TRUE,
+      '#name' => 'op',
+      '#button_type' => 'submit',
+      '#executes_submit_callback' => FALSE,
+      '#limit_validation_errors' => FALSE,
+      '#process' => array('ajax_process_form'),
+      '#theme_wrappers' => array('button'),
+      '#ajax' => array(
+        'callback' => 'media_unsplash_external_ajax_callback',
+        'wrapper' => 'unsplash-output',
+        'event' => 'click',
+        'method' => 'replace',
+      ),
+    );
+
+    // Blank output field which we will fill using AJAX.
+    $form['output'] = array(
+      '#prefix' => '<div id="unsplash-output">',
+      '#suffix' => '</div>',
+      '#markup' => '',
+    );
+
+    // Create an array to hold potential Internet media providers.
+    $providers = array();
+
+    // Determine if there are any visible providers.
+    foreach (media_internet_get_providers() as $key => $provider) {
+      if (empty($provider['hidden']) || $provider['hidden'] != TRUE) {
+        $providers[] = check_plain($provider['title']);
+      }
+    }
+
+    $form['#validators'] = array();
+
+    if (!empty($options['types'])) {
+      // Add custom validation while files cannot be validated trough default.
+      $form['#validators']['media_unsplash_validate_type'] = array($options['types']);
+    }
+
+    // Add validation and submission handlers to the form and ensure that they
+    // run first.
+    array_unshift($form['#validate'], 'media_unsplash_add_validate');
+    array_unshift($form['#submit'], 'media_unsplash_add_submit');
+
+    $settings = array(
+      'media_unsplash' => array(
+        'ajaxUnsplash' => array(
+          'data' => array(
+            'view_path' => check_plain($_GET['q']),
+            'view_base_path' => '',
+          ),
+        ),
+      ),
+    );
+
+    drupal_add_js($settings, 'setting');
+  }
+}
+
+/**
+ * Custom validation checking for image type only.
+ *
+ * @see media_file_validate_types()
+ */
+function media_unsplash_validate_type($file, $types) {
+  $errors = array();
+
+  // Check only for image type.
+  if (!in_array('image', $types)) {
+    $errors[] = t('Only the following types of files are allowed to be uploaded: %types-allowed', array('%types-allowed' => implode(', ', $types)));
+  }
+
+  return $errors;
+}
+
+/**
+ * AJAX callback function for media_unsplash_external().
+ */
+function media_unsplash_external_ajax_callback($form, $form_state) {
+
+  $output = t('Please enter at least one search term');
+
+  if (!empty($form_state['values']['unsplash_image'])) {
+    // Search input.
+    $search_term = check_plain($form_state['values']['unsplash_image']);
+    $page = $form_state['values']['unsplash_page'];
+
+    // Send sanitized search term to JS.
+    drupal_add_js(array(
+      'media_unsplash' => array('term' => $search_term),
+    ),
+      'setting'
+    );
+
+    // Search & render content.
+    $content = media_unsplash_search($search_term, $page);
+    $output = media_unsplash_render_content($content);
+
+  }
+
+  // Return ajax.
+  return array(
+    '#type' => 'ajax',
+    '#commands' => array(
+      ajax_command_html('#unsplash-output', $output),
+    ),
+  );
+}
+
+/**
+ * Main function for interaction with unsplash API.
+ *
+ * @param string $search_term
+ *   String upon which we call unsplash api.
+ * @param int $page
+ *   Request page of results.
+ *
+ * @return string
+ *   Return HTML.
+ */
+function media_unsplash_search($search_term, $page) {
+
+  // Define default items per page.
+  $num_per_page = 30;
+
+  // Unsplash Client ID.
+  $unsplash_api = variable_get('media_unsplash_api', "");
+
+  if (empty($unsplash_api)) {
+    return t('Please insert Client ID key on module settings page');
+  }
+
+  $cid = 'media:unsplash:' . $search_term . ':' . $page;
+
+  // If a cached entry exists, return it.
+  if ($cached = cache_get($cid)) {
+    $content = $cached->data;
+  }
+
+  else {
+    // Generate API url for request.
+    $context = array(
+      'client_id' => $unsplash_api,
+      'query' => $search_term,
+      'per_page' => $num_per_page,
+      'page' => $page,
+    );
+
+    $api_url = 'https://api.unsplash.com/search/photos?';
+
+    $url = url($api_url, array('query' => $context));
+
+    // Make request.
+    $request = drupal_http_request($url);
+
+    // If response is valid.
+    if ($request->code == 200) {
+
+      // Get response data.
+      $json_response = drupal_json_decode($request->data);
+
+      // Total result count.
+      $total = $json_response['total'];
+
+      // Set default message if no images.
+      $content = t('No pictures for current search');
+
+      // Loop trough content.
+      if (!empty($json_response['results'])) {
+
+        // Define result as array.
+        $images = array();
+
+        foreach ($json_response['results'] as $key => $response_data) {
+          $thumb = $response_data['urls']['thumb'];
+          $id = $response_data['id'];
+          $download_url = $response_data['urls']['full'];
+
+          // Get author data.
+          $user = $response_data['user']['name'];
+          $user_link = $response_data['user']['links']['html'];
+
+          // Output link to user. Unsplash require UTM links.
+          $output_link = l($user, $user_link,
+            array(
+              'query' =>
+                array(
+                  'utm_source' => 'drupal_media_module',
+                  'utm_medium' => 'referral',
+                  'utm_campaign' => 'api-credit',
+                ),
+              'external' => TRUE,
+              'attributes' => array('target' => '_blank'),
+            )
+          );
+
+          $images[] = array(
+            'download' => $download_url,
+            'thumb' => $thumb,
+            'link' => $output_link,
+          );
+        }
+
+        $content = array(
+          'images' => $images,
+          'total' => $total,
+        );
+
+        // Set cache to three minutes, respect Unsplash api.
+        cache_set($cid, $content, 'cache', time() + 180);
+
+      }
+    }
+
+    else {
+      // Print error message from Unsplash API.
+      $content = $request->data;
+    }
+
+  }
+
+  return $content;
+
+}
+
+/**
+ * Generate content + pager.
+ *
+ * @param mixed $content
+ *   Content array.
+ *
+ * @return string
+ *   Return themed content + pager.
+ */
+function media_unsplash_render_content($content) {
+  $pager = '';
+
+  if (is_array($content)) {
+    $total = intval($content['total']);
+
+    $_GET['q'] = 'unsplash/ajax';
+
+    // Initialize pager and gets current page.
+    $current_page = pager_default_initialize($total, 30);
+
+    // Calls Drupal standard pager theme and set 10 page links on pager.
+    $pager = array(
+      '#theme' => 'pager',
+      '#quantity' => 10,
+    );
+  }
+
+  $output = theme('media_unsplash_list', array(
+    'content' => $content,
+    'pager' => $pager,
+    'pager_wrapper' => 'unsplash-pager',
+    'css_wrapper' => 'unsplash-output',
+  ));
+
+  return $output;
+}
+
+/**
+ * Allow stream wrappers to have their chance at validation.
+ *
+ * Any module that implements hook_media_parse will have an
+ * opportunity to validate this.
+ *
+ * @see media_parse_to_uri()
+ */
+function media_unsplash_add_validate($form, &$form_state) {
+
+  $embed_code = $form_state['values']['unsplash_code'];
+
+  // See @file_entity_add_upload_submit
+  // Needed for skipping fields if is enabled and if Web tab is active.
+  $form_state['triggering_element']['#id'] = 'edit-next';
+
+  if (!empty($embed_code)) {
+    try {
+      $provider = new MediaUnsplashHandler($embed_code);
+      $provider->validate();
+    }
+    catch (MediaInternetNoHandlerException $e) {
+      form_set_error('unsplash_code', $e->getMessage());
+      return;
+    }
+    catch (MediaInternetValidationException $e) {
+      form_set_error('unsplash_code', $e->getMessage());
+      return;
+    }
+
+    $validators = $form['#validators'];
+    $file = $provider->getFileObject();
+
+    if ($validators) {
+      try {
+        $file = $provider->getFileObject();
+      }
+      catch (Exception $e) {
+        form_set_error('unsplash_code', $e->getMessage());
+        return;
+      }
+
+      $errors = file_validate($file, $validators);
+
+      if (!empty($errors)) {
+        $message = t('%url could not be added.', array('%url' => $embed_code));
+        if (count($errors) > 1) {
+          $message .= theme('item_list', array('items' => $errors));
+        }
+        else {
+          $message .= ' ' . array_pop($errors);
+        }
+        form_set_error('unsplash_code', $message);
+        return FALSE;
+      }
+    }
+  }
+
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Upload a file from a URL.
+ *
+ * This will copy a file from a remote location and store it locally.
+ *
+ * @see media_parse_to_uri()
+ * @see media_parse_to_file()
+ */
+function media_unsplash_add_submit($form, &$form_state) {
+  $embed_code = $form_state['values']['unsplash_code'];
+
+  if (!empty($embed_code)) {
+    try {
+      // Save the remote file.
+      $provider = new MediaUnsplashHandler($embed_code);
+      $file = $provider->save();
+    }
+    catch (Exception $e) {
+      form_set_error('unsplash_code', $e->getMessage());
+      return;
+    }
+
+    if (!$file->fid) {
+      form_set_error('unsplash_code', t('The file %file could not be saved. An unknown error has occurred.', ['%file' => $embed_code]));
+      return;
+    }
+    else {
+      $form_state['storage']['upload'] = $file->fid;
+    }
+  }
+}

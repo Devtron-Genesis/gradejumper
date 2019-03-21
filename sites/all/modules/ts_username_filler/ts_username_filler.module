@@ -1,0 +1,127 @@
+<?php
+
+function ts_username_filler_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#ts_username_filler":
+      return '' . t("Copies data between averts & profile fields") . '';
+      break;
+  }
+}
+
+/*----------------------------------------------------------------------------------\
+| Function:        ts_username_filler_node_presave                                  |
+| Description:     When a parent or tutor ad is saved, this function sets the user  |
+|                  image and the profile2 first & last name values                  |
+| Aguments:        node array                                                       |
+| Returns:                                                                          |
+|-----------------------------------------------------------------------------------|
+| 2017-09-23       RPF      Initial ver                                             |
+\----------------------------------------------------------------------------------*/
+function ts_username_filler_node_presave($node) {
+	if(($node->type == "parent_ad") || ($node->type == "tutor_ad")) {
+		$user_fields = array();
+		if($node->type == "parent_ad") {
+			$first_name = $node->field_parent_first_name['und'][0]['value'];
+			$last_name = $node->field_parent_second_name['und'][0]['value'];
+		} else {
+			$first_name = $node->field_tutor_first_name['und'][0]['value'];
+			$last_name = $node->field_tutor_second_name['und'][0]['value'];
+		}
+		$user_fields['picture'] = $node->field_tutor_upload_profile_image['und'][0];
+
+		$user = user_load($node->uid);
+
+		$file = file_load($user_fields['picture']['fid']);
+		//dsm("fid = ". $fields['picture']['fid']);
+		$file->status = 0;
+		$edit = array ('picture' => $file);
+		user_save($user, $edit);
+
+		$profile_values = profile2_load_by_user($node->uid);
+		{
+			$profile_main = profile2_create(array(
+				'type' => 'main',
+				'uid' => $node->uid,
+			));
+			$profile_values['main'] = $profile_main;
+		}
+
+		$profile_values['main']->field_user_first_name['und'][0]['value'] = $first_name;
+		$profile_values['main']->field_user_surname['und'][0]['value'] = $last_name;
+		profile2_save($profile_values['main']);
+	}
+}
+
+/*----------------------------------------------------------------------------------\
+| Function:        ts_username_filler_form_parent_ad_node_form_alter                |
+| Description:     When a parent advert is created, the user pic and first and last |
+|                   names are filled in with info in the user profile               |
+| Aguments:        form array, form_state array & node array                        |
+| Returns:                                                                          |
+|-----------------------------------------------------------------------------------|
+| 2017-09-23       RPF      Initial ver                                             |
+\----------------------------------------------------------------------------------*/
+function ts_username_filler_form_parent_ad_node_form_alter(&$form, &$form_state, $form_id) {
+
+	$node = $form_state['node'];
+	if (!isset($node->nid) || isset($node->is_new)) {
+
+		$user = user_load($node->uid);
+		$profile_values = profile2_load_by_user($node->uid);
+		if(!empty($profile_values)) {
+			$form['field_parent_first_name']['und'][0]['value']['#default_value'] = $profile_values['main']->field_user_first_name['und'][0]['value'];
+			$form['field_parent_second_name']['und'][0]['value']['#default_value'] = $profile_values['main']->field_user_surname['und'][0]['value'];
+		}
+		$fid= $user->picture->fid;
+		$form['field_tutor_upload_profile_image']['und'][0]['#default_value']['fid'] = $fid;
+	}
+
+}
+
+/*----------------------------------------------------------------------------------\
+| Function:        ts_username_filler_tutor_ad_node_form_alter                      |
+| Description:     When a tutor advert is created, the user pic and first and last  |
+|                   names are filled in with info in the user profile               |
+| Aguments:        form array, form_state array & node array                        |
+| Returns:                                                                          |
+|-----------------------------------------------------------------------------------|
+| 2017-09-23       RPF      Initial ver                                             |
+\----------------------------------------------------------------------------------*/
+function ts_username_filler_form_tutor_ad_node_form_alter(&$form, &$form_state, $form_id) {
+
+	$node = $form_state['node'];
+	if (!isset($node->nid) || isset($node->is_new)) {
+
+		$user = user_load($node->uid);
+		$profile_values = profile2_load_by_user($node->uid);
+		if(!empty($profile_values)) {
+			$form['field_tutor_first_name']['und'][0]['value']['#default_value'] = $profile_values['main']->field_user_first_name['und'][0]['value'];
+			$form['field_tutor_second_name']['und'][0]['value']['#default_value'] = $profile_values['main']->field_user_surname['und'][0]['value'];
+		}
+		$fid= $user->picture->fid;
+		$form['field_tutor_upload_profile_image']['und'][0]['#default_value']['fid'] = $fid;
+	}
+
+}
+
+/*----------------------------------------------------------------------------------\
+| Function:        _ts_username_filler_update_existing                              |
+| Description:     Cycles through all parent and tutor nodes and updates user       |
+|                   profile user name fields and images                             |
+| Aguments:        none                                                             |
+| Returns:         none                                                             |
+|-----------------------------------------------------------------------------------|
+| 2018-09-03       RPF      Initial ver                                             |
+\----------------------------------------------------------------------------------*/
+function _ts_username_filler_update_existing() {
+  $result = db_select('node', 'n')
+            ->condition('type', array('parent_ad', 'tutor_ad'))
+            ->condition('status', 1)
+            ->fields('n', array('nid'))
+            ->execute();
+  while($row=$result->fetchAssoc()) {
+    $node = node_load($row['nid']);
+    ts_username_filler_node_presave($node);
+    print "Completed node ". $row['nid'] ." for Uid ".$node->uid."\n";
+  }
+}

@@ -1,0 +1,1087 @@
+<?php
+
+/************************************************************
+ * gj_dh_proactive_response_menu                          *
+ ************************************************************
+ * Description: Register menu routes                        *
+ *              Implements hook_menu()                      *
+ * Arguments:                                               *
+ * Return:      $items                                      *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-02-08                                  *
+ ************************************************************/
+function gj_dh_proactive_response_menu(){
+    $items['respond_search_request/%'] = array(
+        'title' => '',
+        'page callback' => 'gj_dh_proactive_response_respond_callback',
+        'page arguments' => array(1),
+        'access arguments' => array('access content'),
+    );
+
+    $items['tutoring_requests'] = array(
+        'title' => '',
+        'page callback' => 'gj_dh_proactive_response_tutoring_requests_callback',
+        'access arguments' => array('access content'),
+    );
+
+    $items['proactive_responses'] = array(
+        'title' => '',
+        'page callback' => 'gj_dh_proactive_responses_callback',
+        'access arguments' => array('access content'),
+    );
+
+    $items['proactive_response/%/%'] = array(
+        'title' => '',
+        'page callback' => 'gj_dh_proactive_response_callback',
+        'page arguments' => array(1,2),
+        'access arguments' => array('access content'),
+    );
+
+    $items['management/tutoring_request_management'] = array(
+        'title' => 'Tutor Request Management',
+        'page callback' => 'gj_dh_proactive_response_tutoring_request_management_overview',
+        'access arguments' => array('administer users'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    $items['management/tutoring_request_management/%'] = array(
+        'title' => 'Tutor Request Management',
+        'page callback' => 'gj_dh_proactive_response_tutoring_request_management',
+        'page arguments' => array(2),
+        'access arguments' => array('administer users'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    $items['management/tutoring_request_management/send_unsent_emails/%'] = array(
+        'title' => 'Tutor Request Management',
+        'page callback' => 'gj_dh_proactive_response_send_unsent_emails',
+        'page arguments' => array(3),
+        'access arguments' => array('administer users'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    return $items;
+}
+
+/************************************************************
+ * gj_dh_proactive_response_theme                           *
+ ************************************************************
+ * Description: Register theme entries                      *
+ *              Implements hook_theme()                     *
+ * Arguments:                                               *
+ * Return:      array                                       *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-02-08                                  *
+ ************************************************************/
+function gj_dh_proactive_response_theme(){
+    return [
+        'gj_dh_respond_search_request' => array(
+            'render element' => 'form',
+            'variables' => array('output' => NULL, 'data' => NULL),
+            'path' => drupal_get_path('module', 'gj_dh_proactive_response_templates'),
+            'template' => 'templates/respond-search-request',
+        ),
+        'gj_dh_tutoring_requests' => array(
+            'render element' => 'nodes',
+            'variables' => array('output' => NULL, 'data' => NULL),
+            'path' => drupal_get_path('module', 'gj_dh_proactive_response_templates'),
+            'template' => 'templates/tutoring-requests',
+        ),
+        'gj_dh_proactive_responses' => array(
+            'render element' => 'nodes',
+            'variables' => array('output' => NULL, 'data' => NULL),
+            'path' => drupal_get_path('module', 'gj_dh_proactive_response_templates'),
+            'template' => 'templates/proactive-responses',
+        ),
+        'gj_dh_proactive_response' => array(
+            'render element' => 'nodes',
+            'variables' => array('output' => NULL, 'data' => NULL),
+            'path' => drupal_get_path('module', 'gj_dh_proactive_response_templates'),
+            'template' => 'templates/proactive-response',
+        ),
+        'gj_dh_tutoring_request_management' => array(
+            'render element' => 'nodes',
+            'variables' => array('output' => NULL, 'data' => NULL),
+            'path' => drupal_get_path('module', 'gj_dh_proactive_response_templates'),
+            'template' => 'templates/tutoring-request-management',
+        ),
+        'gj_dh_tutoring_request_management_overview' => array(
+            'render element' => 'nodes',
+            'variables' => array('output' => NULL, 'data' => NULL),
+            'path' => drupal_get_path('module', 'gj_dh_proactive_response_templates'),
+            'template' => 'templates/tutoring-request-management-overview',
+        ),
+    ];
+}
+
+/************************************************************
+ * gj_dh_proactive_response_node_info                       *
+ ************************************************************
+ * Description: Register node type.                         *
+ *              Implements hook_node_info()                 *
+ * Arguments:                                               *
+ * Return:      array defining node details                 *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-02-18                                  *
+ ************************************************************/
+function gj_dh_proactive_response_node_info() {
+    return array(
+        'tutoring_request' => array(
+            'name' => t('Tutoring Request'),
+            'base' => 'tutoring_request',
+            'description' => t('Tutoring request nodes for parent search requests'),
+            'has_title' => FALSE,
+        )
+    );
+}
+
+/********************************************************************
+ * gj_dh_proactive_response_node_mail                               *
+ ********************************************************************
+ * Description: Implements hook_mail()                              *
+ *              Add header and footer to mail                       *
+ * Arguments:   $key,&$message,$params                              *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function gj_dh_proactive_response_mail($key,&$message,$params)
+{
+    switch ($key) {
+        case 'gj_dh':
+            $message['subject']=t($params['subject']);
+            $message['body'][]=get_email_header() . $params['body'] . get_email_footer();
+            $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+    }
+}
+
+/********************************************************************
+ * gj_dh_proactive_response_respond_callback                        *
+ ********************************************************************
+ * Description: Page callback for /respond_search_request/%'        *
+ * Arguments:   $encruped_nid (base64 encoded node id)              *
+ * Return:      rendered template, redirect or 403                  *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-24                                          *
+ ********************************************************************/
+function gj_dh_proactive_response_respond_callback($encrypted_nid){
+    global $user;
+    if (has_role_tutor($user) || has_role_admin($user) || has_role_manager($user)){
+        if (!_tutor_already_responded_to_search_request(base64_decode($encrypted_nid))){
+            if (!_search_request_has_3_responses_and_date_sent(base64_decode($encrypted_nid))){
+                return _load_respond_search_request_open($encrypted_nid);
+            } else {
+                return _load_respond_search_request_closed($encrypted_nid);
+            }
+        } else {
+            drupal_goto('/tutoring_requests');
+        }
+    } else {
+        return drupal_access_denied();
+    }
+}
+
+/********************************************************************
+ * gj_dh_proactive_response_tutoring_requests_callback              *
+ ********************************************************************
+ * Description: Page callback for /tutoring_requests                *
+ * Arguments:                                                       *
+ * Return:      rendered template or 403                            *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-24                                          *
+ ********************************************************************/
+function gj_dh_proactive_response_tutoring_requests_callback(){
+    global $user;
+    if (has_role_tutor($user) || has_role_admin($user) || has_role_manager($user) || user_is_anonymous()){
+        drupal_add_css(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/css/gj_dh_proactive_response.css");
+        drupal_add_js(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/js/gj_dh_proactive_response.js");
+
+        $matching_requests = array();
+        $applied_requests = array();
+
+        $tutor_ad = get_tutor_ad_by_user($user);
+        foreach ($tutor_ad->field_col_subject_level_pricing['und'] as $subject_level_pricing){
+            $field_col = entity_load_unchanged('field_collection_item', $subject_level_pricing['value']);
+
+            if (isset($field_col->field_offered_level['und'][0]['tid'])){
+                $tid = $field_col->field_offered_level['und'][0]['tid'];
+            } else if (isset($field_col->field_offered_subject['und'][0]['tid'])){
+                $tid = $field_col->field_offered_subject['und'][0]['tid'];
+            }
+
+            if ($tid){
+                $results = _get_parent_search_requests_by_subject_level_tid($tid);
+                foreach ($results as $result){
+                    if (_tutor_already_responded_to_search_request($result->nid, $user)){
+                        array_push($applied_requests, $result);
+                    } else {
+                        if (!_search_request_has_3_responses($result->nid)){
+                            array_push($matching_requests, $result);
+                        }
+                    }
+                }
+            }
+        }
+
+        usort($matching_requests, "gj_dh_compare_nid");
+        usort($applied_requests, "gj_dh_compare_nid");
+
+        return theme('gj_dh_tutoring_requests', array('open_requests' => $matching_requests, 'applied_requests' => $applied_requests));
+    } else {
+        return drupal_access_denied();
+    }
+}
+
+/********************************************************************
+ * gj_dh_proactive_responses_callback                               *
+ ********************************************************************
+ * Description: Page callback for /proactive_responses              *
+ * Arguments:                                                       *
+ * Return:      rendered template. redirect or 403                  *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-24                                          *
+ ********************************************************************/
+function gj_dh_proactive_responses_callback(){
+    global $user;
+    if (has_role_parent($user) || has_role_admin($user) || has_role_manager($user) || user_is_anonymous()){
+       $user_search_requests = _get_parent_search_requests_by_user($user->uid);
+       if (sizeof($user_search_requests) > 1){
+           drupal_add_css(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/css/gj_dh_proactive_response.css");
+           return theme('gj_dh_proactive_responses', array('search_requests' => $user_search_requests));
+       } else {
+           if (sizeof($user_search_requests) == 1){
+               $search_request = array_pop($user_search_requests);
+               drupal_goto('/proactive_response/' . base64_encode($search_request->nid) . '/' . base64_encode($search_request->created));
+           } else {
+               drupal_add_css(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/css/gj_dh_proactive_response.css");
+               return theme('gj_dh_proactive_responses', array('search_requests' => $user_search_requests));
+           }
+       }
+    } else {
+        return drupal_access_denied();
+    }
+}
+
+/********************************************************************
+ * gj_dh_proactive_response_callback                                *
+ ********************************************************************
+ * Description: Page callback for /proactive_response               *
+ * Arguments:   base64 encoded nid, base64 node creation time       *
+ * Return:      rendered template or 403                            *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-24                                          *
+ ********************************************************************/
+function gj_dh_proactive_response_callback($nid_enc, $nid_creation_time_enc){
+    global $user;
+    if (has_role_parent($user) || has_role_admin($user) || has_role_manager($user) || user_is_anonymous()){
+        $search_request = node_load(base64_decode($nid_enc));
+        $responses = _get_search_request_responses_sent(base64_decode($nid_enc));
+        drupal_add_css(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/css/gj_dh_proactive_response.css");
+        return theme('gj_dh_proactive_response', array('search_request' => $search_request, 'responses' => $responses));
+    } else {
+        return drupal_access_denied();
+    }
+}
+
+/************************************************************
+* gj_dh_proactive_response_preprocess_page                  *
+ ************************************************************
+ * Description: Toggle sidebar / 403                        *
+ *              Implements hook_preprocess_page()           *
+ * Arguments:   &$variables                                 *
+ * Return:      array                                       *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-02-24                                  *
+ ************************************************************/
+function gj_dh_proactive_response_preprocess_page(&$variables){
+    global $user;
+    if (strpos($_GET['q'], 'proactive_response/') !== false){
+        $node_id = base64_decode(arg()[1]);
+        $node = node_load($node_id);
+        $creation_time_given = base64_decode(arg()[2]);
+        if (!(has_role_admin($user) || has_role_manager($user) || ($user->uid == $node->uid))){
+            if (user_is_anonymous()){
+                if ($creation_time_given != $node->created){
+                    drupal_access_denied();
+                }
+            } else {
+                drupal_access_denied();
+            }
+        }
+    }
+}
+
+function _get_parent_search_requests_by_uid_and_subject_level_tid($uid, $tid){
+    $ret_nodes = array();
+
+    $qry_str = "
+        SELECT nid FROM node 
+        join field_data_field_search_request_tid SRT 
+        on node.nid = SRT.entity_id 
+        where node.type = 'parent_search_request' 
+        and SRT.field_search_request_tid_value = :tid
+        and node.uid = :uid
+    ";
+
+
+    $results = db_query($qry_str,array('tid'=>$tid, 'uid'=>$uid))->fetchAll();
+
+    foreach ($results as $result){
+        array_push($ret_nodes, node_load($result->nid));
+    }
+
+    return $ret_nodes;
+
+}
+
+function _get_parent_search_requests_by_email_and_subject_level_tid($email, $tid){
+    $ret_nodes = array();
+
+    $qry_str = "
+        SELECT nid FROM node 
+        join field_data_field_search_request_tid SRT 
+        on node.nid = SRT.entity_id 
+        join users 
+        on node.uid = users.uid
+        where node.type = 'parent_search_request' 
+        and SRT.field_search_request_tid_value = :tid
+        and users.mail = :email
+    ";
+
+
+    $results = db_query($qry_str,array('tid'=>$tid, 'email'=>$email))->fetchAll();
+
+    foreach ($results as $result){
+        array_push($ret_nodes, node_load($result->nid));
+    }
+
+    return $ret_nodes;
+
+}
+
+function _get_parent_search_requests_by_user($uid){
+    $ret_nodes = array();
+
+    $qry_str = "
+        SELECT nid FROM node 
+        where node.type = 'parent_search_request' 
+        and node.uid = :uid
+    ";
+
+
+    $results = db_query($qry_str,array('uid'=>$uid))->fetchAll();
+
+    foreach ($results as $result){
+        array_push($ret_nodes, node_load($result->nid));
+    }
+
+    return $ret_nodes;
+
+}
+
+
+
+
+function _tutor_already_responded_to_search_request($parent_search_request_nid){
+    global $user;
+
+    $qry_str = "
+        SELECT * FROM node 
+        join field_data_tutor_rqst_search_request_nid TRSR 
+        on node.nid = TRSR.entity_id 
+        where node.type = 'tutoring_request' 
+        and TRSR.tutor_rqst_search_request_nid_value = :search_request_nid
+        and uid = :uid;
+    ";
+
+
+    $result = db_query($qry_str,array('uid'=> $user->uid,'search_request_nid'=>$parent_search_request_nid))->fetch();
+
+    if ($result){
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+
+}
+
+function _search_request_has_3_responses_and_date_sent($parent_search_request_nid){
+    $qry_str = "
+        SELECT * FROM node 
+        join field_data_tutor_rqst_search_request_nid TRSR 
+        on node.nid = TRSR.entity_id 
+        join field_data_tutor_rqst_date_advert_sent TRDAS
+        on node.nid = TRDAS.entity_id
+        where node.type = 'tutoring_request' 
+        and TRSR.tutor_rqst_search_request_nid_value = :search_request_nid
+        and TRDAS.tutor_rqst_date_advert_sent_value is not null
+    ";
+
+
+    $result = db_query($qry_str,array('search_request_nid'=>$parent_search_request_nid))->fetchAll();
+
+    if (isset($result) && sizeof($result) > 0){
+        return (sizeof($result) >= 3);
+    } else {
+        return false;
+    }
+}
+
+function _search_request_num_responses($parent_search_request_nid){
+    $qry_str = "
+        SELECT * FROM node 
+        join field_data_tutor_rqst_search_request_nid TRSR 
+        on node.nid = TRSR.entity_id 
+        join field_data_tutor_rqst_date_advert_sent TRDAS
+        on node.nid = TRDAS.entity_id
+        where node.type = 'tutoring_request' 
+        and TRSR.tutor_rqst_search_request_nid_value = :search_request_nid
+        and TRDAS.tutor_rqst_date_advert_sent_value is not null
+    ";
+
+    $result = db_query($qry_str,array('search_request_nid'=>$parent_search_request_nid))->fetchAll();
+
+    return sizeof($result);
+}
+
+function _search_request_num_responses_display($parent_search_request_nid){
+    $qry_str = "
+        SELECT * FROM node 
+        join field_data_tutor_rqst_search_request_nid TRSR 
+        on node.nid = TRSR.entity_id 
+        join field_data_tutor_rqst_date_advert_sent TRDAS
+        on node.nid = TRDAS.entity_id
+        where node.type = 'tutoring_request' 
+        and TRSR.tutor_rqst_search_request_nid_value = :search_request_nid
+        and TRDAS.tutor_rqst_date_advert_sent_value is not null
+    ";
+
+    $result = db_query($qry_str,array('search_request_nid'=>$parent_search_request_nid))->fetchAll();
+
+    if (sizeof($result) >= 3){
+        return 3;
+    } else {
+        return sizeof($result);
+    }
+}
+
+function _search_request_has_3_responses($parent_search_request_nid){
+    $qry_str = "
+        SELECT * FROM node 
+        join field_data_tutor_rqst_search_request_nid TRSR 
+        on node.nid = TRSR.entity_id 
+        where node.type = 'tutoring_request' 
+        and TRSR.tutor_rqst_search_request_nid_value = :search_request_nid
+    ";
+
+
+    $result = db_query($qry_str,array('search_request_nid'=>$parent_search_request_nid))->fetchAll();
+
+    if (isset($result) && sizeof($result) > 0){
+        return (sizeof($result) >= 3);
+    } else {
+        return false;
+    }
+
+}
+
+function _get_responses_approved_not_sent($parent_search_request_nid){
+    $ret_nodes = array();
+
+    $qry_str = "
+        SELECT * FROM node 
+        join field_data_tutor_rqst_search_request_nid TRSR 
+        on node.nid = TRSR.entity_id 
+        left outer join field_data_tutor_rqst_date_advert_sent TRDAS 
+        on node.nid = TRDAS.entity_id 
+        where node.type = 'tutoring_request' 
+        and node.status = 1 
+        and TRSR.tutor_rqst_search_request_nid_value = :search_request_nid 
+        and TRDAS.tutor_rqst_date_advert_sent_value is null
+    ";
+
+
+    $results = db_query($qry_str,array('search_request_nid'=>$parent_search_request_nid))->fetchAll();
+
+    foreach ($results as $result){
+        array_push($ret_nodes, node_load($result->nid));
+    }
+
+    return $ret_nodes;
+
+}
+
+function _get_search_request_responses($parent_search_request_nid){
+    $ret_nodes = array();
+
+    $qry_str = "
+        SELECT * FROM node 
+        join field_data_tutor_rqst_search_request_nid TRSR 
+        on node.nid = TRSR.entity_id 
+        where node.type = 'tutoring_request' 
+        and TRSR.tutor_rqst_search_request_nid_value = :search_request_nid
+    ";
+
+
+    $results = db_query($qry_str,array('search_request_nid'=>$parent_search_request_nid))->fetchAll();
+
+    foreach ($results as $result){
+        array_push($ret_nodes, node_load($result->nid));
+    }
+
+    return $ret_nodes;
+}
+
+
+function _get_search_request_responses_sent($parent_search_request_nid){
+    $ret_nodes = array();
+
+    $qry_str = "
+        SELECT * FROM node 
+        join field_data_tutor_rqst_search_request_nid TRSR 
+        on node.nid = TRSR.entity_id 
+        join field_data_tutor_rqst_date_advert_sent TRDAS 
+        on node.nid = TRDAS.entity_id 
+        where node.type = 'tutoring_request' 
+        and TRSR.tutor_rqst_search_request_nid_value = :search_request_nid
+    ";
+
+
+    $results = db_query($qry_str,array('search_request_nid'=>$parent_search_request_nid))->fetchAll();
+
+    foreach ($results as $result){
+        array_push($ret_nodes, node_load($result->nid));
+    }
+
+    return $ret_nodes;
+}
+
+function _get_search_request_response_by_user($parent_search_request_nid, $uid){
+    $ret_nodes = array();
+
+    $qry_str = "
+        SELECT * FROM node 
+        join field_data_tutor_rqst_search_request_nid TRSR 
+        on node.nid = TRSR.entity_id 
+        where node.type = 'tutoring_request' 
+        and TRSR.tutor_rqst_search_request_nid_value = :search_request_nid 
+        and node.uid = :uid
+    ";
+
+
+    $results = db_query($qry_str,array('search_request_nid'=>$parent_search_request_nid, 'uid'=>$uid))->fetchAll();
+
+    foreach ($results as $result){
+        return node_load($result->nid);
+    }
+
+    return null;
+}
+
+function _search_request_responded_to_by_tutor($parent_search_request_nid, $tutor_user){
+    $qry_str = "
+        SELECT * FROM node 
+        join field_data_tutor_rqst_search_request_nid TRSR 
+        on node.nid = TRSR.entity_id 
+        join field_data_tutor_rqst_date_advert_sent TRDAS
+        on node.nid = TRDAS.entity_id
+        where node.type = 'tutoring_request' 
+        and TRSR.tutor_rqst_search_request_nid_value = :search_request_nid
+        and node.UID = :uid
+    ";
+
+
+    $result = db_query($qry_str,array('search_request_nid'=>$parent_search_request_nid, 'uid'=>$tutor_user->uid))->fetchAll();
+
+    if (isset($result) && sizeof($result) > 0){
+        return true;
+    } else {
+        return false;
+    }
+
+}
+
+function _load_respond_search_request_open($encrypted_nid){
+    module_load_include('inc', 'gj_dh_proactive_response', 'gj_dh_proactive_response.form');
+    drupal_add_css(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/css/gj_dh_proactive_response.css");
+    $form = drupal_get_form('gj_dh_tutoring_request_form');
+    $search_request = node_load(base64_decode($encrypted_nid));
+    return theme('gj_dh_respond_search_request', array('form' => $form, 'search_request' => $search_request));
+}
+
+function _load_respond_search_request_closed($encrypted_nid){
+    module_load_include('inc', 'gj_dh_proactive_response', 'gj_dh_proactive_response.form');
+    drupal_add_css(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/css/gj_dh_proactive_response.css");
+    $search_request = node_load(base64_decode($encrypted_nid));
+    return theme('gj_dh_respond_search_request', array('search_request' => $search_request));
+}
+
+
+
+
+
+
+/* Implements hook_user_login() */
+function gj_dh_proactive_response_user_login(&$edit, $account) {
+    if (has_role_parent($account)){
+        if ($account->access == 0) {
+            $email = _get_parent_email_from_tc_api($account);
+            $account->mail = $email;
+            user_save($account);
+
+            $parent_search_requests = _get_parent_search_request_nodes_by_email($email);
+
+            foreach ($parent_search_requests as $parent_search_request){
+                $parent_search_request->uid = $account->uid;
+                node_save($parent_search_request);
+            }
+        }
+    }
+}
+
+
+
+function _get_parent_search_request_nodes_by_email($email){
+    $ret_nodes = array();
+
+    $qry_str = "
+        SELECT nid FROM node 
+        join field_data_field_search_request_email SRE 
+        on node.nid = SRE.entity_id 
+        where node.type = 'parent_search_request' 
+        and SRE.field_search_request_email_email = :email
+    ";
+
+
+    $results = db_query($qry_str,array('email'=>$email))->fetchAll();
+
+    foreach ($results as $result){
+        array_push($ret_nodes, node_load($result->nid));
+    }
+
+    return $ret_nodes;
+}
+
+
+
+
+function gj_dh_tutoring_request_management_form($form, &$form_state, $vars) {
+    $form['checkbox'] = array(
+        '#type' =>'checkbox',
+        '#default_value' => node_load($vars['nid'])->status,
+        '#ajax' => array(
+            'callback' => 'gj_dh_tutoring_request_management_callback',
+            'wrapper' => 'fruit-check',
+            'method' => 'replace',
+            'effect' => 'fade',
+        ),
+    );
+
+    $form['nid'] = array(
+        '#type' => 'hidden',
+        '#value' => $vars['nid'],
+    );
+
+    return $form;
+}
+
+function gj_dh_tutoring_request_management_callback($form, $form_state){
+    $tutor_response_nid = $form['nid']['#value'];
+    $tutor_response = node_load($tutor_response_nid);
+
+    $input_checked = $form_state['input']['checkbox'];
+
+    if ($input_checked){
+        $tutor_response->status = NODE_PUBLISHED;
+        node_save($tutor_response);
+    } else {
+        $tutor_response->status = NODE_NOT_PUBLISHED;
+        node_save($tutor_response);
+    }
+}
+
+function gj_dh_proactive_response_tutoring_request_management($parent_search_request_enc_nid){
+    $parent_search_request = node_load(base64_decode($parent_search_request_enc_nid));
+    $tutor_responses = _get_search_request_responses($parent_search_request->nid);
+
+    foreach ($tutor_responses as $tutor_response){
+        $tutor_ad = get_tutor_ad_by_user(user_load($tutor_response->uid));
+
+        $tutor_response->check_form = drupal_get_form('gj_dh_tutoring_request_management_form', array('nid' => $tutor_response->nid));
+        $tutor_response->rating_average = get_tutor_ad_average_rating($tutor_ad);
+        $tutor_response->rating_count = get_tutor_ad_rating_count($tutor_ad);
+    }
+
+    usort($tutor_responses, "gj_dh_compare_tutor_ad_average_rating_and_count");
+
+    drupal_add_css(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/css/gj_dh_proactive_response_mgmt.css");
+    drupal_add_js(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/js/gj_dh_proactive_response_mgmt.js");
+    drupal_add_css(drupal_get_path("module", "gj_deanhopkins_tutor_ad"). "/css/gj_deanhopkins_tutor_ad.css");
+    return theme('gj_dh_tutoring_request_management', array('search_request' => $parent_search_request, 'tutor_responses' => $tutor_responses));
+
+}
+
+function gj_dh_proactive_response_tutoring_request_management_overview(){
+    $parent_search_requests = _get_parent_search_requests();
+    return theme('gj_dh_tutoring_request_management_overview', array('search_requests' => $parent_search_requests));
+
+}
+
+function _get_parent_search_requests(){
+    $ret_nodes = array();
+
+    $qry_str = "
+        SELECT nid FROM node 
+        join field_data_field_search_request_tid SRT 
+        on node.nid = SRT.entity_id 
+        where node.type = 'parent_search_request' 
+        order by node.created DESC;
+    ";
+
+
+    $results = db_query($qry_str)->fetchAll();
+
+    foreach ($results as $result){
+        array_push($ret_nodes, node_load($result->nid));
+    }
+
+    return $ret_nodes;
+}
+
+function gj_dh_compare_tutor_ad_average_rating_and_count($a, $b) {
+    // compare the rating average value
+    $diff = $b->rating_average - $a->rating_average;
+    // and return it. Unless it's zero, then compare count instead.
+    return ($diff !== 0) ? $diff : $b->rating_count - $a->rating_count;
+}
+
+function gj_dh_compare_nid($a, $b) {
+    return $b->nid > $a->nid;
+}
+
+function gj_dh_proactive_response_send_unsent_emails($parent_search_request_enc_nid){
+    $parent_search_request = node_load(base64_decode($parent_search_request_enc_nid));
+    $relevant_responses = _get_responses_approved_not_sent(base64_decode($parent_search_request_enc_nid));
+    _send_tutoring_responses_email_to_parent($parent_search_request, $relevant_responses);
+
+    foreach ($relevant_responses as $response){
+        $response->tutor_rqst_date_advert_sent['und'][0]['value'] = date('Y-m-d H:i:s', strtotime('now'));
+        node_save($response);
+    }
+
+    drupal_goto('/management/tutoring_request_management/' . $parent_search_request_enc_nid);
+}
+
+function _send_tutoring_responses_email_to_parent($parent_search_request, $responses){
+    $first_time = _search_request_parent_mail_already_sent($parent_search_request);
+
+    usort($responses, "gj_dh_compare_tutor_ad_average_rating_and_count");
+
+    $subject_level_str = _get_subject_level_term_display_name(taxonomy_term_load($parent_search_request->field_search_request_tid['und'][0]['value']));
+    $link_url = $GLOBALS['base_url'] . "/search_request/" . base64_encode($parent_search_request->nid) . "/" . base64_encode($parent_search_request->created);
+    $link = l("Please click here to view the full short-list on our website and message tutors directly.", $link_url);
+    $link_button = l("Visit website to reply", $link_url);
+    $message = 'Hi ' . ucwords(get_user_firstname($parent_search_request->uid)) . ', <br /> <br />';
+    if ($first_time){
+        $message .= 'Re: Your ' . $subject_level_str . ' tutor request<br /><br />';
+        $message .= 'Thank you so much for contacting us. We have had responses from a range of tutors wishing to assist you. To get you started, we have begun carefully short-listing any tutor(s) that are available and we feel may be of interest to you. <br /><br />';
+        $message .= 'We may add to this list as more responses come in. ' . $link . ' <br /><br />';
+        $message .= 'Meanwhile here is our latest short-list for you... <br /><br />';
+    } else {
+        $message .= 'We have updated your personalised tutor short-list with the following...<br /><br />';
+    }
+
+    $message .= '<div style="' . _get_hr_email_style() . '"></div><br />';
+
+    foreach ($responses as $response){
+        $message .= '<a style="text-decoration: none !important; color: black;" href="' . $GLOBALS['base_url'] . "/node/". get_tutor_ad_by_user(user_load($response->uid))->nid . '">';
+        $message .= _get_tutor_ad_teaser_email_html(get_tutor_ad_by_user(user_load($response->uid)));
+        $message .= "<p style='color: #222222;font-family: Montserrat;font-size: 20px;font-weight: 800;line-height: 22px;'>Why " . ucwords(get_user_firstname($response->uid)) . "</p>";
+        $message .= "<p>" . _get_tutor_response_about_me_display($response) . "</p>";
+        $message .= "<p style='color: #222222;font-family: Montserrat;font-size: 20px;font-weight: 800;line-height: 22px;'>" . ucwords(get_user_firstname($response->uid)) . "'s Availability</p>";
+        $message .= "<p>" . _get_tutor_response_availability_display($response) . "</p>";
+        $message .= '<div style="' . _get_hr_email_style() . '"></div><br />';
+        $message .= '</a>';
+    }
+    $message .= "<div style='width:100%; text-align: center;'>";
+    if ($first_time){
+        $message .=  "<a href='". $link_url . "' style='" . _get_btn_email_style() . "'>Visit website to reply</a><br /><br />";
+    } else {
+        $message .=  "<a href='". $link_url . "' style='" . _get_btn_email_style() . "'>View full list and reply</a><br /><br />";
+    }
+    $message .= "</div>";
+    $message .= "If you have any questions please don't hesitate to contact our friendly London based team on 0800 722 3827. <br /><br />";
+    $message .= "We look forward to finding you the perfect tutor! :)";
+
+    $params = array(
+        'body' => $message,
+        'subject' => 'New Tutoring Request',
+        'headers'=>'simple',
+    );
+    $to = "gjcuratedtest@mailinator.com";
+    $to = "deanhopkins@gmail.com";
+    $from = "support@gradejumpers.com";
+
+    drupal_mail('gj_dh_proactive_response', 'gj_dh', $to, language_default(), $params, $from, TRUE);
+}
+
+function _search_request_parent_mail_already_sent($parent_search_request){
+    $responses = _get_search_request_responses($parent_search_request->nid);
+    foreach ($responses as $response){
+        if ($response->tutor_rqst_date_advert_sent['und'][0]['value']){
+            return true;
+        }
+    }
+    return false;
+}
+
+function _get_search_request_display_name($parent_search_request){
+    $first_name = ucwords($parent_search_request->field_search_request_first_name['und'][0]['value']);
+    $last_initial = ucwords(substr($parent_search_request->field_search_request_last_name['und'][0]['value'], 0, 1));
+
+    return $first_name . " " . $last_initial . ".";
+}
+
+function _get_search_request_display_user_role($parent_search_request){
+    if ($parent_search_request->uid == 0){
+        return "(Anonymous User)";
+    } else {
+        $search_user = user_load($parent_search_request->uid);
+        if (has_role_parent($search_user)){
+            return "(Registered Parent)";
+        } else if (has_role_tutor($search_user)){
+            return "(Registered Tutor)";
+        } else if (has_role_manager($search_user)){
+            return "(Registered Manager)";
+        } else {
+            return "(Registered Unknown)";
+        }
+    }
+}
+
+function _get_search_request_display_subject_level($parent_search_request){
+    $tid = $parent_search_request->field_search_request_tid['und'][0]['value'];
+    return _get_subject_level_term_display_name(taxonomy_term_load($tid));
+}
+
+function _get_search_request_display_email($parent_search_request){
+    return $parent_search_request->field_search_request_email['und'][0]['email'];
+}
+
+function _get_search_request_display_phone($parent_search_request){
+    return $parent_search_request->field_search_request_phone['und'][0]['value'];
+}
+
+function _get_search_request_display_time_created($parent_search_request){
+    return date("d/m/Y H:i", $parent_search_request->created);
+}
+
+function _get_tutor_response_about_me_display($tutor_response){
+    return $tutor_response->tutor_rqst_about_me['und'][0]['value'];
+}
+
+function _get_tutor_response_availability_display($tutor_response){
+    return $tutor_response->tutor_rqst_avail_txt['und'][0]['value'];
+}
+
+function _get_tutor_response_management_display($tutor_response){
+    $html = _get_tutor_ad_teaser_html(get_tutor_ad_by_user(user_load($tutor_response->uid)));
+    $html .= get_tutoring_request_display_mgmt($tutor_response);
+
+    return $html;
+}
+
+function _get_tutor_response_date_advert_sent_display($tutor_response){
+    if ($tutor_response->tutor_rqst_date_advert_sent['und'][0]['value']){
+        return date("d/m/Y H:i", strtotime($tutor_response->tutor_rqst_date_advert_sent['und'][0]['value']));
+    } else {
+        return null;
+    }
+}
+
+function _get_tutor_response_date_parent_responded_display($tutor_response){
+    if ($tutor_response->tutor_rqst_date_parent_responded['und'][0]['value']){
+        return date("d/m/Y H:i", strtotime($tutor_response->tutor_rqst_date_parent_responded['und'][0]['value']));
+    } else {
+        return null;
+    }
+}
+
+function _is_tutor_response_approved_and_sent($tutor_response){
+    return (_get_tutor_response_date_advert_sent_display($tutor_response) != null);
+}
+
+function get_tutoring_request_display_mgmt($tutoring_request)
+{
+    $html = '
+    <div class="gj-pr-mgmt-details-container">
+        <a style="width:100%; text-align: right; float:right;" onclick="gjdhToggleExpanded(this)">Show details</a>
+        <div class="gj-pr-mgmt-details-expanded">
+            <b>Reasons for position:</b><br />
+            <span class="gj-pr-mgmt-details-text">' . _get_tutor_response_about_me_display($tutoring_request) . '</span><br /><br />
+            <b>Tutor\'s availability:</b><br />
+            <span class="gj-pr-mgmt-details-text">' . _get_tutor_response_availability_display($tutoring_request) . '</span><br /><br />
+            <b>Tutor Details:</b><br />
+            <a href ="/send_message/' .  get_tutor_ad_by_user(user_load($tutoring_request->uid))->nid . '" class="btn btn-primary btn-md">Send Private Message</a>
+        </div>
+    </div>
+    ';
+
+    return $html;
+}
+
+function _get_tutor_ad_teaser_html($tutor_ad){
+    $html = '
+        <a href="' . url("node/". $tutor_ad->nid) . '">
+    <div id="tutor-ad-teaser-container-mobile style=\"display:block !important;\"">
+        <div class="row" style="display: flex; margin-left: 0px !important; margin-right: 0px !important;">
+
+            <div class="col-2 teaser-user-picture-wrapper-mobile" style="display:inline-block;">
+                <div class="user-picture teaser-user-picture teaser-user-picture-mobile">
+                    <img src="' . file_create_url(get_tutor_ad_picture_uri($tutor_ad)) . '" />
+                </div>
+            </div>
+            <div class="col-10 teaser-wrapper-mobile" style="display:inline-block;">
+                <div class="row">
+                    <div style="display:inline-block; float: left;">
+                        <span class="tutor-ad-teaser-name-mobile">' . ucwords(get_tutor_ad_first_name($tutor_ad) . " " . ucwords(get_tutor_ad_last_initial($tutor_ad))) . "." . '</span>
+                    </div>
+                    <div style="display:inline-block; float: right;">
+                        <span class="tutor-ad-teaser-price-mobile">£' . get_tutor_ad_teaser_price_display($tutor_ad) . '/hr</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <span class="tutor-ad-teaser-title-mobile">' . get_tutor_ad_first_degree($tutor_ad) . '</span>
+                </div>
+                <div class="row">
+                    <span class="tutor-ad-teaser-subjects-mobile">' . get_tutor_ad_teaser_subjects_offered($tutor_ad) . '</span>
+                </div>
+                <div class="row">
+                    <span class="tutor-ad-teaser-star-rating-mobile">' . get_tutor_ad_star_rating_display($tutor_ad) . '</span>
+                </div>
+                <div class="row">
+                    <span>
+                        <img src="' . file_create_url(drupal_get_path("module", "gj_deanhopkins_tutor_ad") . "/img/online.svg") . '">
+                        <span class="tutor-ad-teaser-online-mobile">Teaches online</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</a>
+';
+
+    return $html;
+}
+
+function _get_tutor_ad_teaser_email_html($tutor_ad){
+    $html = '
+    <div id="tutor-ad-teaser-container-mobile" style="display:block !important;">
+        <div class="row" style="display: flex; margin-left: 0px !important; margin-right: 0px !important;">
+
+            <div class="col-2 teaser-user-picture-wrapper-mobile" style="display: inline-block;padding-right: 10px !important;padding-left: 5px !important;">
+                <div class="user-picture teaser-user-picture teaser-user-picture-mobile" style="display: block;width: 78px !important;height: 78px !important;border-radius: 50%;overflow: hidden;margin-left: 5px;margin: auto;">
+                    <img style="max-width: 100%;width: 100%;" src="' . file_create_url(get_tutor_ad_picture_uri($tutor_ad)) . '">
+                </div>
+            </div>
+            <div class="col-10 teaser-wrapper-mobile" style="display: inline-block;width: 100%;padding-bottom: 10px;margin-right: 20px !important;padding-left: 25px !important;">
+                <div class="row" style="display:block; min-height: 25px;">
+                    <div style="display:inline-block; float: left;">
+                        <span class="tutor-ad-teaser-name-mobile" style="color: #222222;font-family: Montserrat;font-size: 16px;font-weight: 800;line-height: 22px;">' . ucwords(get_tutor_ad_first_name($tutor_ad) . " " . ucwords(get_tutor_ad_last_initial($tutor_ad))) . "." . '</span>
+                    </div>
+                    <div style="display:inline-block; float: right;">
+                        <span class="tutor-ad-teaser-price-mobile" style="color: #222222;font-family: Montserrat;font-size: 16px;font-weight: 800;line-height: 22px;"> £' . get_tutor_ad_teaser_price_display($tutor_ad) . '/hr</span>
+                    </div>
+                </div>
+                <div class="row" style="display:block">
+                    <span class="tutor-ad-teaser-title-mobile" style="color: #5b5d6e;font-family: Montserrat;font-size: 16px;font-weight: 300;line-height: 18px;">' . get_tutor_ad_first_degree($tutor_ad) . '</span>
+                </div>
+                <div class="row">
+                    <span class="tutor-ad-teaser-star-rating-mobile" style="color: #484848;">' . get_tutor_ad_star_rating_email_display($tutor_ad) . '</span>
+                </div>
+            </div>
+        </div>
+    </div>
+';
+
+    return $html;
+}
+
+function _get_tutor_ad_email_link_from_response($tutor_response){
+    $tutor_ad = get_tutor_ad_by_user(user_load($tutor_response->uid));
+    $link = $GLOBALS['base_url'] . "/node/" . $tutor_ad->nid;
+    $link .= "?proactive=" . base64_encode($tutor_response->nid);
+
+    return $link;
+}
+
+function _get_tutor_ad_msg_link_from_response($tutor_response){
+    $tutor_ad = get_tutor_ad_by_user(user_load($tutor_response->uid));
+    $link = $GLOBALS['base_url'] . "/send_message/" . $tutor_ad->nid;
+    $link .= "?proactive=" . base64_encode($tutor_response->nid);
+
+    return $link;
+}
+
+function _get_btn_email_style()
+{
+    return "
+    min-width: 203px;
+    font-size: 20px;
+    line-height: 48px;
+    background-color: #3F73D2 !important;
+    color: #fff;
+    border-radius: 34px;
+    border: 0;
+    text-align: center;
+    padding: 10px 16px;
+    display: inline-block;
+    margin-bottom: 0;
+    font-weight: 400;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    background-image: none;
+    text-decoration: none;
+    white-space: nowrap;
+    ";
+}
+
+function _get_hr_email_style(){
+    return "border: 1px solid #e4e4e4;";
+}
+
+function _get_parent_email_from_tc_api($user){
+    $url = "https://secure.tutorcruncher.com/api/clients/";
+    $options = array(
+        'http' => array(
+            'header'  => "Content-type: application/json\r\n" .
+                "Authorization: token " . variable_get('tc_api_private_key') . "\r\n",
+            'method'  => 'GET',
+        ),
+    );
+
+    $context = stream_context_create($options);
+    $response = json_decode(file_get_contents($url, false, $context));
+    if ($response){
+        if ($response->results){
+            $api_users = $response->results;
+            foreach ($api_users as $api_user){
+                $username = _get_api_user_username($api_user);
+                if ($username == $user->name){
+                    return $api_user->email;
+                }
+            }
+        }
+    }
+}

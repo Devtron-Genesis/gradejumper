@@ -1,0 +1,189 @@
+<?php
+
+define('MINIFYJS_CACHE_CID', 'minifyjs:all_files');
+
+/**
+ * Implements hook_permission()
+ */
+function minifyjs_permission() {
+  return array(
+    'administer minifyjs' => array(
+      'title'       => t('Administer Minify JS Module'),
+      'description' => t('Perform administration tasks for Minify JS module.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu()
+ */
+function minifyjs_menu() {
+  $items['admin/config/development/performance/default'] = array(
+    'title'            => 'Performance',
+    'type'             => MENU_DEFAULT_LOCAL_TASK,
+    'weight'           => 1,
+  );
+  $items['admin/config/development/performance/js'] = array(
+    'access arguments' => array('administer minifyjs'),
+    'file'             => 'minifyjs.admin.inc',
+    'page arguments'   => array('minifyjs_manage_javascript_files_form'),
+    'page callback'    => 'drupal_get_form',
+    'title'            => 'Manage JavaScript Files',
+    'type'             => MENU_LOCAL_TASK,
+    'weight'           => 2,
+  );
+  $items['admin/config/development/performance/js/scan'] = array(
+    'access arguments' => array('administer minifyjs'),
+    'file'             => 'minifyjs.admin.inc',
+    'page callback'    => 'minifyjs_scan_for_javascript_files',
+    'title'            => 'Scan for Javascript Files',
+    'type'             => MENU_LOCAL_ACTION,
+  );
+  $items['admin/config/development/performance/js/%/restore'] = array(
+    'access arguments' => array('administer minifyjs'),
+    'file'             => 'minifyjs.admin.inc',
+    'page arguments'   => array(5),
+    'page callback'    => 'minifyjs_restore_original_file',
+    'title'            => 'Restore Original File',
+    'type'             => MENU_CALLBACK,
+  );
+  $items['admin/config/development/performance/js/%/minify'] = array(
+    'access arguments' => array('administer minifyjs'),
+    'file'             => 'minifyjs.admin.inc',
+    'page arguments'   => array(5),
+    'page callback'    => 'minifyjs_create_minified_file',
+    'title'            => 'Minify File',
+    'type'             => MENU_CALLBACK,
+  );
+  $items['admin/config/development/minifyjs'] = array(
+    'access arguments' => array('administer minifyjs'),
+    'file'             => 'minifyjs.admin.inc',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('minifyjs_settings_form'),
+    'title'            => 'Minify javascript settings',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_FORM_ID_alter().
+ *
+ * @param type $form
+ * @param type $form_state
+ */
+function minifyjs_form_system_performance_settings_alter(&$form, &$form_state, $form_id) {
+  if (user_access('administer minifyjs')) {
+
+    // Determine the number of files minified.
+    $files = minifyjs_load_all_files();
+    $files_minified = 0;
+    foreach ($files as $file) {
+      if (!empty($file->minified_uri)) {
+        $files_minified++;
+      }
+    }
+
+    $form['bandwidth_optimization']['minifyjs_use_minified_javascript'] = array(
+      '#type'          => 'checkbox',
+      '#title'         => t('Use Minified JavaScript files.'),
+      '#disabled'      => ($files_minified) ? FALSE : TRUE,
+      '#description'   => t(
+        'Toggle minified javascript files on or off. There are %minified minified files out of %total total files available. !click.',
+        array(
+          '%minified' => $files_minified,
+          '%total'    => count($files),
+          '!click'    => l(t('Click here to manage your javascript files.'), 'admin/config/development/performance/js'),
+        )
+      ),
+      '#default_value' => variable_get('minifyjs_use_minified_javascript', 0),
+    );
+  }
+}
+
+/**
+ * Implements hook_js_alter().
+ */
+function minifyjs_js_alter(&$scripts) {
+
+  // Determine if the replacement needs to be performed.
+  $do_replace = FALSE;
+  if (variable_get('minifyjs_use_minified_javascript', 0)) {
+    if (variable_get('minifyjs_disable_admin', 0)) {
+      if (!path_is_admin(current_path())) {
+        $do_replace = TRUE;
+      }
+    }
+    else {
+      $do_replace = TRUE;
+    }
+  }
+
+  if ($do_replace) {
+
+    // Files array is keyed by file id. To make this operation as fast as
+    // possible, the array should be keyed by file uri. Also, shorten the
+    // array by removing files that are not minified.
+    $files          = minifyjs_load_all_files();
+    $minified_files = array();
+    foreach ($files as $file) {
+      if (!empty($file->minified_uri)) {
+        $minified_files[$file->uri] = $file;
+      }
+    }
+
+    // Update the scripts array with new file info.
+    foreach ($scripts as $path => $file) {
+      if (isset($minified_files[$path])) {
+        $scripts[$path]['data'] = $minified_files[$path]->minified_uri;
+        minifyjs_update_scripts($scripts, $path, $minified_files[$path]->minified_uri);
+      }
+    }
+  }
+}
+
+/*
+ * Helper function to change array key, without changing its order
+ */
+function minifyjs_update_scripts(&$scripts, $existing, $new) {
+  $keys  = array_keys($scripts);
+  $index = array_search($existing, $keys, TRUE);
+  if ($index !== FALSE) {
+    $keys[$index] = $new;
+    $scripts      = array_combine($keys, $scripts);
+  }
+}
+
+/**
+ * Helper function - load all of the minifyjs_file records from cache or
+ * directly from the database.
+ */
+function minifyjs_load_all_files() {
+
+  // load files from cache
+  if ($cached = cache_get(MINIFYJS_CACHE_CID)) {
+    return $cached->data;
+  }
+
+  // re-build cache
+  $result = db_select('minifyjs_file', 'f')
+    ->fields('f')
+    ->orderBy('uri')
+    ->execute();
+
+  $exclusions = variable_get('minifyjs_exclusion_list');
+
+  $files = array();
+  while ($file = $result->fetchObject()) {
+
+    // ignore exclusions
+    if (!drupal_match_path($file->uri, $exclusions)) {
+      $files[$file->fid] = $file;
+    }
+  }
+
+  // cache for 1 day
+  cache_set(MINIFYJS_CACHE_CID, $files, 'cache', strtotime('+1 day', REQUEST_TIME));
+
+  return $files;
+}

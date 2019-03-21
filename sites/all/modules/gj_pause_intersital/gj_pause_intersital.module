@@ -1,0 +1,80 @@
+<?php
+
+function gj_pause_intersital_menu() {
+  $items = array();
+
+  $items['matching-tutor-live'] = array(
+    'title' => 'Finding your tutors', //page title
+    'description' => 'The Pause for Operator Intersital Page',
+    'page callback' => 'gj_pause_intersital_page', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+    'access callback' => TRUE,
+	  'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+  }
+
+function gj_pause_intersital_page() {
+drupal_add_js(drupal_get_path('module', 'gj_pause_intersital') . '/js/dist/app.js');
+//drupal_add_js(drupal_get_path('module', 'gj_pause_intersital') . '/js/gj_pause_intersital.js');
+drupal_add_css(drupal_get_path('module', 'gj_pause_intersital') . '/css/gj_pause_intersital.css');
+
+
+  $items = array();
+  if(isset($_GET['subject'])) {
+    $items['subject'] = $_GET['subject'];
+  }
+  if(isset($_GET['level'])) {
+    $items['level'] = $_GET['level'];
+  }
+
+  return theme('gjpi_pagecontents', array('items' => $items));
+}
+
+function gj_pause_intersital_theme() {
+  $module_path = drupal_get_path('module', 'gj_pause_intersital');
+  $base = array(
+    'path' => "$module_path/templates",
+  );
+  return array(
+	  'gjpi_pagecontents' => $base + array(
+      'template' => 'gj_pause_intersital',  //leave off .tpl.php
+      'variables' => array('items' => NULL,),
+    ),
+  );
+}
+
+function gjpi_get_subject() {
+  $retvalue = "";
+  if(isset($_GET['subject'])) {
+    $retvalue = $_GET['subject'];
+  }
+  return $retvalue;
+}
+
+function gjpi_get_level() {
+  $retvalue = "";
+  if(isset($_GET['level'])) {
+    $retvalue = $_GET['level'];
+  }
+  return $retvalue;
+}
+
+function gjpi_get_levelsubject() {
+  $retvalue = "";
+  $level = gjpi_get_level();
+  $subject = gjpi_get_subject();
+  if($level != "") {
+    $retvalue = $level." ";
+  }
+  $retvalue .= $subject;
+  return $retvalue;
+}
+
+function gjpi_destination_url(){
+  $path = "/level-subject/";
+  $subject =  $_GET['subject'];
+  $level =  $_GET['level'];
+  $querystr = "?managed_search=".base64_encode(date("M,d,Y h:i:s A"));
+  return $path.$level."/".$subject.$querystr;
+}

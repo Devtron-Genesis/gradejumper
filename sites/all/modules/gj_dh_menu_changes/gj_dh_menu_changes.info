@@ -1,0 +1,6 @@
+name = GJ DH Menu Changes
+description = Version control for menu changes
+core = 7.x
+package = "GJ Dean Hopkins"
+files[] = gj_dh_menu_changes.install
+files[] = gj_dh_menu_changes.module

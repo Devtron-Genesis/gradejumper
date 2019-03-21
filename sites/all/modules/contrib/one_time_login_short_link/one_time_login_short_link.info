@@ -1,0 +1,14 @@
+name = One Time Login Short Link
+description = "An API module which generates one-time login short links."
+core = 7.x
+version = "7.x-1.3"
+package = Authentication
+
+files[] = one_time_login_short_link.rules.inc
+
+; Information added by Drupal.org packaging script on 2016-03-28
+version = "7.x-1.3"
+core = "7.x"
+project = "one_time_login_short_link"
+datestamp = "1459194497"
+

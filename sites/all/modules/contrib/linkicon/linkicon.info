@@ -1,0 +1,13 @@
+name = Link icon
+description = "A link field formatter to create icon classes based on predefined titles"
+package = Fields
+core = 7.x
+
+dependencies[] = link
+
+; Information added by Drupal.org packaging script on 2016-04-10
+version = "7.x-1.2"
+core = "7.x"
+project = "linkicon"
+datestamp = "1460311140"
+

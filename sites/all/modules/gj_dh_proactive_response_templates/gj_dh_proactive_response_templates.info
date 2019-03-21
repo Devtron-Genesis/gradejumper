@@ -1,0 +1,7 @@
+name = GJ Proactive Response Templates
+description = GJ Proactive Response Template Files
+core = 7.x
+package = "GJ Dean Hopkins"
+dependencies[] = gj_dh_proactive_response
+files[] = gj_dh_proactive_response.install
+files[] = gj_dh_proactive_response.module

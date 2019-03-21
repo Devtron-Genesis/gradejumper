@@ -1,0 +1,176 @@
+// font normalize
+@mixin normal-font($font-size, $line-height) {
+    font-size: $font-size;
+    line-height: $line-height;
+}
+
+// clearfix
+@mixin clearfix {
+    &:before,
+    &:after {
+        content: '';
+        display: table;
+    }
+    &:after {
+        clear: both;
+    }
+}
+
+// truncate text
+@mixin truncate-text($width: 100%, $white-space: nowrap, $overflow: hidden, $text-overflow: ellipsis) {
+    width: $width;
+    white-space: $white-space;
+    overflow: $overflow;
+    text-overflow: $text-overflow;
+}
+
+// align block in center
+@mixin center-block {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+// reset list style
+@mixin reset-list($margin: 0, $padding: 0, $list-style-type: none) {
+    margin: $margin;
+    padding: $padding;
+    list-style-type: $list-style-type;
+}
+
+// placeholder
+@mixin placeholder {
+    &::-webkit-input-placeholder {@content}
+    &:-moz-placeholder {@content}
+    &::-moz-placeholder {@content}
+    &:-ms-input-placeholder {@content}
+}
+
+// vertical align content in block
+@mixin stretch($offset-top: 0, $offset-right: 0, $offset-bottom: 0, $offset-left: 0) {
+    position: absolute;
+    @if $offset-top {
+        top: $offset-top;
+    }
+    @if $offset-bottom {
+        bottom: $offset-bottom;
+    }
+    @if $offset-left {
+        left: $offset-left;
+    }
+    @if $offset-right {
+        right: $offset-right;
+    }
+}
+
+@mixin vertical-align($left-offset, $right-offset) {
+    @include stretch($offset-top: 0, $offset-right: $right-offset, $offset-bottom: 0, $offset-left: $left-offset);
+    margin: auto;
+}
+
+// custom mixin for helpers arrow
+@mixin arrow_helper($arrowSize, $arrowColor, $margin, $side, $align) {
+    @if $side == "top" {
+        border-bottom-color: $arrowColor;
+        top: -2 * $arrowSize;
+    }
+    @if $side == "bottom" {
+        border-top-color: $arrowColor;
+        bottom: -2 * $arrowSize;
+    }
+    @if $side == "left" {
+        border-right-color: $arrowColor;
+        left: -2 * $arrowSize;
+    }
+    @if $side == "right" {
+        border-left-color: $arrowColor;
+        right: -2 * $arrowSize;
+    }
+    @if $side == "right" or $side == "left" {
+        @if $align == "center" {
+            top: 50%;
+            margin-top: -$arrowSize;
+        } @else if $align == "top" {
+            top: $margin;
+        } @else if $align == "bottom" {
+            bottom: $margin;
+        }
+    }
+    @if $side == "bottom" or $side == "top" {
+        @if $align == "center" {
+            right: 50%;
+            margin-right: -$arrowSize;
+        } @else if $align == "left" {
+            left: $margin;
+        } @else if $align == "right" {
+            right: $margin;
+        }
+    }
+}
+
+@mixin arrow($side: "right", $align: "center", $size: 20px, $color: #f6f6f6, $borderColor: "none", $borderSize: 3px) {
+    $selector: "&:after, &:before";
+    @if $borderColor == "none" {
+        $selector: "&:after";
+    }
+    #{$selector} {
+        border: solid transparent;
+        content: " ";
+        height: 0;
+        width: 0;
+        position: absolute;
+        pointer-events: none;
+        visibility: visible;
+    }
+
+    &:after {
+        border-width: $size;
+        @include arrow_helper($size, $color, $size, $side, $align);
+    }
+
+    @if $borderColor != "none" {
+        &:before {
+            border-width: $borderSize + $size;
+            @include arrow_helper($size + $borderSize, $borderColor, $size - $borderSize, $side, $align);
+        }
+    }
+}
+
+// add custom classes (width) for blocks
+@mixin custom_width($from, $to, $fluid) {
+    $fluid: false !default;
+    $class-slug: w !default;
+    $i: $from;
+
+    @if $fluid == true {
+        @while $i <= $to {
+            .#{$class-slug}_fluid_#{$i} {
+                width: $i + 0%;
+            }
+
+            $i: $i + 5;
+        }
+    } @else {
+        @while $i <= $to {
+            .#{$class-slug}_#{$i} {
+                width: $i + px;
+            }
+
+            $i: $i + 5;
+        }
+    }
+}
+
+// add custom classes (margins) for blocks
+@mixin custom_margin($from, $to, $step, $direction, $directionShort) {
+    $class-slug: m !default;
+    $i: $from;
+
+    @while $i <= $to {
+        .#{$class-slug}#{$directionShort}_#{$i} {
+            margin-#{$direction}: $i + px;
+        }
+
+        $i: $i + $step;
+    }
+}

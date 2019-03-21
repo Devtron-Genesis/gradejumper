@@ -1,0 +1,125 @@
+#gj_search_subject_form {
+  position: relative;
+  margin-top: 19px;
+  text-align: left;
+  max-width: 533px;
+
+  @media (max-width: $screen-xs-max) {
+    margin-top: 34px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+  p {
+    float: left;
+    br {
+      display: none;
+    }
+    @media (max-width: $screen-xs-max) {
+      width: 40%;
+    }
+  }
+  // text fields
+  .form-item-subject {
+    float: left;
+    width: 60%;
+    margin: 0;
+
+    @media (max-width: $screen-xs-max) {
+      float: none;
+      width: 100%;
+    }
+
+    input {
+      width: 100%;
+      height: 61px;
+      border: 1px solid #b9b9b9;
+      border-left: 0 none;
+      border-radius: 5px 0 0 5px !important;
+      padding: 15px 31px !important;
+      background-color: #fff;
+      font-size: 20px !important;
+      line-height: 29px;
+      color: #000;
+      box-shadow: none;
+
+      @media (max-width: $screen-xs-max) {
+        border-radius: 5px !important;
+        border: 1px solid #b9b9b9;
+      }
+
+      @include placeholder {
+        font-size: 20px;
+        font-weight: 400;
+        line-height: 29px;
+        color: #b9b9b9;
+      }
+    }
+  }
+
+  .form-item-postcode {
+    display: none;
+    float: left;
+    width: 40%;
+    margin: 0;
+    height: 61px;
+
+    @media (max-width: $screen-xs-max) {
+      float: none;
+      width: 100%;
+      margin-top: 18px;
+    }
+
+    input {
+      width: 100%;
+      height: 61px;
+      border: 1px solid #b9b9b9;
+      border-radius: 0 5px 5px 0 !important;
+      padding: 15px 20px !important;
+      background-color: #fff;
+      font-size: 20px !important;
+      line-height: 29px;
+      color: #000;
+      box-shadow: none;
+
+      @media (max-width: $screen-xs-max) {
+        border-radius: 5px !important;
+        border: 1px solid #b9b9b9;
+        padding: 15px 31px !important;
+      }
+
+      @include placeholder {
+        font-size: 20px;
+        font-weight: 400;
+        line-height: 29px;
+        color: #b9b9b9;
+      }
+    }
+  }
+
+  // submit btn
+  button#edit-submit,
+  button#edit-submit--2 {
+    height: auto;
+    min-height: inherit;
+    width: 100%;
+    max-width: 203px;
+    margin: 0;
+    border-radius: 0px 5px 5px 0px !important;
+    padding: 6.5px 10px;
+    background-color: #57B182 !important;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 48px;
+
+    @media (max-width: $screen-xs-max) {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      margin-bottom: 50px;
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+}

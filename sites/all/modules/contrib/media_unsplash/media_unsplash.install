@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Media: Unsplash module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function media_unsplash_uninstall() {
+  variable_del('media_unsplash_api');
+}

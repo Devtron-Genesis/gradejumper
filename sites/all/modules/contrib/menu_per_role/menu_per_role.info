@@ -1,0 +1,11 @@
+name = Menu Per Role
+description = Allows restricting access to menu items per role.
+package = Access control
+core = 7.x
+dependencies[] = menu
+
+; Information added by Drupal.org packaging script on 2018-04-28
+version = "7.x-1.0-beta1"
+core = "7.x"
+project = "menu_per_role"
+datestamp = "1524908887"

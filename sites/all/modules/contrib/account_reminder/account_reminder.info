@@ -1,0 +1,12 @@
+name = Account Reminder
+description = "A small module to resend the welcome email to those users who have yet to validate their email addresses."
+core = 7.x
+files[] = account_reminder.install
+files[] = account_reminder.module
+configure = admin/config/people/account_reminder
+; Information added by drupal.org packaging script on 2013-09-30
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "account_reminder"
+datestamp = "1380552287"
+

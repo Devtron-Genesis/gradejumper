@@ -1,0 +1,79 @@
+name = 'GRADEJUMPERS Glazed Builder theme
+description = Uses the Bootstrap Framework Sass source files and must be compiled (not for beginners).
+core = 7.x
+base theme = bootstrap
+php = 5.3.0
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Regions
+;;;;;;;;;;;;;;;;;;;;;
+
+regions[navigation]     = 'Navigation'
+regions[header]         = 'Top Bar'
+regions[highlighted]    = 'Highlighted'
+regions[help]           = 'Help'
+regions[content]        = 'Content'
+regions[sidebar_first]  = 'Primary'
+regions[sidebar_second] = 'Secondary'
+regions[footer]         = 'Footer'
+regions[page_top]       = 'Page top'
+regions[page_bottom]    = 'Page bottom'
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Stylesheets
+;;;;;;;;;;;;;;;;;;;;;
+
+stylesheets[all][] = css/style.css
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Scripts
+;;;;;;;;;;;;;;;;;;;;;
+
+scripts[] = js/jquery.dotdotdot.js
+scripts[] = js/script.js
+scripts[] = js/custom.js
+scripts[] = bootstrap/js/bootstrap.js
+
+scripts[] = bootstrap/assets/javascripts/bootstrap/affix.js
+scripts[] = bootstrap/assets/javascripts/bootstrap/alert.js
+scripts[] = bootstrap/assets/javascripts/bootstrap/button.js
+scripts[] = bootstrap/assets/javascripts/bootstrap/carousel.js
+scripts[] = bootstrap/assets/javascripts/bootstrap/collapse.js
+scripts[] = bootstrap/assets/javascripts/bootstrap/dropdown.js
+scripts[] = bootstrap/assets/javascripts/bootstrap/modal.js
+scripts[] = bootstrap/assets/javascripts/bootstrap/tooltip.js
+scripts[] = bootstrap/assets/javascripts/bootstrap/popover.js
+scripts[] = bootstrap/assets/javascripts/bootstrap/scrollspy.js
+scripts[] = bootstrap/assets/javascripts/bootstrap/tab.js
+scripts[] = bootstrap/assets/javascripts/bootstrap/transition.js
+
+; Disable the CDN provider so compiled source files can be used.
+settings[bootstrap_cdn] = ''
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Custom css classes
+;;;;;;;;;;;;;;;;;;;;;
+
+glazed_classes[optgroup-custom-classes] = 'Custom classes'
+
+; background-color
+glazed_classes[section-black] = 'Background color: dark'
+glazed_classes[section-gray]  = 'Background color: gray'
+glazed_classes[section-white] = 'Background color: white'
+glazed_classes[section-blue] = 'Background color: blue'
+
+; Buttons
+glazed_classes[btn-bg-white] = 'Button Background color: white'
+
+; Line Heights
+glazed_classes[text-line-height] = 'line height: normal'
+
+; layout
+glazed_classes[section-flexbox]  = 'Layout: flexbox'
+
+; notification-block
+glazed_classes[section-notification]  = 'Notification'

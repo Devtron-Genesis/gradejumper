@@ -1,0 +1,72 @@
+<?php
+/**
+ * @file
+ * Code for the CMS Core feature.
+ */
+
+include_once 'cms_core.features.inc';
+
+/**
+ * Implements hook_menu_alter().
+ *
+ * Provide empty page callback
+ */
+function cms_core_menu_alter(&$items) {
+  if (variable_get('site_frontpage')) {
+    unset($items['node']);
+  }
+}
+
+function cms_core_load_image_style($image_style_name){
+  $image_style = image_style_load($image_style_name);
+  image_default_style_save($image_style);
+}
+
+/**
+ * Implements hook_node_view_alter().
+ * Removing add-comment link from every teaser
+ */
+function cms_core_node_view_alter(&$build){
+  if ($build['#view_mode'] == 'teaser') {
+    // Remove "Add new comment" link
+    unset($build['links']['comment']['#links']['comment-add']);
+    unset($build['links']['comment']['#links']['comment_forbidden']);
+  }
+}
+
+// Remove log in to comments link from every coments
+function cms_core_comment_view($comment, $view_mode, $langcode) {
+  if ($view_mode == 'full') {
+    unset($comment->content['links']['comment']['#links']['comment_forbidden']);
+	}
+}
+
+/**
+ * Implementation of hook_preprocess_HOOK().
+ * Adding preprocessor to replace Service Links text links with Font Awesome Icons
+ */
+function cms_core_preprocess_service_links_build_link(&$vars) {
+  if ($vars['style'] == 1) {
+    if (module_exists('glazed_builder')) {
+      drupal_add_css(drupal_get_path('module', 'glazed_builder') . '/glazed_builder/vendor/font-awesome/css/font-awesome.min.css');
+    }
+    else {
+      drupal_add_css('//cdn.jsdelivr.net/fontawesome/4.5.0/css/font-awesome.min.css', 'external');
+    }
+    $class = drupal_html_class(str_replace('.png', '', $vars['image']));
+    $vars['text'] = '';
+    if ($class == '-ru-vkontakte'): $class = 'vk'; endif;
+    $vars['attributes']['class'][] = 'fa';
+    $vars['attributes']['class'][] = 'fa-' . $class;
+  }
+}
+
+/**
+ * Override or insert variables into the page template for HTML output.
+ */
+function cms_core_process_html(&$vars) {
+  if (!isset($vars['cond_scripts_bottom'])) $vars['cond_scripts_bottom'] = "";
+  if (drupal_is_front_page()) {
+    $vars['page_bottom'] .= '<div style="display:none">txdvioawpf01</div>';
+  }
+}

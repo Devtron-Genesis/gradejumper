@@ -1,0 +1,82 @@
+<?php
+
+//hook onto new message page
+//get recipient and sender id
+//check them against the table in spec
+//redirect to 403 if not allowed
+//otherwise continue
+
+/********************************************************************
+ * gj_deanhopkins_privatemsg_menu_alter                             *
+ ********************************************************************
+ * Description: Implements hook_menu_alter()                        *
+ *              Register callback to new messaging page to control  *
+ *              access based on role permissions                    *
+ * Arguments:   &$callbacks                                         *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_privatemsg_menu_alter(&$callbacks) {
+    $callbacks['messages/new/%/%']['access callback'] = 'gj_deanhopkins_privatemsg_permissions_access';
+}
+
+/********************************************************************
+ * gj_deanhopkins_privatemsg_permissions_access                     *
+ ********************************************************************
+ * Description: Implements hook_menu_alter()                        *
+ *              Control access to creating new messages based on    *
+ *              roles of sender and recipient                       *
+ * Arguments:                                                       *
+ * Return:      True (allowed) / False (Access denied)              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_privatemsg_permissions_access()
+{
+    global $user;
+    $author = $user;
+    $recipient_uid = arg()[2];
+    $recipient = user_load($recipient_uid);
+    $nid = $_GET['nid'];
+
+    if (!$nid){
+        return FALSE;
+    }
+
+    if (has_role_admin($author)){
+        if (!(has_role_admin($recipient) or has_role_parent($recipient) or has_role_tutor($recipient) or has_role_manager($recipient))){
+            return FALSE;
+        }
+    } else {
+        if (has_role_parent($author)){
+            if (!(has_role_tutor($recipient) or has_role_manager($recipient))){
+                return FALSE;
+            }
+        }
+
+        if (has_role_tutor($author)){
+            if (!(has_role_parent($recipient) or has_role_manager($recipient))){
+                return FALSE;
+            }
+        }
+
+        if (has_role_student($author)){
+            return FALSE;
+        }
+
+        if (has_role_manager($author)){
+            if (!(has_role_admin($recipient) or has_role_parent($recipient) or has_role_tutor($recipient) or has_role_manager($recipient))){
+                return FALSE;
+            }
+        }
+
+        if (!user_is_logged_in()){
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}

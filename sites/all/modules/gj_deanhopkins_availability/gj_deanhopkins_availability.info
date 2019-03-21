@@ -1,0 +1,9 @@
+name = GradeJumpers Availability
+description = Tutor ad availability functionality and scheduled (cron) job
+core = 7.x
+package = "GJ Dean Hopkins"
+dependencies[] = one_time_login_short_link
+dependencies[] = gj_deanhopkins_email_template
+dependencies[] = gj_deanhopkins_tutor_ad
+files[] = gj_deanhopkins_availability.drush.inc
+files[] = gj_deanhopkins_availability.module

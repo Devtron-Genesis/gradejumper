@@ -1,0 +1,444 @@
+<?php
+
+/********************************************************************
+ * gj_deanhopkins_availability_menu                                 *
+ ********************************************************************
+ * Description: Implements hook_menu()                              *
+ *              Register module page callbacks and job triggers     *
+ * Arguments:                                                       *
+ * Return:      $items                                              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function gj_deanhopkins_availability_menu(){
+    $items['process_tutor_availability'] = array(
+        'type' => MENU_NORMAL_ITEM,
+        'title' => t('Trigger job to process tutor availability notifications'),
+        'description' => 'Trigger job to process tutor availability notifications',
+        'page callback' => 'gj_deanhopkins_availability_process_tutors',
+        'access arguments' => array('access content'),
+        'access callback' => TRUE,
+    );
+
+    $items['tutor_pending_available'] = array(
+        'type' => MENU_NORMAL_ITEM,
+        'title' => t('Tutor Pending Unavailable Page'),
+        'description' => 'Page mailed to Tutors when their availability status is pending to change (26 days inactive)',
+        'page callback' => 'gj_deanhopkins_availability_pending_unavailable',
+        'access arguments' => array('access content'),
+        'access callback' => TRUE,
+    );
+
+    return $items;
+}
+
+/********************************************************************
+ * gj_deanhopkins_availability_theme                                *
+ ********************************************************************
+ * Description: Implements hook_theme()                             *
+ *              Register templates for new pages                    *
+ * Arguments:                                                       *
+ * Return:      array                                               *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function gj_deanhopkins_availability_theme() {
+    drupal_add_css(drupal_get_path('module', 'gj_deanhopkins_availability') . '/css/gj_deanhopkins_availability.css');
+
+    $module_path = drupal_get_path('module', 'gj_deanhopkins_availability');
+    $base = array('path' => "$module_path/templates", );
+
+    return array(
+        'tutor_pending_unavailable_pagecontents' => $base + array(
+                'template' => 'tutor_pending_unavailable',  //leave off .tpl.php
+                'variables' => array('items' => NULL,),
+            ),
+    );
+}
+
+/********************************************************************
+ * gj_deanhopkins_availability_pending_unavailable                  *
+ ********************************************************************
+ * Description: Page callback for content/tutor_pending_unavailable'*
+ *              Sent to user after 26 days inactivity.              *
+ * Arguments:                                                       *
+ * Return:      rendered template                                   *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function gj_deanhopkins_availability_pending_unavailable(){
+    $items = array();
+
+    return theme('tutor_pending_unavailable_pagecontents',
+        array('items' => $items));
+}
+
+/********************************************************************
+ * gj_deanhopkins_availability_process_tutors                       *
+ ********************************************************************
+ * Description: Main entry point for the tutor access time cleanup  *
+ *              scheduled job. Called by route:                     *
+ *              /process_tutor_availability                         *
+ * Arguments:                                                       *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function gj_deanhopkins_availability_process_tutors(){
+    _check_tutor_access_times();
+}
+
+/********************************************************************
+ * gj_deanhopkins_availability_mail                                 *
+ ********************************************************************
+ * Description: Implements hook_mail()                              *
+ *              Add header and footer to mail                       *
+ * Arguments:   $key,&$message,$params                              *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function gj_deanhopkins_availability_mail($key,&$message,$params)
+{
+    switch ($key) {
+        case 'send_link':
+            $message['subject']=t($params['subject']);
+            $message['body'][]=get_email_header() . $params['body'] . get_email_footer();
+            $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+            break;
+    }
+}
+
+/********************************************************************
+ * _check_tutor_access_times                                        *
+ ********************************************************************
+ * Description: Logic for scheduled job.                            *
+ *              If tutor is not active for 26 days:                 *
+ *                  Send email saying soon to be unavailable        *
+ *              If tutor is not active for 28 days:                 *
+ *                  Make unavailable.                               *
+ *                  Send email with link to tutor ad edit.          *
+ * Arguments:                                                       *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function _check_tutor_access_times(){
+    $tutor_users = _get_users_with_tutor_role();
+    foreach ($tutor_users as $tutor_user){
+        //ignore tutors never accessed and tutors who are not available anyway
+        if ($tutor_user->access > 0 && _tutor_has_published_advert($tutor_user) && _tutor_is_available($tutor_user)){
+            //if 26 days has passed since last access
+            if ($tutor_user->access < strtotime('-26 days')){
+                //if 28 days has passed since last access
+                if ($tutor_user->access < strtotime('-28 days')){
+                    _set_tutor_to_unavailable($tutor_user);
+                    _notify_tutor_unavailable($tutor_user);
+                } else {
+                    _notify_tutor_pending_unavailable($tutor_user);
+                }
+            }
+        }
+    }
+}
+
+/********************************************************************
+ * _get_users_with_tutor_role                                       *
+ ********************************************************************
+ * Description: Fetch all drupal users with role 'Tutor'            *
+ * Arguments:                                                       *
+ * Return:      array of users                                      *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function _get_users_with_tutor_role(){
+    $role = user_role_load_by_name('Tutor');
+    $query = 'SELECT ur.uid FROM {users_roles} AS ur WHERE ur.rid = :rid';
+    $result = db_query($query, array(':rid' => $role->rid));
+    $uids = $result->fetchCol();
+    return user_load_multiple($uids);
+}
+
+/********************************************************************
+ * _tutor_has_published_advert                                      *
+ ********************************************************************
+ * Description: Check if tutor has a published advert               *
+ * Arguments:   $tutor_user                                         *
+ * Return:      True if published advert exists, otherwise false    *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function _tutor_has_published_advert($tutor_user){
+    $query = new EntityFieldQuery();
+    $entities = $query->entityCondition('entity_type', 'node')
+        ->entityCondition('bundle', 'tutor_ad')
+        ->propertyCondition('uid', $tutor_user->uid)
+        ->propertyCondition('status', NODE_PUBLISHED)
+        ->execute();
+    $tutor_ads = node_load_multiple(array_keys($entities['node']));
+
+    return (sizeof($tutor_ads) > 0);
+}
+
+/********************************************************************
+ * _tutor_is_available                                              *
+ ********************************************************************
+ * Description: Check if tutor has at least one available advert    *
+ * Arguments:   $tutor_user                                         *
+ * Return:      True if available exists, otherwise false           *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function _tutor_is_available($tutor_user){
+    //iterate all tutor ads, return true if any one is marked as available
+    $available = FALSE;
+
+    $tutor_ads = _get_tutor_ads($tutor_user);
+
+    foreach ($tutor_ads as $tutor_ad){
+        if ($tutor_ad->field_tutor_available['und'][0]['value'] == "Yes"){
+            $available = TRUE;
+            break;
+        }
+    }
+    return $available;
+}
+
+/********************************************************************
+ * _get_tutor_ads                                                   *
+ ********************************************************************
+ * Description: Get all tutor ads, unfiltered, belonging to a user  *
+ * Arguments:   $tutor_user                                         *
+ * Return:      Array of tutor ad nodes                             *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function _get_tutor_ads($tutor_user)
+{
+    $query = new EntityFieldQuery();
+    $entities = $query->entityCondition('entity_type', 'node')
+        ->entityCondition('bundle', 'tutor_ad')
+        ->propertyCondition('uid', $tutor_user->uid)
+        ->propertyCondition('status', 1)
+        ->execute();
+    $tutor_ads = node_load_multiple(array_keys($entities['node']));
+    return $tutor_ads;
+}
+
+/********************************************************************
+ * _get_tutor_ad_by_user                                                   *
+ ********************************************************************
+ * Description: Get first tutor ad,unfiltered, belonging to a user  *
+ * Arguments:   $tutor_user                                         *
+ * Return:      Array of tutor ad nodes                             *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function get_tutor_ad_by_user($tutor_user)
+{
+    $query = new EntityFieldQuery();
+    $entities = $query->entityCondition('entity_type', 'node')
+        ->entityCondition('bundle', 'tutor_ad')
+        ->propertyCondition('uid', $tutor_user->uid)
+        ->propertyCondition('status', 1)
+        ->execute();
+    $tutor_ads = node_load_multiple(array_keys($entities['node']));
+    if (isset($tutor_ads)){
+        $tutor_ad = array_pop($tutor_ads);
+        return $tutor_ad;
+    } else {
+        return null;
+    }
+}
+
+/********************************************************************
+ * _set_tutor_to_unavailable                                        *
+ ********************************************************************
+ * Description: Update all tutor ads belong to a given user.        *
+ *              Set all availability fields = 0                     *
+ * Arguments:   $tutor_user                                         *
+ * Return:                                                          *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function _set_tutor_to_unavailable($tutor_user){
+    //iterate all tutor ads, set the availability field = 0.
+    $query = new EntityFieldQuery();
+    $entities = $query->entityCondition('entity_type', 'node')
+        ->entityCondition('bundle', 'tutor_ad')
+        ->propertyCondition('uid', $tutor_user->uid)
+        ->execute();
+    $tutor_ads = node_load_multiple(array_keys($entities['node']));
+
+    foreach ($tutor_ads as $tutor_ad){
+        //set all tutor ad availability fields to 0 (unavailable)
+        $node_wrapper = entity_metadata_wrapper('node', $tutor_ad);
+        if (isset($node_wrapper->field_tutor_available)){
+            $node_wrapper->field_tutor_available->set('No');
+        }
+        $node_wrapper->save();
+    }
+}
+
+/********************************************************************
+ * _notify_tutor_unavailable                                        *
+ ********************************************************************
+ * Description: Send email to tutor notifying them they have been   *
+ *              made unavailable. Include link to edit tutor node   *
+ * Arguments:   $tutor_user                                         *
+ * Return:                                                          *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function _notify_tutor_unavailable($tutor_user){
+    //send mail telling them made unavailable.
+    //link make yourself available = node edit form
+
+    $message = "Hello, <br /><br />Your GradeJumpers advert has been made unavailable due to inactivity. <br /><br />
+                To make yourself available again, please visit the following link and update your availability information:";
+
+    $link = l("Make yourself available.", $GLOBALS['base_url'] . "/node/" . array_pop(_get_tutor_ads($tutor_user))->nid . "/edit");
+
+    $message .= "<br /><br />" . $link;
+
+    $params = array(
+        'body' => $message,
+        'subject' => 'GradeJumpers Inactivity Notification - Action Required',
+        'headers'=>'simple',
+    );
+    $to = $tutor_user->mail;
+    $from = "support@gradejumpers.com";
+
+    drupal_mail('gj_deanhopkins_availability', 'send_link', $to, language_default(), $params, $from, TRUE);
+
+}
+
+/********************************************************************
+ * _notify_tutor_pending_unavailable                                *
+ ********************************************************************
+ * Description: Send email to tutor notifying them they are to be   *
+ *              made unavailable if they do not access within 2     *
+ *              days. Include one-time-login link.                  *
+ * Arguments:   $tutor_user                                         *
+ * Return:                                                          *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function _notify_tutor_pending_unavailable($tutor_user){
+    //send mail telling them soon to be made unavailable unless they act
+    $one_time_link = _generate_one_time_link($tutor_user);
+
+    $message = "Hello, <br /><br />Your account has been inactive for 26 days. If you do not access within 48 hours your account will be marked unavailable. <br /><br />";
+    $message .= "Please follow the below link in order to keep your account active and available for tutoring:<br />";
+
+    $link = l("Keep me available.", $one_time_link);
+
+    $message .= "<br />" . $link;
+
+    $params = array(
+        'body' => $message,
+        'subject' => 'GradeJumpers Availability Notice',
+        'headers'=>'simple',
+    );
+    $to = $tutor_user->mail;
+    $from = "support@gradejumpers.com";
+
+    drupal_mail('gj_deanhopkins_availability', 'send_link', $to, language_default(), $params, $from, TRUE);
+}
+
+/********************************************************************
+ * _generate_one_time_link                                          *
+ ********************************************************************
+ * Description: Generate a one-time sign-in link for a given user   *
+ *              Redirects to content/tutor_pending_unavailable      *
+ * Arguments:   $tutor_user                                         *
+ * Return:      URL (one-time sign-in link)                         *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function _generate_one_time_link($user){
+    $url = one_time_login_short_link(
+        $account = $user,
+        $redirect = '/tutor_pending_available',
+        $expire = '+1 day'
+    );
+
+    return $url;
+}
+
+/********************************************************************
+ * gj_deanhopkins_availability_drush_command                        *
+ ********************************************************************
+ * Description: Implements hook_drush_command()                     *
+ *              Used to set tutor access times for testing purposes *
+ * Arguments:   $tutor_user                                         *
+ * Return:                                                          *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function gj_deanhopkins_availability_drush_command() {
+    $items['drush-tutor-access-command'] = array(
+        'description' => 'Set tutor ad last access date for given user and unix timestamp',
+        'aliases' => array('set-tutor-access-date'),'arguments' => array(
+            'tutor_ad_nid' => 'Tutor Ad Node ID (nid)',
+            'timestamp' => 'Unix timestamp (www.timestampgenerator.com)',
+        ),
+    );
+
+    return $items;
+}
+
+/********************************************************************
+ * drush_gj_deanhopkins_availability_drush_tutor_access_command     *
+ ********************************************************************
+ * Description: Callback for testing drush command                  *
+ * Arguments:   $tutor_ad_nid, $timestamp                           *
+ * Return:      URL (one-time sign-in link)                         *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-12                                          *
+ ********************************************************************/
+function drush_gj_deanhopkins_availability_drush_tutor_access_command($tutor_ad_nid, $timestamp){
+    print "\n \n";
+    if ($tutor_ad_nid && isValidTimeStamp($timestamp)){
+        $tutor_ad = node_load($tutor_ad_nid);
+
+        if ($tutor_ad){
+            db_update('users')
+                ->fields(array('access' => $timestamp))
+                ->condition('uid', $tutor_ad->uid)
+                ->execute();
+
+            print "Success.";
+        } else {
+            print "Error: Tutor ad not found.";
+        }
+    } else {
+        print "Error. Please provide Tutor Node ID and valid Unix timestamp ie 1550180751. www.timestampgenerator.com \n";
+    }
+
+    print "\n";
+}
+
+function isValidTimeStamp($timestamp)
+{
+    return ((string) (int) $timestamp === $timestamp)
+        && ($timestamp <= PHP_INT_MAX)
+        && ($timestamp >= ~PHP_INT_MAX);
+}

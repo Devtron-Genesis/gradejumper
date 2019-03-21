@@ -1,0 +1,530 @@
+@media (min-width: 992px) and (max-width: 1199px) {
+body.boxed, .fullwidth-element { width: 100%; }
+.block-babysitter h2 { font-size: 22px; }
+.page-easyhire-agreements #quicktabs-easyhire_agreements ul.quicktabs-tabs.quicktabs-style-basic li, .page-my-searches #quicktabs-my_searches ul.quicktabs-tabs.quicktabs-style-basic li, .quicktabs-style-basic ul.quicktabs-tabs.quicktabs-style-basic li { margin: 0px; }
+.grade-btn button, .grade-btn a { /*font-size: 13px;*/ }
+.page-easyhire-agreements #quicktabs-easyhire_agreements ul.quicktabs-tabs.quicktabs-style-basic li a, .quicktabs-style-basic ul.quicktabs-tabs.quicktabs-style-basic li a { font-size: 20px !important; }
+.page-easyhire-agreements #quicktabs-easyhire_agreements table#draft-agreement tr td:last-child a, table#blocked-members-list tr td:last-child a { display: inline-block; padding: 7px 20px; }
+.password-strength { margin-top: 0px; width: auto; }
+.confirm-parent, .password-parent { width: auto; }
+.timetable_wrapper td .input-check label { font-size: 9px !important; }
+#user-profile-form input#edit-pass-pass1.password-field { margin-bottom: 0px; }
+.logged-in.page-user.page-user-edit .tabs--secondary.nav-tabs li a { font-size: 19px; }
+.my-ads .author-image .pro-img { width: auto; padding-right: 0px; }
+.user-others #quicktabs-profiles #quicktabs-container-profiles { top: 0px; margin-top: -120px; }
+.pro-img { width: auto; padding-right: 0px; }
+#user-pass-reset div.password-reset-form div.password-strength { top: 50px; }
+#user-pass-reset .login_section_wrap .user_login_box.left { padding-left: 50px; }
+}
+ @media (max-width: 1199px) {
+/* Start 18-01-2017 */
+/*.pro-img { float: left !important; padding-right: 0; width: 75px; margin-right: 10px; padding-bottom: 0; min-height: 80px; }*/
+.tutor_ad_content_right { margin-left: 0; }
+.badges_icon { clear: none; display: block; float: none; overflow: hidden; padding: 10px 0; top: 0; width: auto; }
+.grade-main-container .tutor_ad_content_right h3 { display: inherit; }
+.tutor_ad_content_right { display: inherit; }
+/* end 18-01-2017 */
+
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields { position: relative }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields .form-type-select select, .node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-2 select { width: 75px; }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-2 { position: absolute; top: 31px; width: 62% !important; right: 0 }
+.node-form.node-tutor_ad-form .group-about-me-as-a-tutor .field-name-field-child-age-1 select { position: absolute; left: 0; top: 41px; }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-2 select { float: right; }
+.node-form.node-tutor_ad-form .group-about-me-as-a-tutor .field-name-field-child-age-2 label { line-height: 30px; }
+.node-form.node-tutor_ad-form .group-about-me-as-a-tutor .field-name-field-child-age-1 label { height: 30px; position: relative; width: 100%; }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-1 { width: auto; height: 60px; }
+/*-- 160217 --*/
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-2 select#edit-field-child-age-2-und { width: 56%; }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-1 select#edit-field-child-age-1-und { width: 36%; }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-2 { width: 55% !important; }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-1 { width: 100%; }
+/*-- 160217 --*/
+
+}
+ @media (max-width: 991px) {
+.home-page .slider-top .parent-search-form .form-submit { margin-left: 20px; max-width: 150px; }
+.home-page .text-top { padding: 10px; line-height: 20px; }
+#lifestyle-wrap ul li a { padding-right: 12px; padding-left: 12px; }
+#lifestyle-wrap .region-lifestyle .navbar-nav > li { padding-right: 0px; }
+#navigation ul > li { padding: 17px 16px 0; }
+.block-babysitter h2 { background-size: 45px; font-size: 23px; padding-right: 0; padding-top: 20px; }
+.block-need-help h2 { font-size: 23px; }
+.page-dashboard h1#page-title, .page-privacy-setting h1#page-title, .page-node-add-easyhire h1#page-title, .page-email-setting h1#page-title, .page-blocked-member h1#page-title, .page-my-searches h1#page-title, .page-my-ads h1#page-title, .page-job-board h1#page-title, #wrapper .container h1#page-title { font-size: 40px; padding-bottom: 20px; margin-bottom: 0px; }
+.my-ads .ads-bottom .ads-button a, .free-contact-block a { min-width: inherit; }
+.block-need-help .free-contact-block a { font-size: 17px; padding: 15px 14px; }
+/*.my-ads .ads-bottom .ads-button, .free-contact-block { margin-right: 0px; }*/
+.page-easyhire-agreements #quicktabs-easyhire_agreements ul.quicktabs-tabs.quicktabs-style-basic li, .page-my-searches #quicktabs-my_searches ul.quicktabs-tabs.quicktabs-style-basic li, .quicktabs-style-basic ul.quicktabs-tabs.quicktabs-style-basic li { margin: 0px; }
+.grade-btn .btn-message { width: auto; }
+.grade-btn button, .grade-btn a { font-size: 13px; margin: 0 2px 5px 2px; padding: 7px 5px; }
+#quicktabs-privacy_settings ul.quicktabs-tabs.quicktabs-style-basic li a, .page-easyhire-agreements #quicktabs-easyhire_agreements .item-list ul li a, .quicktabs-style-basic ul.quicktabs-tabs.quicktabs-style-basic li a, .page-my-searches #quicktabs-my_searches ul.quicktabs-tabs.quicktabs-style-basic li a { font-size: 16px !important; padding: 10px; }
+.free-contact-block { margin-right: 0; width: 100%; }
+.block-need-help .free-contact-block a { padding: 15px 0; width: 100%; }
+.page-easyhire-agreements #quicktabs-easyhire_agreements ul.quicktabs-tabs.quicktabs-style-basic li a, .quicktabs-style-basic ul.quicktabs-tabs.quicktabs-style-basic li a, .page-privacy-setting .nav-tabs li a, .page-email-setting .nav-tabs li a, .page-blocked-member .nav-tabs li a, .home-page .home-bottom .nav-tabs > li a { font-size: 16px !important; }
+.page-easyhire-agreements #quicktabs-easyhire_agreements table#draft-agreement .create-draft a { font-size: 14px; }
+.page-easyhire-agreements #quicktabs-easyhire_agreements table#draft-agreement tr td:last-child a, table#blocked-members-list tr td:last-child a { padding: 7px 10px; display: inline-block; }
+.h2plus { font-size: 40px !important; }
+.password-strength { margin-top: 0px; width: auto; }
+.confirm-parent, .password-parent, div.form-item div.password-suggestions { width: auto; margin-bottom: 0px; }
+#gj_save_search_wrapper { width: 100%; }
+.timetable_wrapper td .input-check label { font-size: 6px !important; }
+.tutor_tab_wrapper .tutor_tab, .tutor_tab_wrapper_jobboard .tutor_tab { display: inline-block; padding: 0px 5px; }
+.tutor_tab_wrapper .tutor_tab h3, .tutor_tab_wrapper_jobboard .tutor_tab h3 { font-size: 16px; }
+.block-babysitter h2 .fa { font-size: 42px; }
+#user-profile-form input#edit-pass-pass1.password-field { margin-bottom: 0px; }
+.logged-in.page-user.page-user-edit .tabs--secondary.nav-tabs li a { font-size: 17px; }
+.pro-img {/*width:auto; */ padding-right: 0px; float: none; }
+.user-others #quicktabs-profiles #quicktabs-container-profiles { top: 0px; margin-top: -60px; }
+.phone-section .phone-section-bottom h3 { font-size: 22px; }
+.grade-btn .flag-like-dislike a.flag-link-toggle { padding: 10px; margin-bottom: 5px; }
+.tutor_my_reviews_wrapper { padding: 15px 20px; }
+#user-pass-reset .login_section_wrap .user_login_box.left { padding-left: 0px; }
+#user-pass-reset .login_section_wrap .user_login_box.right { padding-left: 10px; }
+#user-pass-reset div.password-reset-form div.password-strength { top: 50px; }
+.node-form.node-parent_ad-form #my-details .form-control, .node-form.node-tutor_ad-form #my-details .form-control, .node-form.node-parent_ad-form #place-ad.place-ad-re #my-details .panel-body select, .node-form.node-tutor_ad-form #tutor-my-details .form-item select { width: 100%; }
+.node-form.node-parent_ad-form #my-details label, .node-form.node-tutor_ad-form #my-details label { width: 100%; padding-right: 0px; }
+.node-form.node-parent_ad-form #place-ad .panel-default { padding: 20px 35px 20px 20px; }
+.node-form.node-parent_ad-form #place-ad .panel-body .group-advert-details .form-item-field-tutor-what-subject-looking-und .hierarchical-select .selects select { width: 100%; }
+.node-form.node-parent_ad-form #my-details label, .node-form.node-tutor_ad-form .group-tutor-my-details label { padding-right: 0px; width: 100%; }
+.node-form.node-parent_ad-form #my-details .form-control, .node-form.node-tutor_ad-form .group-tutor-my-details .panel-body .form-control, .node-form.node-parent_ad-form #place-ad.place-ad-re #my-details .panel-body select, .node-form.node-tutor_ad-form .group-tutor-my-details .panel-body .form-item select, .node-form.node-tutor_ad-form .group-tutor-my-details .panel-body .date-combo .panel-body { width: 100% !important; }
+.node-form.node-tutor_ad-form #tutor-price-terms.group-my-prices-terms .field-name-field-will-this-tutor-consider.form-group.form-wrapper label, .node-form.node-tutor_ad-form #tutor-price-terms.group-my-prices-terms .field-name-field-description label { width: 100% !important; }
+.node-form.node-tutor_ad-form #tutor-price-terms.group-my-prices-terms .field-name-field-will-this-tutor-consider select, .node-form.node-tutor_ad-form #tutor-price-terms.group-my-prices-terms .field-name-field-description .form-textarea-wrapper { width: 100%; }
+.node-form.node-tutor_ad-form .panel-default { padding: 20px 35px 20px 20px; }
+.node-form.node-tutor_ad-form #tutor-my-education .panel-default { padding: 0px; }
+/* 18-01-2017 */
+.grade-main-wrapper .grade-main-container li.last.free-contact-other, .grade-main-wrapper .grade-main-container li.last.free-contact-grey { width: 100%; border-left: none; }
+.grade-main-wrapper .grade-main-container .list-inline.grade-info li:first-child { width: 100%; }
+.grade-info li + li { border: none; margin-top: 4px; display: block; width: 100%; }
+.grade-btn { margin: 0 0 10px 0 }
+.form-type-item .lesson-availabile .select-times { position: relative; right: 0; top: auto; display: inline-block; }
+.form-type-item .lesson-availabile { padding-bottom: 0; }
+/* 18-01-2017*/
+.avail_time { overflow: auto; }
+.node-form.node-tutor_ad-form #tutor-price-terms.group-my-prices-terms .form-group.form-wrapper label { width: 100%; }
+.page-reviews-and-references #add_review_form #tutor-rating-reference-callback .form-group input[type="text"], .page-reviews-and-references #add_review_form #tutor-rating-reference-callback .form-group input[type="password"], .page-reviews-and-references #add_review_form #tutor-rating-reference-callback .form-group input[type="email"], .page-reviews-and-references #add_review_form #tutor-rating-reference-callback .form-group select, .page-reviews-and-references #quicktabs-container-reviews_references .form-group input[type="text"], .page-reviews-and-references #quicktabs-container-reviews_references .form-group input[type="password"], .page-reviews-and-references #quicktabs-container-reviews_references .form-group input[type="email"], .page-reviews-and-references #quicktabs-container-reviews_references .form-group select { max-width: 100%; width: 100%; }
+#add_review_form #tutor-rating-reference-callback .form-type-select.form-item-review-type.form-item.form-group { width: 100%; }
+.myorders-order-right { width: 100%; }
+div.myorders-order-right > div:nth-child(2n) { width: 134px; }
+.myorders-order-right { padding-left: 0px; padding-top: 10px; }
+/* 03-02-2013 */
+.page-search-parent .grade-main-wrapper .grade-main-container .right p { height: 60px; line-height: 20px; overflow: hidden; }
+.page-search-parent .grade-main-wrapper .grade-main-container h3 { margin-top: 0; font-size: 22px; font-weight: normal; }
+.page-search-parent .grade-main-wrapper div.pro-img { margin-right: 10px; }
+/*-- 100217 --*/
+.node-form.node-tutor_ad-form .group-tutor-my-details .panel-body .form-control, .node-form.node-tutor_ad-form .group-tutor-my-details .panel-body .form-select, .node-form.node-tutor_ad-form .group-tutor-my-details .panel-body .form-item select, .node-form.node-parent_ad-form div.required-fields .form-control, .node-form.node-parent_ad-form #my-details .form-control, .node-form.node-parent_ad-form #my-details .form-select, .node-form.node-parent_ad-form #place-ad.place-ad-re #my-details .panel-body select, .node-tutor_ad-form .group-tutor-my-details .field-name-field-what-is-your-date-of-birth .form-item-field-what-is-your-date-of-birth-und-0-value-date input[type="text"], .node-form.node-tutor_ad-form #edit-availability-tutoring > label { width: 98% !important; }
+.node-form.node-tutor_ad-form .group-tutor-my-details .panel-body .date-combo .panel-body .tootip_hint { margin-right: -20px; }
+.node-form.node-tutor_ad-form .tootip_hint { /*margin-right:-15px;*/ }
+.group-saftey-checklist div.fieldset-legend > h4, .group-about-me-as-a-tutor div.fieldset-legend > h4, .group-my-prices-terms div.fieldset-legend > h4 { margin-bottom: 10px; }
+.node-form.node-tutor_ad-form .group-tutor-my-details .panel-body { margin-top: 10px; }
+.node-form.node-tutor_ad-form .group-tutor-my-details .panel-body span.easyhire-form-blur-text.tutor-blur { float: right; }
+.node-form.node-tutor_ad-form .field-name-field-what-happens-if- h4 { margin-top: 0; margin-bottom: 10px; }
+.field-widget-field-collection-embed label { line-height: normal; }
+#rising_star_congrats_box { display: inline-block; }
+div.hierarchical-select div.selects { margin-right: 5px; }
+.place-ad-re div.required-fields div.fieldset-legend h4 { margin-bottom: 15px; display: inline-block; }
+.node-form.node-tutor_ad-form .group-tutor-my-details #edit-field-what-is-your-date-of-birth .panel-body { margin-top:0px;}
+.node-form.node-tutor_ad-form .group-tutor-my-details #edit-field-what-is-your-date-of-birth .date-combo .panel-heading { width: 100%; padding-bottom: 2px; }
+}
+
+ @media (min-width: 768px) and (max-width: 800px) {
+.node-form.node-tutor_ad-form .group-about-me-as-a-tutor .field-name-field-child-age-1 select { top: 55px; }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-1 { height: 80px; }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-2 { top: 38px; }
+}
+
+/* @media (max-width: 767px) */
+ @media (max-width: 1040px) {
+	 .pro-img .video_sign { right: 0px; }
+.node_advert_view_mobile .tutor_teasor_advert .mobile_contact_status {
+	padding-top: 4px;
+}
+.node_advert_view_mobile .tutor_teasor_advert .mobile_contact_status .free-contact-other { padding-top: 6px; }
+.user-others #quicktabs-profiles #quicktabs-container-profiles { top: 0px; padding-left: 0; padding-right: 0; margin-top: 0; }
+.page-my-ads .my-ads .ads-listing.tutor-ads-section .ads-top-left { width: 100%; }
+.home-page .slider-image img { width: 100%; height: auto; min-height: auto }
+#footer-bottom { border-top: 20px solid #e9e9e9; }
+.home-page .slider-top { padding: 30px 15px; }
+.home-page .home-bottom .nav-tabs > li a { font-size: 25px !important; }
+#footer-bot-right { line-height: 20px; margin-top: 5px; border-top: 1px solid #333; padding-top: 8px; margin-top: 13px; }
+.home-page .slider-top .parent-search-form .form-submit { font-size: 15px; }
+#footer-bot-left, #footer-bot-wrap { text-align: center; width: 100%; padding-top: 5px; display: inline-block; }
+#footer-bot-wrap { margin-top: 8px; }
+#master-bar { height: auto !important; display: inline-block; background: #ebecf0; }
+#navigation ul > li { height: auto; padding: 12px; }
+.register-form h3 { font-size: 25px; }
+.page-dashboard h1#page-title, .page-privacy-setting h1#page-title, .page-node-add-easyhire h1#page-title, .page-email-setting h1#page-title, .page-blocked-member h1#page-title, .page-my-searches h1#page-title, .page-my-ads h1#page-title, .page-job-board h1#page-title, #wrapper .container h1#page-title { font-size: 30px; }
+.block-need-help .free-contact-block a { font-size: 14px; padding: 12px 20px; }
+.dashboard-how-works h1 { font-size: 25px; }
+.my-upgrade h3 { font-size: 20px; }
+.my-upgrade-bottom .upgrade-left h4, .my-upgrade-bottom .upgrade-right h4, .my-message h4, .my-ad h4, .my-hot-leads h4, .my-job-board h4, .my-job-board h4, .my-job-board h4, .my-easyhire-agreement h4, .my-searches h4, .my-privacy h4, .my-fans h4 { font-size: 16px; }
+.page-my-searches #quicktabs-my_searches #quicktabs-container-my_searches .saved-search-header h2, .page-email-setting #email-option-setting h3 { font-size: 20px; }
+#quicktabs-privacy_settings .item-list ul.quicktabs-tabs, .page-privacy-setting .nav-tabs, .page-email-setting .nav-tabs, .page-blocked-member .nav-tabs, .page-email-setting .nav-tabs { padding: 0px; }
+.map { margin-bottom: 20px; }
+.user-details .tutor-header h3 { font-size: 30px; }
+input[type="button"], input[type="submit"], a.button, .btn, .btn-default { padding: 9px 13px; }
+.page-my-ads #block-block-9 .headline { font-size: 22px; }
+.h2plus { font-size: 30px !important; }
+#gj_search_tutor_form h2, .block-help-topic .headline, .block-tick-tock .headline { float: none; font-size: 23px; }
+.block-need-help h2 .fa, .block-tick-tock h2 .fa { font-size: 25px; }
+.block-help-topic .help-topic { margin-top: 0px; }
+.block-babysitter h2 { padding-top: 8px; }
+#gj_browse_subject_container h3, .node-parent-ad .parent-ad-right .tutor-header h2 { font-size: 20px; }
+.node-parent-ad .parent-ad-right .tutor-header h3 { font-size: 25px; }
+.phone-section .phone-section-bottom .phoning-btn .btn { font-size: 13px; padding: 8px 20px; }
+.quicktabs_main.quicktabs-style-navlist { width: 100%; }
+.user-others ul.quicktabs-tabs.quicktabs-style-navlist { width: 100%; padding-bottom: 0px; }
+.user-others iframe { left: 0; position: relative; top: 0; margin-bottom: 20px; }
+#user-pass-reset .login_section_wrap .user_login_box.left { padding-left: 0px; width: 100%; border-right: none; }
+#user-pass-reset .login_section_wrap .user_login_box.right { padding-left: 0px; width: 100%; }
+#user-pass-reset .login_section_wrap .user_login_box #user_registration_form_wrap { padding-left: 0; padding-right: 0; }
+.badges_icon { top: 0px; }
+div.ctools-modal-content .modal-content { padding: 20px; }
+.hierarchical-select-wrapper .hierarchical-select select { width: 100%; }
+.node-form.node-tutor_ad-form #edit-availability-tutoring { padding: 15px 40px 15px 15px; }
+.grade-main-header-left.ren, .grade-main-header-right.ads-heading { width: 100%; }
+.dashboard-toggle { float: right; position: absolute; right: 10px; top: 7px; z-index: 999; }
+#block-gj-dashboard-dashboard-menu .dashboard-toggle:before, .mobile-dashboard-toggle:before { content: "\f068"; font-family: FontAwesome; }
+#block-gj-dashboard-dashboard-menu .dashboard-toggle.collapsed:before, .mobile-dashboard-toggle.collapsed:before { content: "\f067"; font-family: FontAwesome; }
+#block-gj-dashboard-dashboard-menu #navbar1 { padding: 0 }
+#master-bar { display: none; }
+.dashboard-toggle-top:after { float: left; content: "\f0c9"; font-family: FontAwesome; }
+.node-easyhire-form .button.field_select_tutor_wrapper { width: 100%; }
+.node-easyhire-form .button.field_select_tutor_wrapper .adv_list_item { min-width: auto; }
+.form-item-field-select-parent-und .select-list li div, .form-item-field-select-tutor-und .select-list li div { min-width: auto; }
+.node-easyhire-form ul.select-list { display: inline-block; float: none; left: 0; margin-top: 0; position: relative; width: 100%; }
+.page-node-add-easyhire .node-easyhire-form label { padding-bottom: 2px; }
+.page-node-add-easyhire .node-easyhire-form .form-item, .page-node-add-easyhire .node-easyhire-form .form-actions { margin-top: 0px; }
+.page-node-add-easyhire .node-easyhire-form .field-name-field-start-time .form-type-select { margin-right: 0; }
+.page-node-add-easyhire .node-easyhire-form .panel .panel-heading { padding-top: 0; }
+.page-node-add-easyhire .group-the-parent.panel, .page-node-add-easyhire .group-step2-topics.panel, .page-node-add-easyhire .group-step2-subjects.panel, .page-node-add-easyhire .group-measuring-success.panel, .page-node-add-easyhire .group-step3-goals.panel, .page-node-add-easyhire .group-parent-step4-how.panel, .page-node-add-easyhire .group-business-gurantees.panel { margin-bottom: 0px; }
+.page-node-add-easyhire .node-easyhire-form .group-step3-goals .ui-multiselect, .group-parent-tutor-details .ui-multiselect { font-size: inherit; }
+.page-node-add-easyhire .node-easyhire-form .panel-body .checkbox label { display: block; overflow: hidden; width: auto; }
+.page-node-add-easyhire #entityreference-autofill-node-easyhire---field_what_happens_if_ #edit-field-what-happens-if- #edit-field-what-happens-if-und-0 { margin-bottom: 0px; }
+.group-parent-step4-when .field-name-field-tutoring-sessions-required .checkbox input[type="checkbox"] { float: left; }
+.top-bar-right { display: none; }
+#mobile-theme, .search-top { display: block; }
+#top-bar .top-bar-left { width: 100%; }
+#mobile-theme { float: left; }
+.search-top { float: right; margin: 19px 5px; }
+#top-bar .search-top a:hover { background-color: transparent; }
+.navbar-toggle { margin-bottom: 4px; margin-right: 15px; margin-top: 4px; padding: 9px 0px; }
+.dashboard-toggle-top::after { font-size: 24px; padding: 0 10px; }
+#logo img { height: 50px; }
+#logo { left: 0; margin: 0 auto; position: absolute; width: 105px; right: 0px; }
+#lifestyle-wrap .region-lifestyle .navbar-nav > li { width: 100%; }
+#lifestyle-wrap .navbar-collapse { background: #3c3c3c; box-shadow: none; }
+#lifestyle-wrap ul li a { color: #fff; }
+#lifestyle-wrap ul > li { border-bottom: 1px solid #666666; padding: 6px 5px; }
+#lifestyle-wrap { text-align: left; }
+#lifestyle-wrap ul > li:last-child, #lifestyle-wrap ul > li:hover:last-child { border-bottom: none; }
+#lifestyle-wrap .region-lifestyle .navbar-nav { float: none; margin: 0px -10px; }
+#lifestyle-wrap ul > li:hover { border-bottom: 1px solid #666666; }
+#lifestyle-wrap .region-lifestyle .navbar-nav > li#place-ad-free-bnt a, #lifestyle-wrap ul li.upgrade-menu-link a { box-shadow: none; display: inline-block; }
+#lifestyle-wrap .region-lifestyle .navbar-nav > li .mobile-dashboard-toggle { float: right; margin: 0; padding: 0; position: absolute; right: 10px; top: 17px; color: #fff; z-index: 999; cursor: pointer; background: none; border: none; }
+li#my-dashboard-menu ul.dropdown-menu { position: relative; width: 100%; padding: 0px; }
+li#my-dashboard-menu ul.dropdown-menu li a { color: #666666; }
+li#my-dashboard-menu ul.dropdown-menu li, li#my-dashboard-menu.expanded ul.dropdown-menu li:hover { border-bottom: 1px solid #cccccc; padding: 10px 5px; }
+li#my-dashboard-menu ul.dropdown-menu li:last-child, li#my-dashboard-menu.expanded ul.dropdown-menu li:last-child:hover { border-bottom: none; }
+#lifestyle-wrap .region-lifestyle .navbar-nav > li { padding-right: 5px; }
+li#my-dashboard-menu #mobile_nav { margin: 0 -5px; padding: 0; }
+.sidebar { margin-top: 0px; }
+.page-dashboard h1#page-title, .page-privacy-setting h1#page-title, .page-node-add-easyhire h1#page-title, .page-email-setting h1#page-title, .page-blocked-member h1#page-title, .page-my-searches h1#page-title, .page-my-ads h1#page-title, .page-job-board h1#page-title, #wrapper .container h1#page-title { border: medium none; font-size: 30px; padding-bottom: 10px; text-align: left; }
+.sidebar .block-gj-dashboard h2.headline { padding-bottom: 0px; }
+.sidebar .block-gj-dashboard .line { display: none; }
+.sidebar .block-gj-dashboard .dashboard-nav { margin-top: 10px; }
+.block-gj-dashboard ul li { border-bottom: 1px solid #ccc; margin: 0 0 10px; padding-bottom: 10px; }
+.block-gj-dashboard ul li:last-child { margin: 0 0 0px; padding-bottom: 0px; border-bottom: none; }
+.container { width: auto; }
+#footer-bot-right { width: 100%; }
+#footer-left-right > a { clear: both; display: inline-block; line-height: 25px; width: 49%; }
+.block-babysitter { margin-top: 15px; }
+#mobile_account { display: block !important; }
+#navbar li#place-ad-free-bnt { border-bottom: 1px solid #666666; }
+.group-parent-step4-where .form-type-select .ui-multiselect { min-height: 36px; height: auto; width: 100% !important; font-size: 14px; }
+button.ui-multiselect.ui-state-active { font-weight: normal; }
+.node-easyhire-form #edit-field-what-is-your-date-of-birth .date-combo .panel-body { display: none; }
+.group-parent-tutor-details .field-name-field-what-is-your-date-of-birth .date-combo .panel-heading { width: auto; }
+.page-reviews-and-references #add_review_form #tutor-rating-reference-callback .form-group label { line-height: 18px; }
+#entityreference-autofill-node-easyhire---field_what_is_your_gender_, #entityreference-autofill-node-easyhire---field_tutor_are_you_a_smoker_, #entityreference-autofill-node-easyhire---field_tutor_experience, #entityreference-autofill-node-easyhire---field_tutor_rating, #entityreference-autofill-node-easyhire---field_tutor_what_are_safety_req { width: 40%; }
+.node-easyhire-form .group-parent-tutor-details .panel-body .age { padding-top: 2px; }
+.page-node-add-easyhire .node-easyhire-form .step-default h3 { padding-top: 10px; }
+table#field-easyhire-no-of-days-values { margin-bottom: 10px; }
+.group-the-tutor label, .group-the-parent label { width: 100% !important; }
+.field_select_tutor_wrapper .adv_list_item { min-width: 100%; }
+.ctools-modal-custom-register-content .field_select_tutor_wrapper > div.none { min-width: inherit; }
+.page-reviews-and-references .modal-scroll { width: 96%; }
+#block-block-14 { display: block; }
+#block-block-1 { display: none; }
+.page-reviews-and-references #add_review_form { padding: 20px 15px; }
+#tutor-rating-reference-callback #edit-member-reference, #tutor-rating-reference-callback #edit-external-reference { padding: 20px 15px 2px 15px; }
+.page-reviews-and-references #add_review_form #tutor-rating-reference-callback .fivestar-user-stars .form-group { margin-bottom: 6px; }
+#webform-client-form-28 #edit-submitted-second-name-initial-of-referee.form-select { width: 100%; }
+.myorders-order-wrap h2 { font-size: 20px; }
+.myorders-order-right { width: 66%; }
+.myorders-order-right { padding-left: 20px; padding-top: 0px; }
+.mobile-theme { display: block; }
+.gj_search_tutor_form_wrapper { display: none; margin-bottom: 15px; }
+.h2plus.title { text-align: left; display: inline-block; width: 70%; padding-top: 5px; }
+.mobile-theme.mob-refine-search { float: right; margin-top: 11px; }
+.mobile-theme.mob-refine-search .mobile-search-toggle { border: none; background: #d9d9d9; padding: 6px 10px; color: #333; border-radius: 3px; }
+.page-search .titlebar hr, .page-search .main-wrapper #search-page-content #main-page-content hr { display: none }
+.page-node-add-easyhire h1#page-title { font-size: 28px !important; }
+.tutor_tab_wrapper, .tutor_tab_wrapper_jobboard { border-bottom: 2px solid #999; width: 100%; display: inline-block; padding: 0px; margin-bottom: 15px; }
+.tutor_tab_wrapper .parent_tab p, .tutor_tab_wrapper_jobboard .parent_tab p  { font-size: 11px; line-height: normal; }
+.tutor_tab_wrapper .tutor_tab p, .tutor_tab_wrapper_jobboard .tutor_tab p { font-size: 11px; line-height: normal; }
+.tutor_tab_wrapper .tutor_tab h3, .tutor_tab_wrapper_jobboard .tutor_tab h3 { line-height: normal; }
+.tutor_tab_wrapper .parent_tab h3, .tutor_tab_wrapper_jobboard .parent_tab h3 { font-size: 16px; line-height: normal; }
+.tutor_tab_wrapper .parent_tab, .tutor_tab_wrapper_jobboard .parent_tab { padding: 0px 5px; }
+#breadcrumbs { clear: both; }
+.grade-main-wrapper .grade-main-container li.last.free-contact-plat { float: left; width: auto; }
+html.js input.form-autocomplete { width: 100%; }
+.page-my-ads .my-ads .ads-listing .ads-top-left .ads-heading .ads-author-name.left { display: block; width: 100%; }
+.my-ads .ads-top-left .ads-heading .ads-renewed { float: left; padding-left: 0; text-align: left; padding-bottom: 6px; }
+.ads-title { display: inherit; }
+.my-ads .author-details { float: none; display: inline-block; width: calc(100% - 130px); -webkit-width: calc(100% - 130px); -moz-width: calc(100% - 130px); -ms-width: calc(100% - 130px); }
+.my-ads .ads-heading .ads-renewed { padding-left: 0px; }
+#gj-job-board-page-content hr { display: none }
+.form-item-submitted-member .select-list li div { min-width: 100%; }
+.ctools-modal-custom-register-content .form-item-submitted-member .select-list { width: 100%; }
+.page-my-ads .ads-listing .ads-top, .block-gj-hot-leads .tutor_teasor_advert .grade-main-header { display: none; }
+.page-fans .main-wrapper .sidebar .block { margin-bottom: 2px; }
+.page-my-ads .ads-listing .ads-middle .ads-description { height: 46px; overflow: hidden; position: relative;
+padding-top: 2px; }
+.page-my-ads .ads-listing .ads-middle .ads-title { position: relative; }
+.page-my-ads .ads-listing .ads-middle .ads-title h3 { line-height: 20px; }
+.my-ads .author-image { width: auto; }
+/*-- 310117 --*/
+.node-type-parent-ad .node-parent-ad div.parent-ad-left.user-image div.field-item.even img { width: 105px; height: 105px; border: 1px solid #ddd; /*margin: 0 auto;*/ }
+.node-type-parent-ad .node-parent-ad div.parent-ad-left.user-image { display: inline-block; }
+.node-type-parent-ad .node-parent-ad div.menu-tabs { display: inline-block; vertical-align: top; }
+.node-type-parent-ad .node-parent-ad div.menu-tabs ul.parent-ad-menu-tab { margin: 0 11px; }
+.node-type-parent-ad .node-parent-ad div.menu-tabs ul.parent-ad-menu-tab li { margin: 0 0 10px 0; }
+.node-type-parent-ad .node-parent-ad div#map { position: inherit !important; display: inline-block; margin: 10px 0; width: 100% !important; }
+/*--*/
+.node-type-tutor-ad .node-tutor-ad div.user-others, .node-type-tutor-ad .node-tutor-ad div.user-others div.profile-tabs, .node-type-tutor-ad .node-tutor-ad div.user-others div.profile-tabs div.item-list { display: inline-block; width: 100%; }
+.node-type-tutor-ad .node-tutor-ad div.user-others div#map { top: 0 !important; right: 0 !important; left: inherit !important; }
+.tutor_teasor_advert .grade-main-header { display: none; }
+.tutor_teasor_advert .grade-main-header.mobile { display: block; overflow: hidden; }
+.tutor_teasor_advert .grade-main-header.mobile .grade-main-header-left h2 { width: auto; }
+.tutor_teasor_advert .grade-main-header.mobile .grade-main-header-left div.rating { float: left; height: auto; padding-left: 4px; top: 3px; width: auto; }
+.tutor_teasor_advert .grade-main-container .tutor_ad_content_right p.desc, /*.tutor_teasor_advert .grade-main-container .tutor_ad_content_right p { display: none; }*/
+.tutor_teasor_advert .grade-main-container .tutor_ad_content_right p { height: 70px; overflow: hidden; }
+/*-- 310117 --*/
+.pro-img .safety_sign { height: 32px; width: 28px; top: 5px}
+.compare, .grade-main-container .grade-info { display: none; }
+.pro-img { padding-bottom: 10px; }
+.tutor_teasor_advert .grade-main-container .grade-btn { margin: 0; }
+/**Theme parent teaser**/
+.page-search-parent .grade-main-wrapper .grade-main-header { display: none; }
+.page-search-parent .grade-main-wrapper { padding: 10px; }
+.node-form.node-tutor_ad-form .group-about-me-as-a-tutor .field-name-field-child-age-1 select { top: 41px; }
+/**End Theme parent teaser**/
+
+.node-easyhire-form .field-name-field-easyhire-no-of-days .field-name-field-days-of-the-week label { display: inline-block; white-space: normal; width: 40% !important; }
+.node-easyhire-form .field-name-field-easyhire-no-of-days .field-name-field-days-of-the-week select { display: inline-block; }
+.node-easyhire-form .field-name-field-easyhire-no-of-days .form-item-field-easyhire-no-of-days-und-0-field-days-of-the-week-und { width: 100%; }
+.node-easyhire-form .field-name-field-easyhire-no-of-days .field-name-field-start-time { display: inline-block; width: 100%; }
+.node-easyhire-form .field-name-field-easyhire-no-of-days .field-name-field-start-time label { width: 40%; }
+.node-easyhire-form .field-name-field-easyhire-no-of-days .field-name-field-start-time { margin-bottom: 0; }
+.group-parent-step4-when .field-name-field-easyhire-no-of-days table tr td button.btn-default, .group-parent-step4-when .field-name-field-easyhire-no-of-days button.field-add-more-submit { margin-top: 0; }
+.grade-main-wrapper .grade-main-header { display: none; }
+.grade-main-wrapper .grade-main-container .right h3, .grade-main-wrapper .grade-main-container .right .ads-heading { display: inline-block; }
+.grade-main-wrapper { padding: 10px; }
+.mobile-view { display: block; }
+.desktop-view { display: none; }
+.user-others.tutor-quick-tab .profile-tabs .item-list { display: none !important; }
+.node-type-tutor-ad .node-tutor-ad div.user-others div.profile-tabs { margin-top: 0px !important; }
+/*-- 160217 --*/
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-2 { width: 55% !important; }
+/*-- 160217 --*/
+ul#item-id li.active, ul#item-id li:hover, ul#parent-item-id li.active, ul#parent-item-id li:hover  {font-weight: bold;}
+ul#item-id li, ul#parent-item-id li {cursor:pointer}
+
+/* colorbox responsive on mobile device */
+#colorbox , #colorbox #cboxWrapper{width:100% !important; left: 0px !important;}
+#colorbox #cboxWrapper #cboxContent, #colorbox #cboxWrapper #cboxContent #cboxLoadedContent{width:auto !important;}
+#colorbox #cboxWrapper #cboxContent #cboxLoadedContent{height: auto !important;}
+#cboxLoadedContent .saved_search_message {
+  padding: 30px 15px;
+}
+#cboxLoadedContent .saved_search_message h3 {
+  font-size: 30px;
+}
+
+/* Added to set widths for mobile menu */
+	.page-search-tutor #main-page-content {
+		width: 100% !important;
+	}
+
+	.page-search-tutor #sidebar-second {
+		width: 100% !important;
+	}
+
+	.page-search-tutor .gj_search_tutor_form_wrapper {
+		display: block !important;
+	}
+
+	.page-search-tutor .quick_compare_tab {
+		display: none !important;
+	}
+
+/* Added to set widths for mobile menu */
+
+
+}
+ @media (max-width: 640px) {
+.home-page .slider-top .type-tabs > div { padding-left: 0px; width: 100%; margin-right: 0px; }
+.home-page .slider-top .type-tabs .find-tutor-radio { margin-bottom: 10px; }
+.home-page .slider-top .type-tabs .find-tutor-radio, .home-page .slider-top .type-tabs .find-student-radio { display: block; margin-right: 0px; }
+.home-page .slider-top .parent-search-form .form-submit { margin-left: 0px; clear: both; display: block; }
+.not-logged-in.page-homepage .find-radio-btns label { font-size: 22px; }
+.home-page .slider-top .parent-search-form .form-type-textfield.form-item-subject { padding-right: 0; width: 60%; }
+.home-page .slider-top .parent-search-form .form-type-textfield.form-item-subject input[type="text"] { max-width: inherit; }
+.modal-content, .ctools-modal-content { width: auto !important; }
+#modalContent { left: 10px !important; right: 10px !important; }
+.group-my-education .panel-body .collapsible table tbody tr td label, .group-my-education .panel-body .field-name-field-education-lavel .form-item-field-education-lavel-und label { width: 100%; }
+.group-my-education .panel-body .collapsible table tbody tr td select, .group-my-education .panel-body .collapsible table tbody tr td .form-control, .group-my-education .panel-body .field-name-field-education-lavel .form-item-field-education-lavel-und select { width: 100%; margin-bottom: 0px; }
+#tutor-ad-node-form label, #parent-ad-node-form label { /*padding-bottom: 7px;*/ }
+#block-block-8 { display: none; }
+/*  */
+.tutor_tab_wrapper .tutor_tab, .tutor_tab_wrapper_jobboard .tutor_tab { display: block; }
+#tutor-ad-node-form #edit-availability-tutoring .input-check { width: 50px }
+#edit-availability-tutoring .avail_time label { width: 50px; font-size: 10px !important }
+#tutor-my-education .draggable .form-text, #tutor-my-education .draggable .form-select { margin-bottom: 5px; }
+.group-my-education .panel-body .collapsible table tbody tr td label, .group-my-education .panel-body .collapsible table tbody tr td .field-name-field-level-grade label { display: none !important }
+.page-privacy-setting .nav-tabs li, .page-email-setting .nav-tabs li, .page-blocked-member .nav-tabs li, .home-page .home-bottom .nav-tabs > li { display: inline-block; float: none; }
+ul.badges_icon li i { font-size: 22px; }
+.tutor_teasor_advert .grade-main-container .tutor_ad_content_right h3 { padding: 0; position: relative; top: 2px; vertical-align: top; font-weight: normal; font-size: 22px; }
+.pro-img .safety_sign { height: 26px; width: 22px; top: 5px;}
+.pro-img .video_sign { padding: 2px 5px; right: 0; }
+.pro-img .video_sign i { font-size: 10px; }
+div.tutor_ad_content_right { width: auto; }
+.avail_desc { padding: 10px 0 20px; text-align: left !important; display: none; }
+.avail_desc.mobile-theme { display: block; }
+nav#breadcrumbs { display: none; }
+.h2plus.title { padding-bottom: 0; }
+.node-type-tutor-ad section.titlebar, .node-type-parent-ad section.titlebar { padding: 0; }
+.user-others ul.quicktabs-tabs.quicktabs-style-navlist li a { font-size: 14px; }
+.node-parent-ad ul.parent-ad-menu-tab li a { font-size: 14px; }
+.node-type-tutor-ad .badges_icon { top: 0px }
+.user-others ul.quicktabs-tabs.quicktabs-style-navlist li { padding-bottom: 0; }
+.node-type-tutor-ad .user-others #quicktabs-profiles #quicktabs-tabpage-profiles-3 .main-subject { padding-bottom: 20px; }
+.node-type-tutor-ad .user-others #quicktabs-profiles .view-my-education-tutor .views-field div.item-list ul li div.entity-field-collection-item div.content div.field-label { min-width: 135px; }
+.node-type-tutor-ad .user-others #quicktabs-profiles .view-my-education-tutor .views-field-field-education-lavel span.views-label { min-width: 135px; }
+.node-form.node-tutor_ad-form #tutor-my-education .panel-body h4 { padding-top: 15px; }
+.node-form.node-parent_ad-form .panel-default > .panel-heading, .node-form.node-tutor_ad-form .panel-default > .panel-heading { padding-bottom: 0 }
+.node-form.node-parent_ad-form .panel-body .form-item, .node-form.node-tutor_ad-form .panel-body .form-item { margin-top: 0 }
+.node-form.node-tutor_ad-form .group-tutor-my-details .panel-body .date-combo .panel-heading { width: 100% }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-2 { top: 25px }
+.node-form.node-tutor_ad-form .group-about-me-as-a-tutor .field-name-field-child-age-1 select { top: 25px; }
+#tutor-ad-node-form .group-my-education .panel-body .table > thead > tr > th { padding: 5px 0 00; }
+#tutor-ad-node-form .group-my-education .panel-body .table > thead > tr > th label { margin: 0; padding: 0px 0 0 0 }
+.node-tutor-ad, .node-parent-ad { border-radius: none; box-shadow: none; margin-top: 1px; }
+.block-tsquickcompare { display: none; }
+.grade-main-wrapper .grade-main-container .right { overflow: hidden; padding-left: 10px; }
+.grade-main-wrapper .grade-main-container .right h3 { font-size: 22px; font-weight: normal; position: relative; top: -7px; }
+.grade-main-wrapper .grade-main-container .right .ads-heading { float: right; }
+.grade-main-wrapper .grade-main-container .right p { height: 50px; overflow: hidden; clear: both; }
+.pro-img { padding-top: 0; }
+.my-ads .ads-listing { padding: 10px; }
+.my-ads .ads-bottom { margin-top: 8px; }
+.page-my-ads .my-ads .author-details .ads-title h3 a { font-size: 22px; font-weight: normal; }
+.node-form.node-tutor_ad-form #tutor-my-details .panel-title h4 { margin-bottom: 15px; }
+#colorbox .popup-box.tutor-ad-delete-popup {
+  padding: 15px;
+}
+#colorbox .popup-box.tutor-ad-delete-popup h3 {
+  font-size: 25px;
+}
+}
+ @media (max-width: 479px) {
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-2 { width: 61% !important; }
+.my-ads .author-details { width: calc(100% - 80px); width: -webkit-calc(100% - 80px); -moz-width: calc(100% - 80px); -ms-width: calc(100% - 80px); }
+.node-form.node-tutor_ad-form #tutor-my-details #edit-field-what-is-your-date-of-birth .panel-title h4 { margin-bottom:0px; }
+.home-page .home-bottom .nav-tabs > li a { font-size: 20px !important; }
+.top_bar_right { padding: 11px 0; }
+.my-ads .ads-bottom .ads-button a, .free-contact-block a { padding: 8px 12px; font-size: 13px; }
+.grade-main-container h3 { line-height: normal; margin-bottom: 5px; }
+.pro-img { float: none; }
+.tutor_ad_content_right { margin-left: 0px; }
+.password-strength { margin-bottom: 7px; }
+.timetable_wrapper td .input-check label { font-size: 0 !important; }
+.tutor_tab_wrapper .tutor_tab h3, .tutor_tab_wrapper_jobboard .tutor_tab h3 { font-size: 14px; }
+#gj_save_search_wrapper .content { width: 100%; }
+.logged-in.page-user.page-user-edit .tabs--secondary.nav-tabs li a { font-size: 15px; }
+.tutor_my_reviews_wrapper { padding: 5px 0; }
+.tutor_my_reviews_wrapper table tr td { vertical-align: top; }
+#gj-search-tutor-block-form .form-type-term-ref-autocomplete-field input[type="text"], #gj-search-parent-block-form .form-type-term-ref-autocomplete-field input[type="text"] { width: 100%; }
+/*  18-01-2017*/
+#gj_save_search_wrapper .content { text-align: center; }
+#gj_save_search_wrapper .content p { clear: both; display: block; }
+#gj_save_search_wrapper { height: 230px; padding-top: 120px; }
+#gj_save_search_wrapper .content .btn { float: none !important; margin: 0 auto; padding: 2px 10px; }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-1, .node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-2 { width: auto; display: inline-block; }
+#footer-bot-left { font-size: 13px; }
+#footer-bot-right a { display: inline-block; margin: 3px 0; padding-left: 10px; padding-right: 10px; text-align: left; width: 49%; }
+#footer-left-right > a { width: 100%; display: block; }
+.tutor_my_reviews_wrapper table { min-width: 440px; width: 100%; }
+.tutor_my_reviews_wrapper { overflow: auto; }
+.page-easyhire-agreements #quicktabs-easyhire_agreements ul.quicktabs-tabs.quicktabs-style-basic, .page-my-searches #quicktabs-my_searches ul.quicktabs-tabs.quicktabs-style-basic, .quicktabs-style-basic ul.quicktabs-tabs.quicktabs-style-basic { padding: 0; }
+.page-easyhire-agreements #quicktabs-easyhire_agreements ul.quicktabs-tabs.quicktabs-style-basic li a, .quicktabs-style-basic ul.quicktabs-tabs.quicktabs-style-basic li a, .page-privacy-setting .nav-tabs li a, .page-email-setting .nav-tabs li a, .page-blocked-member .nav-tabs li a, .home-page .home-bottom .nav-tabs > li a { font-size: 14px !important; }
+#quicktabs-privacy_settings ul.quicktabs-tabs.quicktabs-style-basic li a, .page-easyhire-agreements #quicktabs-easyhire_agreements .item-list ul li a, .quicktabs-style-basic ul.quicktabs-tabs.quicktabs-style-basic li a, .page-my-searches #quicktabs-my_searches ul.quicktabs-tabs.quicktabs-style-basic li a { font-size: 14px !important; }
+.myorders-order-right { width: 100%; }
+.myorders-order-right { padding-left: 0px; padding-top: 10px; }
+.tutor_tab_wrapper .tutor_tab h3, .tutor_tab_wrapper_jobboard .tutor_tab h3 { font-size: 14px; }
+.page-easyhire-agreements #quicktabs-easyhire_agreements table#draft-agreement { display: block; overflow: auto; }
+.my-ads .ads-bottom .ads-button a { padding: 7px 10px; }
+.my-ads .ads-bottom .ads-button { margin-right: 3px; margin-bottom: 5px; }
+.page-messages-view ul.nav-tabs li { margin: 0; padding: 0 15px 0 0; }
+.page-messages-view ul.nav-tabs li > a { font-size: 17px !important; margin: 0; padding: 0; }
+.pro-img { padding-top: 0; margin-right: 0; padding-bottom: 10px; }
+.my-ads .author-image { width: auto; }
+.tutor_teasor_advert .grade-main-container .tutor_ad_content_right h3 { padding: 0; position: relative; top: 0; vertical-align: top; font-weight: normal; font-size: 17px; }
+.tutor_ad_content_right .badges_icon { top: -10px; }
+ul.badges_icon li i { font-size: 22px; }
+.tutor-header-bottom ul.badges_icon li i { font-size: 20px !important; }
+.page-privacy-setting ul.nav-tabs { text-align: left; }
+.page-privacy-setting ul.nav-tabs li { text-align: left; padding: 0 10px 0 0; margin: 0; }
+.page-privacy-setting ul.nav-tabs li a { text-align: left; padding: 0; margin: 0 }
+.page-email-setting ul.nav-tabs { text-align: left; }
+.page-email-setting ul.nav-tabs li { text-align: left; padding: 0 10px 0 0; margin: 0; }
+.page-email-setting ul.nav-tabs li a { text-align: left; padding: 0; margin: 0 }
+.page-blocked-member ul.nav-tabs { text-align: left; }
+.page-blocked-member ul.nav-tabs li { text-align: left; padding: 0 10px 0 0; margin: 0; }
+.page-blocked-member ul.nav-tabs li a { text-align: left; padding: 0; margin: 0 }
+.user-details .what-looking-for { position: relative; top: 70px; }
+.user-details .parent-body-bottom { bottom: 40px; position: relative; }
+/*-- 310117 --*/
+.node-type-parent-ad .node-parent-ad div.parent-ad-left.user-image { display: block; }
+.node-type-parent-ad .node-parent-ad div.parent-ad-left.user-image div.field-item.even img { margin: 0 auto; }
+.node-type-parent-ad .node-parent-ad div.menu-tabs { display: block; border: 1px solid #ddd; margin-top: 10px; padding-top: 10px; }
+.node-type-parent-ad .node-parent-ad div.parent-ad-right .user-details .what-looking-for { top: inherit; }
+/*--*/
+.node-type-tutor-ad .node-tutor-ad div.user-details div.tutor-header h3 { font-size: 24px; }
+.node-type-tutor-ad .node-tutor-ad div.user-details div.tutor-header rating { font-size: 20px; }
+.node-type-tutor-ad .node-tutor-ad div.user-details .tutor-header .tutor-header-top { padding-bottom: 0; }
+.node-type-tutor-ad .node-tutor-ad div.user-details .tutor-header .tutor-header-top .locations { font-size: 14px; margin-top: 5px; }
+.node-type-tutor-ad .node-tutor-ad div.user-others div.profile-tabs { margin-top: 160px; }
+.node-type-tutor-ad .node-tutor-ad div.user-others div#map { width: 100% !important; }
+/*--*/
+div.pro-img { display: inline-block; width: 75px; }
+.my-ads div.author-image { display: inline-block; width: 75px; }
+div.tutor_ad_content_right { width: auto; overflow: hidden; padding-left: 10px; }
+/*-- 310117 --*/
+.tutor_teasor_advert .grade-main-header.mobile .grade-main-header-left h2 { width: auto; font-size: 17px; }
+.tutor_teasor_advert .grade-main-header.mobile .grade-main-header-right h2 { font-size: 17px; }
+.page-search-tutor .grade-main-wrapper { padding: 10px; }
+.pro-img .safety_sign { height: 26px; width: 22px; top: 5px; }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-2 { top: 35px }
+.node-form.node-tutor_ad-form .group-about-me-as-a-tutor .field-name-field-child-age-1 select { top: 35px; }
+.node-form.node-tutor_ad-form #tutor-about-tutor .required-fields #edit-field-child-age-1 { height: 70px; }
+.node-easyhire-form .field-name-field-easyhire-no-of-days .form-item-field-easyhire-no-of-days-und-0-field-start-time-und-0 .cck-time-element .form-item { padding: 0; }
+.grade-main-wrapper .grade-main-container .right h3 { font-size: 22px; float: left; font-weight: normal; position: relative; top: -7px; }
+.grade-main-wrapper .grade-main-container .right .ads-heading { float: none; }
+.grade-main-wrapper .grade-main-container .right h3 { width: 100%; margin: 0; top: -4px; }
+.grade-main-wrapper .grade-main-container .right .ads-heading .ads-renewed.ren { padding: 0; }
+.grade-main-wrapper .grade-main-container .right .ads-heading .ads-renewed.ren .ads-renewed { padding: 0 0 4px 0; }
+.page-my-searches #quicktabs-my_searches ul.quicktabs-tabs li a { padding-left: 0 !important; }
+
+.node-form.node-tutor_ad-form .group-tutor-my-details #edit-field-what-is-your-date-of-birth .panel-body { margin-top:0px;}
+.node-form.node-tutor_ad-form #tutor-my-details #edit-field-what-is-your-date-of-birth .panel-title h4 { margin-bottom:0px; }
+}

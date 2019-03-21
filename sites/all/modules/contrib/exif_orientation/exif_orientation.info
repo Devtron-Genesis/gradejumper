@@ -1,0 +1,14 @@
+name = EXIF Orientation
+description = Rotates images per their EXIF Orientation
+core = 7.x
+
+files[] = tests/exif_orientation.test
+package = "Media"
+
+
+; Information added by Drupal.org packaging script on 2017-06-14
+version = "7.x-1.2"
+core = "7.x"
+project = "exif_orientation"
+datestamp = "1497453844"
+

@@ -1,0 +1,196 @@
+<?php
+/**
+ * @file
+ * One Time Login Short Link module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function one_time_login_short_link_menu() {
+  $items = array();
+
+  $items['one-time-login/%/%/%/%/%'] = array(
+    'title' => 'Login one time',
+    'page callback' => 'one_time_login_short_link_page',
+    'page arguments' => array(1, 2, 3, 4, 5),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Generates One-Time Login URL.
+ *
+ * @param object $account
+ *   User account. Should be activated. If not specified current user account
+ *   will be used.
+ * @param string $expire
+ *   Expiration time. Value could be a number of seconds from now or from the
+ *   begining of Unix Epoc; of in a format suitable for strtotime() function.
+ *   @see http://php.net/manual/en/function.strtotime.php
+ *   Default is '+1 day'.
+ * @param string $redirect
+ *   Path to redirect user after success login. External links are not allowed.
+ *   Path should be an existing internal path.
+ *
+ * @return string
+ *   Returns an absolute URL to one time login page.
+ */
+function one_time_login_short_link($account = null, $expire = '+1 day', $redirect = '') {
+  global $user, $base_url;
+
+  // Use current user account by default.
+  if (empty($account)) {
+    $account = $user;
+  }
+
+  $timestamp = REQUEST_TIME;
+
+  // Calculate expiration date.
+  if (($expire_timestamp = strtotime($expire)) === FALSE) {
+    if (is_numeric($expire)) {
+      $expire_timestamp = $expire;
+      if ($expire < $timestamp) {
+        $expire_timestamp += $timestamp;
+      }
+    }
+    else {
+      // If all attempts to build expire date faild build it
+      // using default offset to now.
+      $expire_timestamp = strtotime('+1 week');
+    }
+  }
+
+  // Build options for url.
+  $options = array('absolute' => TRUE);
+
+  // Prepare redirect.
+  if (!empty($redirect)) {
+    if (drupal_valid_path($redirect)) {
+      if (url_is_external($redirect)) {
+        // url_is_external() only detects that url is absolute.
+        $path = parse_url($redirect);
+        if ($path['scheme'] . '://' . $path['host'] == $base_url) {
+          // redirect path must be encoded to avoid treating it as a normal drupal path.
+          $redirect = urlencode(str_replace($base_url . '/', '', $redirect));
+        }
+      }
+    }
+    else {
+      $redirect = '';
+    }
+  }
+
+  // This check is required because user_pass_hash() returns empty result for
+  // non-active users.
+  if ($account->status != 1) {
+    watchdog('user', "One-time login short link wasn't created for user (%uid) because account is blocked.",
+      array('%uid' => $account->uid), WATCHDOG_ERROR);
+    return FALSE;
+  }
+
+  // Build the URL.
+  $hashed_pass = user_pass_rehash($account->pass, $expire_timestamp, $account->login, $account->uid);
+  $url = url("one-time-login/" . $account->uid . "/" . $timestamp . "/" .
+    $expire_timestamp . "/" . $hashed_pass . '/' . $redirect, $options);
+  watchdog('user','User %uid created one-time login short link %url.', array('%uid' => $user->uid, '%url' => $url));
+
+  // Generate the short link.
+  $hash = md5(uniqid(rand(), true));
+  $offset = 0;
+  do {
+    $short_url = substr($hash, $offset++, 8);
+  } while (path_load(array('alias' => $short_url)));
+  if ($short_url) {
+    $alias = (array(
+      'source' => str_replace($base_url . '/', '', $url),
+      'alias' => $short_url,
+      'language' => LANGUAGE_NONE,
+    ));
+    path_save($alias);
+    return $base_url . '/'. $short_url;
+  }
+
+  return $url;
+}
+
+/**
+ * Menu callback; process login one time link and redirect.
+ */
+function one_time_login_short_link_page($uid, $timestamp, $expire, $hashed_pass, $redirect) {
+  global $user;
+
+  if ($user->uid) {
+    drupal_set_message(t('It is not necessary to use this link to login anymore. You are already logged in.'));
+    drupal_goto('<front>');
+  }
+  else {
+    $current = REQUEST_TIME ;
+    $account = user_load($uid);
+    if ($timestamp <= $current && isset($account) && $account->status == 1) {
+      // Deny one-time login for banned accounts.
+      if (drupal_is_denied(ip_address())) {
+        drupal_set_message(t('You have tried to use a one-time login for an account which has been blocked.'), 'error');
+        drupal_goto("<front>");
+      }
+
+      // Remove outdated alias
+      $path = ltrim(request_uri(), '/');
+      if (strpos('one-time_login', $path) === FALSE) {
+        path_delete(array('alias' => $path));
+      }
+      else {
+        path_delete(array('source' => $path));
+      }
+
+      if ($account->uid
+        && $timestamp >= $account->login // Blocks multiple usage of the same link
+        && $timestamp <= $current
+        // @todo add solt.
+        && $hashed_pass == user_pass_rehash($account->pass, $expire, $account->login, $account->uid))
+      {
+        watchdog('user', 'One-Time Login link was used.');
+        $user = $account;
+        user_login_finalize();
+
+        // Integrate with the rules module,
+        // @see one_time_login_short_link.rules.inc.
+        if (module_exists('rules')) {
+          rules_invoke_event('one_time_login_short_link_visited', $user);
+        }
+        drupal_set_message(t('You have just used your one-time login link.'));
+        // Redirect path must be decoded twice because url() function encode
+        // whole path and redirection path was encoded before.
+        drupal_goto(urldecode(urldecode($redirect)));
+      }
+      else {
+        drupal_set_message(t('You have tried to use a one-time login link which has been used. Please use the log in form to supply your username and password.'));
+        drupal_goto('user/login');
+      }
+    }
+    else {
+      drupal_access_denied();
+    }
+  }
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Removes outdated aliases from database.
+ */
+function one_time_login_short_link_cron() {
+  $aliases = db_select('url_alias', 'ua')->fields('ua')->condition('source', '%one-time-login%', 'LIKE')->range(0, 100)->execute()->fetchAll();
+  foreach ($aliases as $alias) {
+    $path = explode('/', $alias->source);
+    $account = user_load($path[1]);
+    if ($path[3] < time() || $path[2] < $account->login) {
+      watchdog('user', 'Removed outdated alias for %path', array('%path' => $alias->source));
+      db_delete('url_alias')->condition('pid', $alias->pid)->execute();
+    }
+  }
+}
+

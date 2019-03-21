@@ -1,0 +1,10 @@
+name = GradeJumpers Private Messages
+description = Custom private messages implementation for GradeJumpers.
+core = 7.x
+package = "GJ Dean Hopkins"
+dependencies[] = privatemsg
+dependencies[] = pm_email_notify
+dependencies[] = htmlmail
+dependencies[] = gj_deanhopkins_email_template
+files[] = gj_deanhopkins_privatemsg.install
+files[] = gj_deanhopkins_privatemsg.module

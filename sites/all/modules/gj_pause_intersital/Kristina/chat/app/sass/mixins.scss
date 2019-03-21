@@ -1,0 +1,15 @@
+@mixin Raleway( $size, $fw, $lh, $color){
+
+  font: $fw $size 'Raleway', Arial, sans-serif;
+  line-height: $lh;
+  color: $color;
+
+}
+
+@mixin Montserrat( $size, $fw, $lh, $color){
+
+  font: $fw $size 'Montserrat', Arial, sans-serif;
+  line-height: $lh;
+  color: $color;
+
+}

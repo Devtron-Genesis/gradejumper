@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * Implements hook_help().
+ *
+ * Displays help and module information.
+ *
+ * @param path
+ *   Which path of the site we're using to display help
+ * @param arg
+ *   Array that holds the current path as returned from arg() function
+ */
+function gj_403_404_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#gj_403_404":
+      return '' . t("Creates the 403 & 404 error pages") . '';
+      break;
+  }
+}
+
+function gj_403_404_menu() {
+  $items = array();
+
+  $items['403-access-denied'] = array(
+    'title' => 'Access Denied (403)', //page title
+    'description' => 'Access Denied page',
+    'page callback' => 'access_denied403_page', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+    'access callback' => TRUE,
+	'type' => MENU_CALLBACK,
+  );
+
+  $items['404-page-not-found'] = array(
+    'title' => 'Page not Found (404)', //page title
+    'description' => 'Not Found page',
+    'page callback' => 'not_found404_page', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+    'access callback' => TRUE,
+	'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+function access_denied403_page(){
+	$items = array();
+
+	return theme('access_denied403_page_pagecontents', array('items' => $items));
+}
+
+function not_found404_page(){
+	$items = array();
+
+
+	return theme('not_found404_page_pagecontents', array('items' => $items));
+}
+
+function gj_403_404_theme() {
+	drupal_add_css(drupal_get_path('module', 'gj_403_404') . '/css/gj_403_404.css');
+
+	$module_path = drupal_get_path('module', 'gj_403_404');
+	$base = array('path' => "$module_path/theme", );
+
+	return array(
+		'access_denied403_page_pagecontents' => $base + array(
+			'template' => 'gj403_page',  //leave off .tpl.php
+			'variables' => array('items' => NULL,),
+    ),
+		'not_found404_page_pagecontents' => $base + array(
+			'template' => 'gj404_page',  //leave off .tpl.php
+			'variables' => array('items' => NULL,),
+    ),
+  );
+}

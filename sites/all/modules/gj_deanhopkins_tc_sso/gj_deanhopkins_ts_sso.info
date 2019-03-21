@@ -1,0 +1,4 @@
+name = GradeJumpers / TutorCruncher SSO Integration
+description = Single-Sign-On with TutorCruncher
+core = 7.x
+package = "GJ Dean Hopkins"

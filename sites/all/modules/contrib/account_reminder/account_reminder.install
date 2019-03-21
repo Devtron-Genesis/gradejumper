@@ -1,0 +1,105 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Account Reminder module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function account_reminder_schema() {
+  $schema['account_reminder'] = array(
+    'description' => 'The {account_reminder} table stores records for email reminders that have sent out to users.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The user ID (corresponds to {user} table uid).',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'last_reminder' => array(
+        'description' => 'The last time a reminder was sent to a user.',
+        'type' => 'int',
+      ),
+      'msg_cnt' => array(
+        'description' => 'The number of times a reminder has been sent to a user.',
+        'type' => 'int',
+        'default' => 0,
+        ),
+    ),
+    'primary key' => array('uid'),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function account_reminder_install() {}
+
+/**
+ * Implements hook_update_last_removed().
+ */
+function account_reminder_update_last_removed() {
+  // Removed the 5.x-1.x module update functions
+  return 2;
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Check the account reminder email subject and body and make sure any % placeholders are
+ * changed to ! placeholders.
+ */
+function account_reminder_update_6100() {
+  $ret = array();
+  if ($subject = variable_get('account_reminder_subject', FALSE)) {
+    variable_set('account_reminder_subject', str_replace('%', '!', $subject));
+  }
+  if ($msg = variable_get('account_reminder_msg', FALSE)) {
+    variable_set('account_reminder_msg', str_replace('%', '!', $msg));
+  }
+  return $ret;
+}
+
+/**
+ * Implements hook_update_N().
+ * Updates account reminder email text to use new token patterns.
+ */
+function account_reminder_update_7000() {
+  $map = array(
+    '!username' => '[user:name]',
+    '!site' => '[site:name]',
+    '!login_uri' => '[site:login-url]',
+    '!login_url' => '[site:one-time-login-url]',
+    '!password' => 'Your password',
+    '!unsubscribe_url' => '[account_reminder:unsubscribe-url]',
+  );
+
+  $variables = array(
+    'account_reminder_subject',
+    'account_reminder_msg',
+  );
+
+  foreach ($variables as $variable) {
+    $var = variable_get($variable, '');
+    if (drupal_strlen($var)) {
+      $new_var = str_replace(array_keys($map), array_values($map), $var);
+      variable_set($variable, $new_var);
+    }
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function account_reminder_uninstall() {
+  variable_del('account_reminder_bcc');
+  variable_del('account_reminder_cronlimit');
+  variable_del('account_reminder_enable');
+  variable_del('account_reminder_frequency');
+  variable_del('account_reminder_initial');
+  variable_del('account_reminder_msg');
+  variable_del('account_reminder_subject');
+  variable_del('account_reminder_total');
+}

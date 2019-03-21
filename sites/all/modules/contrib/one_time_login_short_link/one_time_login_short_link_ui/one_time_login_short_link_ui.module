@@ -1,0 +1,67 @@
+<?php
+/**
+ * @file
+ * UI for One Time Login Short Link module.
+ */
+
+/**
+ *  Implements hook_permission().
+ */
+function one_time_login_short_link_ui_permission() {
+  return array(
+    'create one time login short link for any user' => array(
+      'title' => t('Create One-Time Login Short Links for any user'),
+      'description' => t('Allows to create the links and login to any user account at site.'),
+      'restrict access' => TRUE
+    ),
+  );
+}
+
+/**
+ * Implements hook_user_operations().
+ */
+function one_time_login_short_link_ui_user_operations() {
+  $operations = array();
+
+  $operations['create_one_time_login_short_link'] = array(
+    'label' => t('Create one-time login short links for selected users'),
+    'callback' => 'one_time_login_short_link_ui_user_operation',
+  );
+
+  return $operations;
+}
+
+/**
+ * Callback for 'Generate one-time login short links for selected users' user operation.
+ *
+ * @see one_time_login_short_link_user_operations().
+ *
+ * @param array $uid_list
+ *   List of uid selected for this action.
+ */
+function one_time_login_short_link_ui_user_operation($uid_list) {
+  global $user;
+
+  $create_link_for_any_user = user_access('create one time login short link for any user');
+  if (!$create_link_for_any_user && in_array($user->uid, $uid_list) && count($uid_list) > 1) {
+    drupal_set_message(t("Permission 'create one time login short link for any user' reqired to create links for other users."));
+  }
+
+  foreach ($uid_list as $uid) {
+    $account = user_load($uid);
+    if ($create_link_for_any_user || $user->uid == $account->uid) {
+      if ($account->status) {
+        drupal_set_message(t('One-time login short link for user %name: %url', array(
+          '%url' => one_time_login_short_link($account),
+          '%name' => $account->name . ' (' . $account->uid . ')'))
+        );
+      }
+      else {
+        drupal_set_message(t('One-time login short link for user %name: not created because user account blocked.', array(
+          '%name' => $account->name . ' (' . $account->uid . ')'))
+        );
+      }
+    }
+  }
+}
+

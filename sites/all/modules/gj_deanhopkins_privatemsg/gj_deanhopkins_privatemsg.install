@@ -1,0 +1,37 @@
+<?php
+
+/********************************************************************
+ * gj_deanhopkins_privatemsg_schema                                 *
+ ********************************************************************
+ * Description: Implements hook_schema()                            *
+ *              Create message_tutor_node_link table for storing    *
+ *              linkage between a message thread and its            *
+ *              originating tutor_ad node id.                       *
+ *              Fields: message_thread_id (pk), node_id             *
+ * Arguments:                                                       *
+ * Return:      $schema                                             *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_deanhopkins_privatemsg_schema() {
+    $schema['message_tutor_node_link'] = array(
+        'description' => 'Record originating tutor ad node ID of private message thread.',
+        'fields' => array(
+            'message_thread_id' => array(
+                'type' => 'int',
+                'unsigned' => TRUE,
+                'not null' => TRUE,
+                'description' => 'The message thread ID (Privatemsg module).',
+            ),
+            'node_id' => array(
+                'type' => 'int',
+                'not null' => TRUE,
+                'description' => 'The tutor_ad node ID.',
+            ),
+        ),
+        'primary key' => array('message_thread_id'),
+    );
+
+    return $schema;
+}

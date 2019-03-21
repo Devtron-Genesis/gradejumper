@@ -1,0 +1,7 @@
+name = GradeJumpers CSS Avatars
+description = Generates CSS user avatars based on name initials.
+core = 7.x
+package = "GJ Dean Hopkins"
+dependencies[] = gj_deanhopkins_ts_sso
+files[] = gj_deanhopkins_css_avatars.install
+files[] = gj_deanhopkins_css_avatars.module

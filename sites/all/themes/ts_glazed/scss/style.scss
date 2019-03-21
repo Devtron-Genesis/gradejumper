@@ -1,0 +1,38 @@
+// Vendors and external stylesheets (sass/vendors/)
+// Default variables.
+@import "helpers/default-variables";
+// Bootstrap Framework.
+@import "../bootstrap/assets/stylesheets/bootstrap";
+// Base-theme overrides.
+@import "helpers/overrides";
+
+// Layouts (sass/layouts/)
+@import "layouts/old-responsive";
+
+// Base stuff (scss/base)
+@import "base/typography";
+
+// Sass utilities (scss/helpers/)
+@import "helpers/variables";
+@import "helpers/mixins";
+@import "helpers/helpers";
+
+// Base stuff (scss/base)
+@import "base/normalize";
+@import "base/main";
+
+// Components (scss/components)
+@import "components/buttons";
+@import "components/dropdown";
+
+// Blocks stylesheets (scss/blocks/)
+@import "blocks/header";
+@import "blocks/footer";
+@import "blocks/contact-form";
+@import "blocks/notebook-screen";
+@import "blocks/search-form";
+
+// Pages (sass/pages/)
+@import "pages/user";
+@import "pages/node_view";
+@import "pages/old-page";

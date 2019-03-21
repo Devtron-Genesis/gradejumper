@@ -1,0 +1,222 @@
+<?php
+
+//include installation functions
+include('gj_deanhopkins_ts_sso_install.php');
+
+//include admin config page functions
+include('gj_deanhopkins_ts_sso_admin_config.php');
+
+//include user profile page functions
+include('gj_deanhopkins_ts_sso_user_profile.php');
+
+//include SSO implementation functions (core logic)
+include('gj_deanhopkins_ts_sso_imp.php');
+
+/************************************************************
+ * get_user_firstname                                       *
+ ************************************************************
+ * Description: Gets user first name from username          *
+ *              Everything before first _                   *
+ * Arguments:                                               *
+ * Return: String user first name                           *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function get_user_firstname($uid){
+    $account = user_load($uid);
+    $parts = explode('_', $account->name);
+    return $parts[0];
+}
+
+/************************************************************
+ * get_user_lastname                                        *
+ ************************************************************
+ * Description: Gets user last  name from username          *
+ *              Everything after first _, excluding anything*
+ *              after last _ (ie tcid)                      *
+ * Arguments:                                               *
+ * Return: String user last  name                           *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function get_user_lastname($uid){
+    $account = user_load($uid);
+    $parts = explode('_', $account->name);
+    unset($parts[count($parts)-1]); //remove tcid;
+    unset($parts[0]); //remove first name
+
+    $last_name = "";
+    foreach ($parts as $key => $value){
+        $last_name = $last_name . $value . " ";
+    }
+    $last_name = substr($last_name, 0, -1);
+    return $last_name;
+}
+
+/************************************************************
+ * has_role_parent                                          *
+ ************************************************************
+ * Description: Returns true if user has 'Parent' role      *
+ * Arguments: $account                                      *
+ * Return: True/false                                       *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function has_role_parent($account){
+    $role = user_role_load_by_name('Parent');
+    return user_has_role($role->rid, $account);
+}
+
+/************************************************************
+ * function has_role_tutor($account){
+ *
+ ************************************************************
+ * Description: Returns true if user has 'Tutor' role       *
+ * Arguments: $account                                      *
+ * Return: True/false                                       *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function has_role_tutor($account){
+    $role = user_role_load_by_name('Tutor');
+    return user_has_role($role->rid, $account);
+}
+
+/************************************************************
+ * function has_role_student($account){
+ *
+ ************************************************************
+ * Description: Returns true if user has 'Student' role     *
+ * Arguments: $account                                      *
+ * Return: True/false                                       *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function has_role_student($account){
+    $role = user_role_load_by_name('Student');
+    return user_has_role($role->rid, $account);
+
+}
+
+/************************************************************
+ * function has_role_manager($account){
+ *
+ ************************************************************
+ * Description: Returns true if user has 'Manager' role     *
+ * Arguments: $account                                      *
+ * Return: True/false                                       *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-12-2018                                  *
+ ************************************************************/
+function has_role_manager($account){
+    $role = user_role_load_by_name('Manager');
+    if ($role){
+        return user_has_role($role->rid, $account);
+    }
+}
+
+/*************************************************************
+ * function has_role_admin($account){
+ *
+ *************************************************************
+ * Description: Returns true if user has 'Administrator' role*
+ * Arguments: $account                                       *
+ * Return: True/false                                        *
+ *************************************************************
+ * Author:      Dean Hopkins                                 *
+ * Date:        10-12-2018                                   *
+ *************************************************************/
+function has_role_admin($account){
+    $role = user_role_load_by_name('administrator');
+    return user_has_role($role->rid, $account);
+}
+
+/********************************************************************
+ * gj_deanhopkins_ts_sso_process_emails                             *
+ ********************************************************************
+ * Description: Main entry point for the TC email API job           *
+ *              Syncs tutor email addresses with TC API             *
+ * Arguments:                                                       *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-18                                          *
+ ********************************************************************/
+function gj_deanhopkins_ts_sso_process_emails(){
+    global $user;
+    if (user_has_role(user_role_load_by_name('Manager')->rid)
+        || user_has_role(user_role_load_by_name('Administrator')->rid)){
+        _sync_tc_email_api();
+    }
+}
+
+/********************************************************************
+ * _sync_tc_email_api                                               *
+ ********************************************************************
+ * Description: Syncs tutor email addresses with TC API             *
+ * Arguments:                                                       *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-18                                          *
+ ********************************************************************/
+function _sync_tc_email_api(){
+    $error = false;
+    $url = "https://secure.tutorcruncher.com/api/contractors/";
+    $options = array(
+        'http' => array(
+            'header'  => "Content-type: application/json\r\n" .
+                "Authorization: token " . variable_get('tc_api_private_key') . "\r\n",
+            'method'  => 'GET',
+        ),
+    );
+
+    $context = stream_context_create($options);
+    $response = json_decode(file_get_contents($url, false, $context));
+
+    if ($response){
+        if ($response->results){
+            $api_users = $response->results;
+            foreach ($api_users as $api_user){
+                $username = _get_api_user_username($api_user);
+                $existing_user = user_load_by_name($username);
+                if ($existing_user){
+                    if (strtolower($api_user->email) != strtolower($existing_user->mail)){
+                        $existing_user->mail = $api_user->email;
+                        user_save($existing_user);
+                    }
+                }
+            }
+        } else {
+            echo "Error: No results";
+            $error = true;
+        }
+    } else {
+        echo "Error communicating with API.";
+        $error = true;
+    }
+    if (!$error){
+        echo "Success";
+    }
+}
+
+/************************************************************
+ * _get_api_user_username                                   *
+ ************************************************************
+ * Description: Extracts and compiles username from api user*
+ *              Format: FirstName_LastName_ID lowercase     *
+ * Arguments:   $user (api user object from api response)   *
+ * Return:      String containing formatted username        *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-02-18                                  *
+ ************************************************************/
+function _get_api_user_username($user){
+    return strtolower($user->first_name . "_" . $user->last_name . "_" . $user->id);
+}

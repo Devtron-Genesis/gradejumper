@@ -1,0 +1,299 @@
+<?php
+/*****
+ * searchable_subject_levels
+ *****
+ * Description: Gets structured array of subjects and levels
+ *
+ * Arguments:   none
+ * Return:      array
+ *****
+ * Author:      Robin Fairless
+ * Date:        2019-02-25
+ *****/
+function searchable_subject_levels() {
+  $subject_levels = array();
+  $subject_levels['Maths'] = array(
+    "Degree",
+    "A-Level",
+    "GCSE",
+    "13+",
+    "11+",
+    "Primary",
+  );
+  $subject_levels['English'] = array(
+    "Degree",
+    "A-Level",
+    "GCSE",
+    "13+",
+    "11+",
+    "Primary",
+  );
+  $subject_levels['English Language'] = array(
+    "Degree",
+    "A-Level",
+    "GCSE",
+  );
+  $subject_levels['English Literature'] = array(
+    "Degree",
+    "A-Level",
+    "GCSE",
+  );
+  $subject_levels['Science'] = array(
+    "Degree",
+    "A-Level",
+    "GCSE",
+    "13+",
+    "11+",
+    "Primary", //Not in Master
+  );
+  $subject_levels['Biology'] = array(
+    "Degree",
+    "A-Level",
+    "GCSE",
+  );
+  $subject_levels['Chemistry'] = array(
+    "Degree",
+    "A-Level",
+    "GCSE",
+  );
+  $subject_levels['Physics'] = array(
+    "Degree",
+    "A-Level",
+    "GCSE",
+  );
+  $subject_levels['Spanish'] = array(
+    "Degree",
+    "A-Level",
+    "GCSE",
+  );
+  $subject_levels['French'] = array(
+    "Degree",
+    "A-Level",
+    "GCSE",
+  );
+  $subject_levels['Economics'] = array(
+    "Degree",
+    "A-Level",
+    "GCSE",
+  );
+  $subject_levels['German'] = array(
+    "Degree",
+    "A-Level",
+    "GCSE",
+  );
+
+  return $subject_levels;
+}
+
+/*****
+ * get_searchable_subjects_array
+ *****
+ * Description: gets list of subjects that can be searched on
+ *
+ * Arguments:   none
+ * Return:      array
+ *****
+ * Author:      Robin Fairless
+ * Date:        2019-02-25
+ *****/
+function get_searchable_subjects_array() {
+  $subject_levels = searchable_subject_levels();
+  $subjects = array();
+  foreach($subject_levels as $key=>$index) {
+    $subjects[$key] = t($key);
+  }
+  return $subjects;
+}
+
+/*****
+ * get_levels_for_searchable_subject
+ *****
+ * Description: gets the levels for a subject
+ *
+ * Arguments:   string subject
+ * Return:      array
+ *****
+ * Author:      Robin Fairless
+ * Date:        2019-02-25
+ *****/
+function get_levels_for_searchable_subject($subject) {
+  $levels = array();
+  $subjects_levels = searchable_subject_levels();
+  foreach($subjects_levels as $key=>$index) {
+    if($key == $subject) {
+      foreach($index as $level) {
+                $levels[$level] = t($level);
+      }
+    }
+  }
+  return $levels;
+}
+
+/*****
+ * gj_search_frm_v2_form
+ *****
+ * Description: Form for searching for a subject & lvl
+ *
+ * Arguments:
+ * Return:      array
+ *****
+ * Author:      Robin Fairless
+ * Date:        2019-02-25
+ *****/
+
+function gj_search_frm_v2_form($form, &$form_state) {
+  $form['subject'] = array(
+    '#type' => 'select',
+    '#title' => t('Subject'),
+    '#required' => FALSE,
+    '#options' => get_searchable_subjects_array(),
+    '#empty_option' => 'Select',
+  );
+  $form['level'] = array(
+    '#type' => 'select',
+    '#title' => t('Level'),
+    '#required' => FALSE,
+    '#disabled' => TRUE,
+    '#options' => get_levels_for_searchable_subject("Maths"), //just dropping a random subject here to get lvls for
+    '#empty_option' => 'Select',
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Find Tutors'),
+    '#submit' => array('gj_sf2_submit'),
+    '#validate' => array('gj_sf2_validate'),
+    '#attributes' => array('class' => array('tutor-search-btn')),
+  );
+
+  return $form;
+}
+
+/********************************************************************
+ * gj_deanhopkins_search_block_info                                 *
+ ********************************************************************
+ * Description: Implements hook_block_info()                        *
+ *              Register search block                               *
+ * Arguments:   &$page                                              *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_search_frm_v2_block_info() {
+    $blocks['gj_search_v2'] = array(
+        // info: The name of the block.
+        'info' => t('GradeJumpers Search version 2'),
+    );
+    $blocks['gj_search_subject_v2'] = array(
+        // info: The name of the block.
+        'info' => t('GradeJumpers Search of SEO pages version 2'),
+    );
+
+    return $blocks;
+}
+
+/********************************************************************
+ * gj_deanhopkins_search_block_view                                 *
+ ********************************************************************
+ * Description: Implements hook_block_view()                        *
+ *              Define search block view                            *
+ * Arguments:   $delta                                              *
+ * Return:      $block                                              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function gj_search_frm_v2_block_view($delta = '') {
+    // The $delta parameter tells us which block is being requested.
+    switch ($delta) {
+        case 'gj_search_v2':
+            $block['subject'] = t('');
+            $block['content'] = _block_gj_search_frm_v2_content();
+            break;
+        case 'gj_search_subject_v2':
+            $block['subject'] = t('');
+            $block['content'] = _block_gj_search_frm_subject_v2_content();
+            break;
+    }
+
+    return $block;
+}
+
+/********************************************************************
+ * _block_search_tutor_content                                      *
+ ********************************************************************
+ * Description: Inject JS and CSS, apply theme for search block     *
+ * Arguments:                                                       *
+ * Return:      $theme                                              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function _block_gj_search_frm_v2_content(){
+    drupal_add_js(drupal_get_path("module", "gj_search_frm_v2"). "/js/gj_search_frm_v2.js");
+    //drupal_add_js(array('gj_search_frm_v2' => array('subjectlevels' => searchable_subject_levels())), array('type' => 'setting'));
+    drupal_add_css(drupal_get_path("module", "gj_search_frm_v2"). "/css/gj_search_frm_v2.css");
+    $form = drupal_get_form('gj_search_frm_v2_form');
+
+    return theme('gj_search_frm_homepage_form', array('form' => $form));
+}
+
+/********************************************************************
+ * _block_gj_search_frm_subject_v2_content                          *
+ ********************************************************************
+ * Description: Inject JS and CSS, apply theme for search block     *
+ * Arguments:                                                       *
+ * Return:      $theme                                              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        08-01-2019                                          *
+ ********************************************************************/
+function _block_gj_search_frm_subject_v2_content(){
+    drupal_add_js(drupal_get_path("module", "gj_search_frm_v2"). "/js/gj_search_frm_v2.js");
+    drupal_add_js(array('gj_search_frm_v2' => array('subjectlevels' => searchable_subject_levels())), array('type' => 'setting'));
+    drupal_add_css(drupal_get_path("module", "gj_search_frm_v2"). "/css/gj_search_frm_v2.css");
+    $form = drupal_get_form('gj_search_frm_v2_form');
+
+    return theme('gj_search_frm_subject_form', array('form' => $form));
+}
+
+function gj_sf2_validate($form, &$form_state) {
+  if(!isset($form_state['input']['subject']) || empty($form_state['input']['subject']) || $form_state['input']['subject'] == "Select") {
+    form_set_error("subject");
+  }
+  if(!isset($form_state['input']['level']) || empty($form_state['input']['level']) || $form_state['input']['level'] == "Select") {
+    form_set_error("level");
+  }
+
+}
+
+function gj_sf2_submit($form, &$form_state) {
+  $form_state['redirect'] = 'level-subject/'.$form_state['input']['level'].'/'.$form_state['input']['subject'];
+    //drupal_goto('level-subject/' . $form_state['input']['level'] . '/' . $form_state['input']['subject'], $options);
+}
+
+/*****
+ * gj_search_frm_v2_theme
+ *****
+ * Description: Uses hook theme to theme block
+ *
+ * Arguments:
+ * Return:      array
+ *****
+ * Author:      Robin Fairless
+ * Date:        2019-02-25
+ *****/
+function gj_search_frm_v2_theme($existing, $type, $theme, $path){
+    return array(
+        'gj_search_frm_homepage_form' => array(
+            'render element' => 'form',
+            'template' => 'templates/gj_search_form_homepage_form',
+        ),
+
+        'gj_search_frm_subject_form' => array(
+            'render element' => 'form',
+            'template' => 'templates/search-subject-form',
+        ),
+    );
+}

@@ -1,0 +1,7 @@
+name = GJ Search Form Version 2
+description = Search Form that requires both Subject and Level entered to proceed.
+package = GJ eTalentPool
+core = 7.x
+version = "7.x-1.0"
+core = "7.x"
+project = "GJ eTalentPool"

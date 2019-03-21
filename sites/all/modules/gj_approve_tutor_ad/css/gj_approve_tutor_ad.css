@@ -1,0 +1,10 @@
+.btn-green {
+  background-color: #57b182 !important;
+  color: white;
+}
+
+#edit-admin-options {
+  background-color: #f7caca;
+  margin-top: 50px;
+  margin-bottom: 30px;
+}

@@ -1,0 +1,6 @@
+name = GJ Pause Intersital
+description = A module that gives the impression that their search is being directed by an operator, but actually is an automated process.
+package = GJ Custom
+core = 7.x
+version = "7.x-1.0"
+core = "7.x"

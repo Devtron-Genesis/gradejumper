@@ -1,0 +1,43 @@
+<?php
+
+/************************************************************
+ * generate_initial_avatar                                  *
+ ************************************************************
+ * Description: Generates a CSS user avatar based on user's *
+ *              initials. Includes inline styling.          *
+ * Arguments:   $uid                                        *
+ * Return: html string with inline style                    *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-01-2019                                  *
+ ************************************************************/
+function generate_initial_avatar($uid){
+    $account = user_load($uid);
+    $first_name_initial = strtoupper(substr(get_user_firstname($uid), 0, 1));
+    $last_name_initial = strtoupper(substr(get_user_lastname($uid), 0, 1));
+
+    $style = "
+        <style>
+            .user-initial-avatar{
+                border-radius:50%;
+                height:82px;
+                width:82px;
+                line-height:82px;
+                text-align:center;
+                color: #FFFFFF;
+                background-color: #3F73D2;
+                font-family: Montserrat;
+                font-size: 32px;
+                font-weight: 300;
+            }
+        </style>
+    ";
+
+    $html = "
+        <div class='user-initial-avatar'>
+            " . $first_name_initial . $last_name_initial . "
+        </div>
+    ";
+
+    return $style . $html;
+}

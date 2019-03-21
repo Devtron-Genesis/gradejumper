@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Count Everest Countdown | Responsive jQuery Plugin">
+	<meta name="author" content="Anacoda">
+	<link rel="shortcut icon" href="img/favicon.ico">
+	<title>Count Everest jQuery Plugin - Documentation</title>
+	<link rel="stylesheet" href="css/vendor/bootstrap.min.css">
+	<link rel="stylesheet" href="css/vendor/prism.css">
+	<link rel="stylesheet" href="css/anacoda.css">
+	<script src="js/vendor/modernizr-2.8.3.min.js"></script>
+	<script src="../js/vendor/jquery-1.11.2.min.js"></script>
+	<script src="js/vendor/jquery-ui-1.11.2.min.js"></script>
+	<script src="../js/vendor/jquery.counteverest.min.js"></script>
+	<script src="js/vendor/tab.js"></script>
+	<script src="js/vendor/waypoints.min.js"></script>
+	<script src="js/vendor/waypoints-sticky.min.js"></script>
+	<script src="js/vendor/prism.js"></script>
+	<script src="js/main.js"></script>
+</head>
+<body>
+	<header id="home">
+		<div class="container">
+			<div class="header__top clearfix">
+				<div class="header__logo"><img src="img/logo_big.svg" alt="Count Everest jQuery Plugin"></div>
+				<div class="header__buttons clearfix">
+					<a href="http://www.anacoda.de" target="_blank" class="button">ANACODA<br>Website</a>
+					<a href="http://counteverest.anacoda.de/jquery-plugin/demo/" target="_blank" class="button">See Plugin<br>Demonstration</a>
+					<a href="http://codecanyon.net/item/count-everest-countdown-lightweight-jquery-plugin/6466098?ref=Anacoda" class="button button-primary" target="_blank">Get it now on<br><img src="img/logo_envato.svg" alt="Envato"></a>
+				</div>
+			</div>
+			<h1>Documentation <span>V 2.1.2</span></h1>
+			<p>Get your own easily customizable countdown script without any further JS knowledge! Count Everest is quickly integrated into your own markup. It’s extendable with callback functions, provides many options (e.g.: left-hand zeros), and comes with an easy-to-follow documentation. Localize it within seconds. Use your own font. And enjoy it even in Internet Explorer. We can’t wait to see what you create with it.</p>
+		</div>
+	</header>
+	<div class="navigation-wrap">
+		<nav class="navigation clearfix">
+			<a class="navigation_brand" href="#home"><img src="img/logo_small.svg" alt="Count Everest jQuery Plugin"></a>
+			<a class="navigation_toggle" href="#"><span class="glyphicon glyphicon-align-justify"></span></a>
+			<ul class="clearfix">
+				<li><a href="#installation" class="active">Installation</a></li>
+				<li><a href="#examples">Examples</a></li>
+				<li><a href="#options">Options</a></li>
+				<li><a href="#api-methods">API methods</a></li>
+				<li><a href="#callback-functions">Callback functions</a></li>
+				<li><a href="#changelog">Changelog</a></li>
+				<li><a href="#support">Support</a></li>
+			</ul>
+		</nav>
+	</div>
+<div class="container">
+<section id="rate">
+	<h2>Rate this plugin</h2>
+	<h3>First of all: Don't forget to rate Count Everest on <a href="http://codecanyon.net/" target="_blank">CodeCanyon</a>.</h3>
+	<p>It's good to know what others think about our work. You can rate it in the <a href="http://codecanyon.net/downloads" target="_blank">download area</a> after login into your account on CodeCanyon.</p>
+</section>
+<section id="installation">
+	<h2>Quick installation</h2>
+	<h3>Step 1: Choose and edit one of the theme.html files</h3>
+	<p>Choose the <code>theme-*.html</code> that suits you best and open it to set your target date for the countdown at the end of the file.</p>
+	<h3>Step 2: Upload files</h3>
+	<p>Upload all files and folders via FTP to your webserver.</p>
+	<h3>Step 3: Test it in your browser</h3>
+	<p>Open the <code>theme-*.html</code> that you have chosen in your favourite browser. Done!</p>
+
+	<hr>
+
+	<h2>Advanced installation (for developers)</h2>
+	<h3>Step 1: Link required files</h3>
+	<p>The Count Everest Plugin is based on jQuery, so it's important that you load it right after the jQuery library.</p>
+	<pre><code class="language-markup">&lt;!-- Load jQuery library --&gt;
+&lt;script src=&quot;js/vendor/jquery-1.11.2.min.js&quot;&gt;
+
+&lt;!-- Load Count Everest jQuery Plugin after jQuery library --&gt;
+&lt;script src=&quot;js/vendor/jquery.counteverest.min.js&quot;&gt;</code></pre>
+	<h3>Step 2: Create HTML markup</h3>
+	<p>By default you can use the following HTML markup. The surrounding <code>&lt;div class=&quot;countdown&quot;&gt;</code> is needed for calling the plugin. Every <code>&lt;span&gt;</code> element representing a time unit and the corresponding label. If you don't want one of them, remove it! Of course you can use your own markup. Just define the sizzle selectors by using the <a href="#options">options</a>.</p>
+	<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-days&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-days-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	<h3>Step 3: Call the countEverest</h3>
+	<p>Now call the <code>countEverest</code> method on <code>&lt;div class=&quot;countdown&quot;&gt;</code>. Note that the call must be inside the <code>$(document).ready()</code>.</p>
+	<pre><code class="language-javascript">$(document).ready(function() {
+	$('.countdown').countEverest({
+		day: 1,
+		month: 1,
+		year: 2015
+	});
+});</code></pre>
+	<h3>Step 4: Customization</h3>
+	<p>See the following sections with several <a href="#examples">examples</a>, <a href="#options">options</a>, <a href="#api-methods">API methods</a> and <a href="#callback-functions">callback functions</a> to customize your countdown.</p>
+</section>
+<section id="examples">
+<h2>Examples</h2>
+<h3>Basic example</h3>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo1" data-toggle="tab">Demo</a></li>
+	<li><a href="#html1" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript1" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo1">
+		<div class="countdown-basic">
+			<span class="ce-days"></span> <span class="ce-days-label"></span>
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+		</div>
+	</div>
+	<script>
+		$('.countdown-basic').countEverest({
+			day: 1,
+			month: 1,
+			year: 2020
+		});
+	</script>
+	<div class="tab-pane" id="html1">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-days&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-days-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript1">
+<pre><code class="language-javascript">$(document).ready(function() {
+	$('.countdown').countEverest({
+		day: 1,
+		month: 1,
+		year: 2020
+	});
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Basic example with time zone definition (UTC+1h)</h3>
+<p>With the definition of a time zone you can sync the target date in every browser around the world to one special moment. The countdown in this example is set to New Year 2020 in Berlin, Germany. See the <a href="#options">options</a> for more details.</p>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo12" data-toggle="tab">Demo</a></li>
+	<li><a href="#html12" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript12" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo12">
+		<div class="countdown-timezone">
+			<span class="ce-days"></span> <span class="ce-days-label"></span>
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+		</div>
+	</div>
+	<script>
+		$('.countdown-timezone').countEverest({
+			day: 1,
+			month: 1,
+			year: 2020,
+			timeZone: 1
+		});
+	</script>
+	<div class="tab-pane" id="html12">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-days&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-days-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript12">
+<pre><code class="language-javascript">$(document).ready(function() {
+	$('.countdown').countEverest({
+		day: 1,
+		month: 1,
+		year: 2020,
+		timeZone: 1
+	});
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Example with days only</h3>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo2" data-toggle="tab">Demo</a></li>
+	<li><a href="#html2" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript2" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo2">
+		<div class="countdown-days-only">
+			<span class="ce-days"></span> <span class="ce-days-label"></span>
+		</div>
+	</div>
+	<script>
+		$('.countdown-days-only').countEverest({
+			day: 1,
+			month: 1,
+			year: 2020
+		});
+	</script>
+	<div class="tab-pane" id="html2">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-days&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-days-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript2">
+<pre><code class="language-javascript">$(document).ready(function() {
+	$('.countdown').countEverest({
+		day: 1,
+		month: 1,
+		year: 2020
+	});
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Example with deciseconds</h3>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo3" data-toggle="tab">Demo</a></li>
+	<li><a href="#html3" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript3" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo3">
+		<div class="countdown-deciseconds">
+			<span class="ce-days"></span> <span class="ce-days-label"></span>
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+			<span class="ce-dseconds"></span> <span class="ce-dseconds-label"></span>
+		</div>
+	</div>
+	<script>
+		$('.countdown-deciseconds').countEverest({
+			day: 1,
+			month: 1,
+			year: 2020
+		});
+	</script>
+	<div class="tab-pane" id="html3">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-days&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-days-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-dseconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-dseconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript3">
+		<pre><code class="language-javascript">$(document).ready(function() {
+	$('.countdown').countEverest({
+		day: 1,
+		month: 1,
+		year: 2020
+	});
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Example with deciseconds and singular unit label (e.g.: look at the "s" of deciseconds)</h3>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo4" data-toggle="tab">Demo</a></li>
+	<li><a href="#html4" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript4" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo4">
+		<div class="countdown-no-singular">
+			<span class="ce-days"></span> <span class="ce-days-label"></span>
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+			<span class="ce-dseconds"></span> <span class="ce-dseconds-label"></span>
+		</div>
+	</div>
+	<script>
+		$('.countdown-no-singular').countEverest({
+			day: 1,
+			month: 1,
+			year: 2020,
+			singularLabels: true
+		});
+	</script>
+	<div class="tab-pane" id="html4">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-days&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-days-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-dseconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-dseconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript4">
+<pre><code class="language-javascript">$(document).ready(function() {
+	$('.countdown').countEverest({
+		day: 1,
+		month: 1,
+		year: 2020,
+		singularLabels: true
+	});
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Example with milliseconds</h3>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo5" data-toggle="tab">Demo</a></li>
+	<li><a href="#html5" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript5" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo5">
+		<div class="countdown-milliseconds">
+			<span class="ce-days"></span> <span class="ce-days-label"></span>
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+			<span class="ce-mseconds"></span> <span class="ce-mseconds-label"></span>
+		</div>
+	</div>
+	<script>
+		$('.countdown-milliseconds').countEverest({
+			day: 1,
+			month: 1,
+			year: 2020
+		});
+	</script>
+	<div class="tab-pane" id="html5">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-days&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-days-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-mseconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-mseconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript5">
+<pre><code class="language-javascript">$(document).ready(function() {
+	$('.countdown').countEverest({
+		day: 1,
+		month: 1,
+		year: 2020
+	});
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Example with translated units</h3>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo6" data-toggle="tab">Demo</a></li>
+	<li><a href="#html6" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript6" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo6">
+		<div class="countdown-translate">
+			<span class="ce-days"></span> <span class="ce-days-label"></span>
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+		</div>
+	</div>
+	<script>
+		$('.countdown-translate').countEverest({
+			day: 1,
+			month: 1,
+			year: 2020,
+			daysLabel: 'Tage',
+			hoursLabel: 'Stunden',
+			minutesLabel: 'Minuten',
+			secondsLabel: 'Sekunden',
+			decisecondsLabel: 'Zehntelsekunden',
+			millisecondsLabel: 'Millisekunden'
+		});
+	</script>
+	<div class="tab-pane" id="html6">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-days&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-days-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript6">
+<pre><code class="language-javascript">$(document).ready(function() {
+	$('.countdown').countEverest({
+		day: 1,
+		month: 1,
+		year: 2020,
+		daysLabel: 'Tage',
+		hoursLabel: 'Stunden',
+		minutesLabel: 'Minuten',
+		secondsLabel: 'Sekunden',
+		decisecondsLabel: 'Zehntelsekunden',
+		millisecondsLabel: 'Millisekunden'
+	});
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Define server time with PHP</h3>
+<p>For defining the server time via PHP the server-side script language has to be installed on your webserver. The initializing JavaScript code must be placed in a PHP file (e.g. .php, .phtml, etc.) and is not working in JavaScript files by default. See <a href="#options">options</a> for more details.</p>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo9" data-toggle="tab">Demo</a></li>
+	<li><a href="#html9" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript9" data-toggle="tab">JavaScript/PHP</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo9">
+		<div class="countdown-servertime">
+			<span class="ce-days"></span> <span class="ce-days-label"></span>
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+		</div>
+	</div>
+	<script>
+		$('.countdown-servertime').countEverest({
+			day: 1,
+			month: 1,
+			year: 2020
+		});
+	</script>
+	<div class="tab-pane" id="html9">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-days&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-days-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript9">
+<pre><code class="language-javascript">$(document).ready(function() {
+	$('.countdown').countEverest({
+		day: 1,
+		month: 1,
+		year: 2020,
+		currentDateTime: '&lt;?php echo date('c'); ?&gt;'
+	});
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Target date is the current date plus 30 seconds</h3>
+<p>This is not a special feature of this plugin. This example uses normal JavaScript for this purpose.</p>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo7" data-toggle="tab">Demo</a></li>
+	<li><a href="#html7" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript7" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo7">
+		<div class="countdown-add-hours">
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+		</div>
+	</div>
+	<script>
+		var currentDate = new Date();
+		currentDate.setSeconds(currentDate.getSeconds() + 30);
+
+		$('.countdown-add-hours').countEverest({
+			day: currentDate.getDate(),
+			month: currentDate.getMonth() + 1,  //this is necessary because of the JavaScript standard. 0 = January and 11 = December.
+			year: currentDate.getFullYear(),
+			hour: currentDate.getHours(),
+			minute: currentDate.getMinutes(),
+			second: currentDate.getSeconds()
+		});
+	</script>
+	<div class="tab-pane" id="html7">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript7">
+<pre><code class="language-javascript">$(document).ready(function() {
+	var currentDate = new Date();
+	currentDate.setSeconds(currentDate.getSeconds() + 30);
+
+	$('.countdown').countEverest({
+		day: currentDate.getDate(),
+		month: currentDate.getMonth() + 1,  //this is necessary because of the JavaScript standard. 0 = January and 11 = December.
+		year: currentDate.getFullYear(),
+		hour: currentDate.getHours(),
+		minute: currentDate.getMinutes(),
+		second: currentDate.getSeconds()
+	});
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Count to 8 pm every day</h3>
+<p>This is not a special feature of this plugin. This example uses normal JavaScript for this purpose.</p>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo8" data-toggle="tab">Demo</a></li>
+	<li><a href="#html8" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript8" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo8">
+		<div class="countdown-every-day">
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+		</div>
+	</div>
+	<script>
+		var currentDate = new Date();
+
+		//after 8 pm, set next day
+		if (currentDate.getHours() >= 20) {
+			currentDate.setDate(currentDate.getDate() + 1);
+		}
+
+		$('.countdown-every-day').countEverest({
+			day: currentDate.getDate(),
+			month: currentDate.getMonth() + 1,  //this is necessary because of the JavaScript standard. 0 = January and 11 = December.
+			year: currentDate.getFullYear(),
+			hour: 20,
+			minute: 0,
+			second: 0,
+			timeZone: currentDate.getTimezoneOffset() / -60  //this is the current time zone offset, e.g. +1
+		});
+	</script>
+	<div class="tab-pane" id="html8">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript8">
+<pre><code class="language-javascript">$(document).ready(function() {
+	var currentDate = new Date();
+
+	//after 8 pm, set next day
+	if (currentDate.getHours() >= 20) {
+		currentDate.setDate(currentDate.getDate() + 1);
+	}
+
+	$('.countdown').countEverest({
+		day: currentDate.getDate(),
+		month: currentDate.getMonth() + 1,  //this is necessary because of the JavaScript standard. 0 = January and 11 = December.
+		year: currentDate.getFullYear(),
+		hour: 20,
+		minute: 0,
+		second: 0,
+		timeZone: currentDate.getTimezoneOffset() / -60  //this is the current time zone offset, e.g. +1
+	});
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Using the callback function onComplete</h3>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo10" data-toggle="tab">Demo</a></li>
+	<li><a href="#html10" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript10" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo10">
+		<div class="countdown-onComplete">
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+		</div>
+		<div id="message">Running...</div>
+	</div>
+	<script>
+		var currentDate = new Date();
+
+		$('.countdown-onComplete').countEverest({
+			day: currentDate.getDate(),
+			month: currentDate.getMonth() + 1,  //this is necessary because of the JavaScript standard. 0 = January and 11 = December.
+			year: currentDate.getFullYear(),
+			hour: currentDate.getHours(),
+			minute: currentDate.getMinutes(),
+			second: currentDate.getSeconds() + 30,
+			onComplete: function() {
+				$('#message').text('Complete').addClass('complete');
+
+				//you can use a redirect too
+				//window.location.replace('http://anacoda.de');
+			}
+		});
+	</script>
+	<div class="tab-pane" id="html10">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;div id=&quot;message&quot;&gt;Running...&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript10">
+<pre><code class="language-javascript">$(document).ready(function() {
+	var currentDate = new Date();
+	
+	$('.countdown').countEverest({
+		day: currentDate.getDate(),
+		month: currentDate.getMonth() + 1,  //this is necessary because of the JavaScript standard. 0 = January and 11 = December.
+		year: currentDate.getFullYear(),
+		hour: currentDate.getHours(),
+		minute: currentDate.getMinutes(),
+		second: currentDate.getSeconds() + 30,
+		onComplete: function() {
+			$('#message').text('Complete').addClass('complete');
+
+			//you can use a redirect too
+			//window.location.replace('http://anacoda.de');
+		}
+	});
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Destroy and reinitialize countdown every 10 seconds with <a href="#api-methods">API methods</a></h3>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo11" data-toggle="tab">Demo</a></li>
+	<li><a href="#html11" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript11" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo11">
+		<div class="countdown-reinit">
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+		</div>
+	</div>
+	<script>
+		function initCountdown() {
+			var currentDate = new Date();
+			var $countdownReinit = $('.countdown-reinit');
+			$countdownReinit.countEverest({
+				day: currentDate.getDate(),
+				month: currentDate.getMonth() + 1,  //this is necessary because of the JavaScript standard. 0 = January and 11 = December.
+				year: currentDate.getFullYear(),
+				hour: currentDate.getHours(),
+				minute: currentDate.getMinutes(),
+				second: currentDate.getSeconds() + 10,
+				onComplete: function() {
+					$countdownReinit.countEverest('destroy');
+					initCountdown();
+				}
+			});
+		}
+		initCountdown();
+
+	</script>
+	<div class="tab-pane" id="html11">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript11">
+<pre><code class="language-javascript">$(document).ready(function() {
+	function initCountdown() {
+		var currentDate = new Date();
+		var $countdown = $('.countdown');
+		$countdown.countEverest({
+			day: currentDate.getDate(),
+			month: currentDate.getMonth() + 1,  //this is necessary because of the JavaScript standard. 0 = January and 11 = December.
+			year: currentDate.getFullYear(),
+			hour: currentDate.getHours(),
+			minute: currentDate.getMinutes(),
+			second: currentDate.getSeconds() + 10,
+			onComplete: function() {
+				$countdown.countEverest('destroy');
+				initCountdown();
+			}
+		});
+	}
+	initCountdown();
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Get a reference of the plugin after initialization</h3>
+<p>With the reference you can see inside the plugin for using the raw properties, e.g. the target date as JavaScript date string. Put the reference in <code>console.log()</code> to see more information in the developer tool of your browser.</p>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo13" data-toggle="tab">Demo</a></li>
+	<li><a href="#html13" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript13" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo13">
+		<div class="countdown-reference">
+			<span class="ce-days"></span> <span class="ce-days-label"></span>
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+			<div id="target-date"></div>
+		</div>
+	</div>
+	<script>
+		$('.countdown-reference').countEverest({
+			day: 1,
+			month: 1,
+			year: 2020
+		});
+
+		var plugin = $('.countdown-reference').data('countEverest');
+		$('#target-date').text(plugin.targetDate);
+	</script>
+	<div class="tab-pane" id="html13">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-days&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-days-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+	&lt;span id=&quot;message&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript13">
+<pre><code class="language-javascript">$(document).ready(function() {
+	$('.countdown').countEverest({
+		day: 1,
+		month: 1,
+		year: 2020
+	});
+
+	var plugin = $('.countdown').data('countEverest');
+	$('#message').text(plugin.targetDate);
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3 id="examples-count-up">Count up with specific start date</h3>
+<p>This example shows the time which is passed since Count Everest launched on Envato.</p>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo14" data-toggle="tab">Demo</a></li>
+	<li><a href="#html14" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript14" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo14">
+		<div class="countdown-count-up-date">
+			<span class="ce-days"></span> <span class="ce-days-label"></span>
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+		</div>
+	</div>
+	<script>
+		$('.countdown-count-up-date').countEverest({
+			day: 17,
+			month: 1,
+			year: 2014,
+			countUp: true
+		});
+	</script>
+	<div class="tab-pane" id="html14">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-days&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-days-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript14">
+<pre><code class="language-javascript">$(document).ready(function() {
+	$('.countdown').countEverest({
+		day: 17,
+		month: 1,
+		year: 2014,
+		countUp: true
+	});
+});</code></pre>
+	</div>
+</div>
+<hr>
+<h3>Count up time since page load</h3>
+<p>This example uses the native JavaScript date object to set the start date to the current time and count up.</p>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#demo15" data-toggle="tab">Demo</a></li>
+	<li><a href="#html15" data-toggle="tab">HTML</a></li>
+	<li><a href="#javascript15" data-toggle="tab">JavaScript</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="demo15">
+		<div class="countdown-count-up-page-load">
+			<span class="ce-hours"></span> <span class="ce-hours-label"></span>
+			<span class="ce-minutes"></span> <span class="ce-minutes-label"></span>
+			<span class="ce-seconds"></span> <span class="ce-seconds-label"></span>
+		</div>
+	</div>
+	<script>
+		var currentDate = new Date();
+		$('.countdown-count-up-page-load').countEverest({
+			day: currentDate.getDate(),
+			month: currentDate.getMonth() + 1,  //this is necessary because of the JavaScript standard. 0 = January and 11 = December.
+			year: currentDate.getFullYear(),
+			hour: currentDate.getHours(),
+			minute: currentDate.getMinutes(),
+			second: currentDate.getSeconds(),
+			countUp: true
+		});
+	</script>
+	<div class="tab-pane" id="html15">
+<pre><code class="language-markup">&lt;div class=&quot;countdown&quot;&gt;
+	&lt;span class=&quot;ce-hours&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-hours-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-minutes&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-minutes-label&quot;&gt;&lt;/span&gt;
+	&lt;span class=&quot;ce-seconds&quot;&gt;&lt;/span&gt; &lt;span class=&quot;ce-seconds-label&quot;&gt;&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+	</div>
+	<div class="tab-pane" id="javascript15">
+<pre><code class="language-javascript">$(document).ready(function() {
+	var currentDate = new Date();
+	$('.countdown').countEverest({
+		day: currentDate.getDate(),
+		month: currentDate.getMonth() + 1,  //this is necessary because of the JavaScript standard. 0 = January and 11 = December.
+		year: currentDate.getFullYear(),
+		hour: currentDate.getHours(),
+		minute: currentDate.getMinutes(),
+		second: currentDate.getSeconds(),
+		countUp: true
+	});
+});</code></pre>
+	</div>
+</div>
+</section>
+<section id="options">
+<h2>Options</h2>
+<div class="table-responsive">
+<table class="table table-hover table-bordered">
+<tr>
+	<th>Option</th>
+	<th>Type</th>
+	<th>Default Value</th>
+	<th>Description</th>
+</tr>
+<tr>
+	<td class="text-primary"><code>day</code></td>
+	<td>Integer</td>
+	<td>1</td>
+	<td>Use this to specify the day in a month of the target date. The value have to be an integer between 1 and 31.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>month</code></td>
+	<td>Integer</td>
+	<td>1</td>
+	<td>Use this to specify the month of the target date. The value have to be an integer between 1 and 12.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>year</code></td>
+	<td>Integer</td>
+	<td>2050</td>
+	<td>Use this to specify the year of the target date in four digits, e.g. 2021.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>hour</code></td>
+	<td>Integer</td>
+	<td>0</td>
+	<td>Use this to specify the hour of the target date. The value have to be an integer between 0 and 23.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>minute</code></td>
+	<td>Integer</td>
+	<td>0</td>
+	<td>Use this to specify the minute of the target date. The value have to be an integer between 0 and 59.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>second</code></td>
+	<td>Integer</td>
+	<td>0</td>
+	<td>Use this to specify the second of the target date. The value have to be an integer between 0 and 59.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>millisecond</code></td>
+	<td>Integer</td>
+	<td>0</td>
+	<td>Use this to specify the millisecond of the target date. The value have to be an integer between 0 and 999.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>countUp</code></td>
+	<td>Boolean</td>
+	<td>false</td>
+	<td>Enable this option to count up. You have to define your start date by using <code>day</code>, <code>month</code>, <code>year</code>, <code>hour</code>, <code>minute</code>, <code>second</code> and <code>millisecond</code>. See <a href="#examples-count-up">"counting up" examples</a> for more information.<br><br>
+		Please note: The callback "onComplete" will never call.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>timeZone</code></td>
+	<td>Number</td>
+	<td>null</td>
+	<td>Define the offset from Coordinated Universal Time (UTC) for the location of your target date to sync the countdown in the browsers of the users around the world. The default value "null" disables the timezone calculation. If you want to use the feature, set a value from -12 to 14. Decimal values, e.g. 3.5 are also allowed. Please refer to <a href="http://www.timeanddate.com/worldclock/" target="_blank">http://www.timeanddate.com/worldclock/</a> to find out your correct time zone. Keep in mind, that the offset from UTC of many location changes, when daylight saving time starts or ends.<br><br>
+		<strong>Example 1:</strong> I want to set my countdown to a club opening for 20 March 2014, 8pm. The club is based in Berlin. The offset from UTC in Berlin is normally 1. I have to set "timeZone: 1".<br><br>
+		<strong>Example 2:</strong> Same case, but other opening date. We now want to set the target date for the club opening to 10 May 2014. The daylight saving time in Berlin starts on 29 March this year. For this case I have to set "timeZone: 2".</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>currentDateTime</code></td>
+	<td>String</td>
+	<td>null</td>
+	<td>Set this option to define the current date and time (e.g. the server time via PHP), which is used for the calculation of the remaining time to target date. Otherwise the plugin uses the current time of the browser or operating system. Date strings which complies to the ISO 8601 standard are allowed, e.g. "2014-02-27T13:37:00+01:00".<br>
+		See <a href="http://www.ecma-international.org/ecma-262/5.1/#sec-15.9.1.15" target="_blank">http://www.ecma-international.org/ecma-262/5.1/#sec-15.9.1.15</a> for more details.<br><br>
+		To set the current server time via PHP use the following code. Be sure that your file has a PHP file extension (e.g. .php, .phtml, etc.) "currentDateTime: '&lt;?php echo date('c'); ?&gt;'"</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>daysWrapper</code></td>
+	<td>String</td>
+	<td>".ce-days"</td>
+	<td>This is the sizzle selector for the days value inside your countdown wrapper.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>hoursWrapper</code></td>
+	<td>String</td>
+	<td>".ce-hours"</td>
+	<td>This is the sizzle selector for the hours value inside your countdown wrapper.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>minutesWrapper</code></td>
+	<td>String</td>
+	<td>".ce-minutes"</td>
+	<td>This is the sizzle selector for the minutes value inside your countdown wrapper.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>secondsWrapper</code></td>
+	<td>String</td>
+	<td>".ce-seconds"</td>
+	<td>This is the sizzle selector for the seconds value inside your countdown wrapper.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>decisecondsWrapper</code></td>
+	<td>String</td>
+	<td>".ce-dseconds"</td>
+	<td>This is the sizzle selector for the deciseconds value inside your countdown wrapper. If this element is found, the <code>highspeedTimeout</code> is used for the countdown calculation. See the explanation below for more details.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>millisecondsWrapper</code></td>
+	<td>String</td>
+	<td>".ce-mseconds"</td>
+	<td>This is the sizzle selector for the milliseconds value inside your countdown wrapper. If this element is found, the <code>highspeedTimeout</code> is used for the countdown calculation. See the explanation below for more details.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>daysLabelWrapper</code></td>
+	<td>String</td>
+	<td>".ce-days-label"</td>
+	<td>This is the sizzle selector for the unit "days" inside your countdown wrapper.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>hoursLabelWrapper</code></td>
+	<td>String</td>
+	<td>".ce-hours-label"</td>
+	<td>This is the sizzle selector for the unit "hours" inside your countdown wrapper.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>minutesLabelWrapper</code></td>
+	<td>String</td>
+	<td>".ce-minutes-label"</td>
+	<td>This is the sizzle selector for the unit "minutes" inside your countdown wrapper.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>secondsLabelWrapper</code></td>
+	<td>String</td>
+	<td>".ce-seconds-label"</td>
+	<td>This is the sizzle selector for the unit "seconds" inside your countdown wrapper.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>decisecondsLabelWrapper</code></td>
+	<td>String</td>
+	<td>".ce-dseconds-label"</td>
+	<td>This is the sizzle selector for the unit "deciseconds" inside your countdown wrapper.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>millisecondsLabelWrapper</code></td>
+	<td>String</td>
+	<td>".ce-mseconds-label"</td>
+	<td>This is the sizzle selector for the unit "milliseconds" inside your countdown wrapper.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>singularLabels</code></td>
+	<td>Boolean</td>
+	<td>false</td>
+	<td>Use singular unit labels which can defined with the options <code>dayLabel</code>, <code>hourLabel</code>, <code>minuteLabel</code>, <code>secondLabel</code>, <code>decisecondLabel</code>, <code>millisecondLabel</code>.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>daysLabel</code></td>
+	<td>String</td>
+	<td>"Days"</td>
+	<td>This is the unit label inside <code>daysLabelWrapper</code>. If <code>singularLabels</code> is enabled and the remaining days are greater than 1 (one), this label is used.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>dayLabel</code></td>
+	<td>String</td>
+	<td>"Day"</td>
+	<td>Same as above, but this label is used if <code>singularLabels</code> is enabled and the value of the remaining days is 1 (one). Set it to null, if you want to use the <code>daysLabel</code> always or use <code>singularLabels</code> instead.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>hoursLabel</code></td>
+	<td>String</td>
+	<td>"Hours"</td>
+	<td>This is the unit label inside <code>hoursLabelWrapper</code>. If <code>singularLabels</code> is enabled and the remaining hours are greater than 1 (one), this label is used.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>hourLabel</code></td>
+	<td>String</td>
+	<td>"Hour"</td>
+	<td>Same as above, but this label is used if <code>singularLabels</code> is enabled and the value of the remaining hours is 1 (one). Set it to null, if you want to use the <code>hoursLabel</code> always or use <code>singularLabels</code> instead.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>minutesLabel</code></td>
+	<td>String</td>
+	<td>"Minutes"</td>
+	<td>This is the unit label inside <code>minutesLabelWrapper</code>. If <code>singularLabels</code> is enabled and the remaining minutes are greater than 1 (one), this label is used.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>minuteLabel</code></td>
+	<td>String</td>
+	<td>"Minute"</td>
+	<td>Same as above, but this label is used if <code>singularLabels</code> is enabled and the value of the remaining minutes is 1 (one). Set it to null, if you want to use the <code>minutesLabel</code> always or use <code>singularLabels</code> instead.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>secondsLabel</code></td>
+	<td>String</td>
+	<td>"Seconds"</td>
+	<td>This is the unit label inside <code>secondsLabelWrapper</code>. If <code>singularLabels</code> is enabled and the remaining seconds are greater than 1 (one), this label is used.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>secondLabel</code></td>
+	<td>String</td>
+	<td>"Second"</td>
+	<td>Same as above, but this label is used if <code>singularLabels</code> is enabled and the value of the remaining seconds is 1 (one). Set it to null, if you want to use the <code>secondsLabel</code> always or use <code>singularLabels</code> instead.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>decisecondsLabel</code></td>
+	<td>String</td>
+	<td>"Deciseconds"</td>
+	<td>This is the unit label inside <code>decisecondsLabelWrapper</code>. If <code>singularLabels</code> is enabled and the remaining deciseconds are greater than 1 (one), this label is used.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>decisecondLabel</code></td>
+	<td>String</td>
+	<td>"Decisecond"</td>
+	<td>Same as above, but this label is used if <code>singularLabels</code> is enabled and the value of the remaining deciseconds is 1 (one). Set it to null, if you want to use the <code>decisecondsLabel</code> always or use <code>singularLabels</code> instead.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>millisecondsLabel</code></td>
+	<td>String</td>
+	<td>"Milliseconds"</td>
+	<td>This is the unit label inside <code>millisecondsLabelWrapper</code>. If <code>singularLabels</code> is enabled and the remaining milliseconds are greater than 1 (one), this label is used.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>millisecondLabel</code></td>
+	<td>String</td>
+	<td>"Millisecond"</td>
+	<td>Same as above, but this label is used if <code>singularLabels</code> is enabled and the value of the remaining milliseconds is 1 (one). Set it to null, if you want to use the <code>millisecondsLabel</code> always or use <code>singularLabels</code> instead.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>timeout</code></td>
+	<td>Integer</td>
+	<td>1000</td>
+	<td>After this time in milliseconds the calculation of the countdown is triggered periodically. The default value fits if you want to show seconds as your smallest time unit, otherwise read the explanation about the <code>highspeedTimeout</code> param bellow.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>highspeedTimeout</code></td>
+	<td>Integer</td>
+	<td>4</td>
+	<td>Same as timeout, but this is only in use if the <code>decisecondsWrapper</code> or <code>millisecondsWrapper</code> are set to an existing element. This is necessary for the fast recalculation, which is needed for the presentation of deciseconds and milliseconds. The default value is the official W3C standard for HTML5 browsers. The calculation with the <code>highspeedTimeout</code> consumes more resources, so use it only when necessary.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>leftHandZeros</code></td>
+	<td>Boolean</td>
+	<td>true</td>
+	<td>Use this option to force left-hand zeros. Every value will have two digits unless there are more digits necessary to display the remaining time (e.g. days and milliseconds).</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>wrapDigits</code></td>
+	<td>Boolean</td>
+	<td>true</td>
+	<td>Wrap each digit with a span tag to customize it individual.</td>
+</tr>
+<tr>
+	<td class="text-primary"><code>wrapDigitsTag</code></td>
+	<td>String</td>
+	<td>"span"</td>
+	<td>Type of tag which will be used to wrap each digit.</td>
+</tr>
+</table>
+</div>
+</section>
+<section id="api-methods">
+	<h2>API methods</h2>
+	<p>After initialization you can control the countdown with one of the command strings in this form: <code>$('#countdown').countEverest('command');</code>.</p>
+	<div class="table-responsive">
+		<table class="table table-hover table-bordered">
+			<tr>
+				<th>Command</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td class="text-primary"><code>destroy</code></td>
+				<td>Stops the countdown and removes the plugin instance.</td>
+			</tr>
+			<tr>
+				<td class="text-primary"><code>getOption</code></td>
+				<td>Get current option value by key. See <a href="#options">options section</a>, which keys are allowed.<br>e.g. get the target year with this piece of code: <br><code>$('#countdown').countEverest('getOption', 'year'); //returns e.g. 2015</code> <br>The opposite method is called <code>setOption</code>. See below for more details.</td>
+			</tr>
+			<tr>
+				<td class="text-primary"><code>pause</code></td>
+				<td>Pauses the countdown. Countdown can be resumed with <code>resume</code> command. Keep in mind the time is running further. Only the display of the countdown is paused.</td>
+			</tr>
+			<tr>
+				<td class="text-primary"><code>resume</code></td>
+				<td>Resumes a paused countdown.</td>
+			</tr>
+			<tr>
+				<td class="text-primary"><code>setOption</code></td>
+				<td>Set new option value by key. See <a href="#options">options section</a>, which keys are allowed.<br>e.g. set a new target year with this piece of code: <br><code>$('#countdown').countEverest('setOption', 'year', 2020);</code> <br>The opposite method is called <code>getOption</code>. See above for more details.</td>
+			</tr>
+		</table>
+	</div>
+</section>
+<section id="callback-functions">
+	<h2>Callback functions</h2>
+	<p>In every callback function below you can use <code>this</code> to get a reference of the plugin, which contains the current environment with all attributes, like current time values or settings. Check output of <code>console.log(this);</code> within your callback function in your development tool.</p>
+	<div class="table-responsive">
+		<table class="table table-hover table-bordered">
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td class="text-primary"><code>onInit</code></td>
+				<td>This option is for a callback function which is called in the initialization process. This callback is triggered right before the first calculation is done, so <code>this</code> doesn't contain the remaining time.</td>
+			</tr>
+			<tr>
+				<td class="text-primary"><code>beforeCalculation</code></td>
+				<td>This option is for a callback function which is called BEFORE every recalculation of the countdown starts. The <code>timeout</code> or the <code>highspeedTimeout</code> option defines how often the calculation process will run.</td>
+			</tr>
+			<tr>
+				<td class="text-primary"><code>afterCalculation</code></td>
+				<td>This option is for a callback function which is called AFTER every recalculation of the countdown was performed. The <code>timeout</code> or the <code>highspeedTimeout</code> option defines how often the calculation process will run.</td>
+			</tr>
+			<tr>
+				<td class="text-primary"><code>onChange</code></td>
+				<td>This option is for a callback function which is only called after a change in the countdown display is done, like a step from one second to another. This callback will be called after the calculation process.</td>
+			</tr>
+			<tr>
+				<td class="text-primary"><code>onComplete</code></td>
+				<td>This option is for a callback function which is called when the target date is reached. The function will not be called if the "countUp" option is enabled.</td>
+			</tr>
+		</table>
+	</div>
+</section>
+<section id="changelog">
+	<h2>Changelog</h2>
+	<p class="text-muted">Version 2.1.2</p>
+	<ul>
+		<li>fixed issue with "3D Horizontal Flip" in Firefox</li>
+	</ul>
+	<p class="text-muted">Version 2.1.1</p>
+	<ul>
+		<li>fixed issue with "3D Vertical Flip" on mobile screens</li>
+	</ul>
+	<p class="text-muted">Version 2.1</p>
+	<ul>
+		<li>add countUp option and examples</li>
+		<li>small improvements in documentation</li>
+		<li>added jQuery 1.11.2</li>
+		<li>fixed issue in x-mas theme</li>
+	</ul>
+	<p class="text-muted">Version 2.0</p>
+	<ul>
+		<li>major improvements of HTML and CSS code</li>
+		<li>new theme "Lightning"</li>
+		<li>new theme "X-Mas"</li>
+		<li>add a way to get the plugin reference via JavaScript</li>
+		<li>removed deprecated callback "onCalculation"</li>
+	</ul>
+	<p class="text-muted">Version 1.6</p>
+	<ul>
+		<li>added singularLabels option</li>
+		<li>small improvements of HTML & JS markup</li>
+	</ul>
+	<p class="text-muted">Version 1.5</p>
+	<ul>
+		<li>added currentDateTime option</li>
+		<li>small improvements of HTML markup</li>
+	</ul>
+	<p class="text-muted">Version 1.4.1</p>
+	<ul>
+		<li>fixed issue with no leftHandZeros and wrapDigits enabled</li>
+		<li>fixed milliseconds and deciseconds</li>
+		<li>added improvements for example 10</li>
+		<li>added jQuery 1.11.1</li>
+	</ul>
+	<p class="text-muted">Version 1.4</p>
+	<ul>
+		<li>new layout "3D Vertical Flip"</li>
+		<li>updated example 6 with a "3D Horizontal Flip Effect"</li>
+		<li>styling improvements of example 7</li>
+		<li>added API methods (e.g. pause, resume, destroy)</li>
+		<li>optimized DOM manipulation</li>
+		<li>added wrap digits tag option</li>
+	</ul>
+	<p class="text-muted">Version 1.3.1</p>
+	<ul>
+		<li>default value for timeZone is now false</li>
+	</ul>
+	<p class="text-muted">Version 1.3</p>
+	<ul>
+		<li>fixed an issue with the countdown on firefox version 28</li>
+		<li>added time zone definition</li>
+		<li>added more options for defining units</li>
+	</ul>
+	<p class="text-muted">Version 1.2</p>
+	<ul>
+		<li>added new layout example (circle)</li>
+	</ul>
+	<p class="text-muted">Version 1.1</p>
+	<ul>
+		<li>added callback functions beforeCalculation and afterCalculation</li>
+		<li>added wraps (span tags) around every digit</li>
+	</ul>
+	<p class="text-muted">Version 1.0</p>
+	<ul>
+		<li>Initial Version</li>
+	</ul>
+</section>
+<section id="support">
+	<h2>Support</h2>
+	<p>Do you have questions? Get in touch with us via email: <a href="mailto:support@anacoda.de">support@anacoda.de</a></p>
+	<p>We want to increase quality permanently! If you should encounter difficulties and/or malfunctioning in code, design and/or bugs, dead links a.s.o. we would love to hear from you: <a href="mailto:support@anacoda.de">support@anacoda.de</a></p>
+	<p>Support for our items includes:</p>
+	<ul>
+		<li>Responding to questions or problems regarding the item and its features</li>
+		<li>Fixing bugs and reported issues</li>
+		<li>Providing updates to ensure compatibility with new software versions</li>
+	</ul>
+	<p>Item support does not include:</p>
+	<ul>
+		<li>Customization and installation services</li>
+		<li>Support for third party software and plug-ins</li>
+	</ul>
+</section>
+</div>
+<footer>
+	<div class="container clearfix">
+		<p class="float-left">Copyright &copy; 2015 by <a href="http://www.anacoda.de" target="_blank">ANACODA</a> &middot; <a href="#" class="link_legal-notice">Legal Notice</a></p>
+		<p class="float-right"><a href="http://codecanyon.net/item/count-everest-countdown-lightweight-jquery-plugin/6466098?ref=Anacoda" class="button button-primary" target="_blank">Get it now on <img src="img/logo_envato.svg" alt="Envato"></a></p>
+	</div>
+</footer>
+<section id="legal-notice-wrapper">
+	<div class="container">
+		<div class="legal-notice">
+			<div class="headline clearfix">
+				<h2>legal notice</h2>
+				<a href="#" class="btn-close link_legal-notice"><img src="img/close.png" alt="close" width="28" height="25"></a>
+			</div>
+			<p>Sebastian Schrama<br>
+			Genthiner Str. 8<br>
+			10785 Berlin - Germany</p>
+			<p>e-mail: <a href="mailto:mail@anacoda.de">mail@anacoda.de</a></p>
+			<p>VAT No.: DE262641297</p>
+		</div>
+	</div>
+</section>
+</body>
+</html>

@@ -1,0 +1,19 @@
+name = Media: Unsplash
+description = Adds Unsplash as separate tab in media browser.
+package = Media
+core = 7.x
+
+dependencies[] = media
+dependencies[] = media_internet
+
+files[] = includes/MediaUnsplash.inc
+files[] = includes/MediaUnsplashHandler.inc
+
+configure = admin/config/media/unsplash
+
+; Information added by Drupal.org packaging script on 2017-09-25
+version = "7.x-1.6"
+core = "7.x"
+project = "media_unsplash"
+datestamp = "1506331147"
+

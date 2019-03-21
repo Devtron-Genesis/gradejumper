@@ -1,0 +1,275 @@
+<?php
+
+/************************************************************
+ * gj_deanhopkins_email_template_theme_registry_alter       *
+ ************************************************************
+ * Description: Implements hook_theme_registry_alter().     *
+ *              Adds the local htmlmail.tpl.php file to the *
+ *              registry.                                   *
+ * Arguments:   &$theme_registry                            *
+ * Return:                                                  *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-01-2019                                  *
+ ************************************************************/
+function gj_deanhopkins_email_template_theme_registry_alter(&$theme_registry) {
+    $module_path = drupal_get_path('module', 'gj_deanhopkins_email_template');
+    $template_file_objects = drupal_find_theme_templates($theme_registry, '.tpl.php', $module_path);
+    foreach ($template_file_objects as $key => $template_file_object) {
+        $theme_registry[$key]['theme path'] = $module_path;
+        $theme_registry[$key] = array_merge($theme_registry[$key], $template_file_object);
+        $theme_registry[$key]['type'] = 'module';
+    }
+}
+
+/************************************************************
+ * get_email_header                                         *
+ ************************************************************
+ * Description: Renders the email header HTML with inline   *
+ *              styling.                                    *
+ * Arguments:                                               *
+ * Return:      html string of rendered header              *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-01-2019                                  *
+ ************************************************************/
+function get_email_header(){
+    $header = "
+    <style>
+        body{background-color: #f5f5f5;}
+        .email-gj-logo-container{
+            margin-top:65px;
+            height:97px;
+            display:block;
+        }
+        .email-gj-logo{
+            min-height:100%;
+            float:right;
+        }
+        .email-container {
+            display: block;
+            width: 690px;
+            margin:auto;
+        }
+        .email-box {
+            min-height: 100px;
+            border-radius: 5px;
+            border: 1px solid #b9b9b9;
+            background-color: #ffffff;
+        }
+        .email-content{
+            margin: 50px 48px;
+            color: #15180c;
+            font-family: Montserrat;
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 22px;
+        }
+        .btn-view-message-container{
+            margin: auto;
+            display: flex;
+            align-content: center;
+            align-items: center;
+            text-decoration: none;
+        }
+        .btn-view-message{
+            width: 358px;
+            height: 58px;
+            border-radius: 40px;
+            background-color: #3f73d2;
+            margin:auto;
+            color: #ffffff;
+            border:0px;
+            font-family: Montserrat;
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 22px;
+        }
+    </style>
+
+    <body style='background-color: #f5f5f5; padding:25px;'>
+        <div class='email-container' style='display: block; width: 690px; margin:auto;'>
+            <div class='email-gj-logo-container' style='margin-top:65px; height:97px; display:block;'>
+                <span class='email-gj-logo' style='min-height:100%; float:right;'>
+                <img src='" . file_create_url(drupal_get_path('module', 'gj_deanhopkins_email_template') . '/img/gj_logo.png') . "' >
+                </span>
+            </div>
+
+            <div class='email-box' style='min-height: 100px; border-radius: 5px; border: 1px solid #b9b9b9; background-color: #ffffff;'>
+                <div class='email-content' style='margin: 50px 48px; color: #15180c; font-family: Montserrat; font-size: 16px; font-weight: 300; line-height: 22px;'
+                    <p>
+    ";
+
+    return $header;
+}
+
+/************************************************************
+ * get_email_footer                                         *
+ ************************************************************
+ * Description: Renders the email footer HTML with inline   *
+ *              styling.                                    *
+ * Arguments:                                               *
+ * Return:      html string of rendered footer              *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-01-2019                                  *
+ ************************************************************/
+function get_email_footer(){
+    $footer = "
+                    </p>
+
+                    <br />
+                    <div class='email-footer'>
+                        Best wishes,
+                        <br />
+                        Sarah
+                        <br />
+                        <br />
+                        GradeJumpers Customer Services
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </body>
+    ";
+
+    return $footer;
+}
+
+/************************************************************
+ * gj_deanhopkins_email_template_token_info                 *
+ ************************************************************
+ * Description: Implements hook_token_info().               *
+ *              Register the drupal tokens for email-header *
+ *              and email-content.                          *
+ * Arguments:                                               *
+ * Return:      html string of rendered footer              *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-01-2019                                  *
+ ************************************************************/
+function gj_deanhopkins_email_template_token_info() {
+    $info['tokens']['site']['email-header'] = array(
+        'name' => t('Email Header'),
+        'description' => t('Email header template html'),
+    );
+
+    $info['tokens']['site']['email-footer'] = array(
+        'name' => t('Email Footer'),
+        'description' => t('Email footer template html'),
+    );
+    return $info;
+}
+
+
+/************************************************************
+ * gj_deanhopkins_email_template_token_info                 *
+ ************************************************************
+ * Description: Implements hook_tokens().                   *
+ *              Define logic for our drupal tokens.         *
+ *              Replace token string with rendered header   *
+                of footer accordingly                       *
+ * Arguments:   $type, $tokens, $data, $options             *
+ * Return:      replaced token string                       *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-01-2019                                  *
+ ************************************************************/
+function gj_deanhopkins_email_template_tokens($type, $tokens, array $data = array(), array $options = array()) {
+    $replacements = array();
+
+    if ($type == 'site') {
+        foreach ($tokens as $name => $original) {
+            switch ($name) {
+                case 'email-header':
+                    $header = get_email_header();
+                    $replacements[$original] = $header;
+                    break;
+                case 'email-footer':
+                    $footer = get_email_footer();
+                    $replacements[$original] = $footer;
+                    break;
+            }
+        }
+    }
+
+    // Return the replacements.
+    return $replacements;
+}
+
+/**
+ * Implements hook_strongarm().
+ */
+/************************************************************
+ * gj_deanhopkins_email_template_strongarm                  *
+ ************************************************************
+ * Description: Implements hook_strongarm().                *
+ *              Use strongarm to configure htmlmail template*
+ *              settings to work out-of-the-box             *
+of footer accordingly                                       *
+ * Arguments:   $type, $tokens, $data, $options             *
+ * Return:      replaced token string                       *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        10-01-2019                                  *
+ ************************************************************/
+function gj_deanhopkins_email_template_strongarm() {
+    $export = array();
+
+    $strongarm = new stdClass();
+    $strongarm->disabled = FALSE;
+    $strongarm->api_version = 1;
+    $strongarm->name = 'htmlmail_html_with_plain';
+    $strongarm->value = 1;
+    $export['htmlmail_html_with_plain'] = $strongarm;
+
+    $strongarm = new stdClass();
+    $strongarm->disabled = FALSE;
+    $strongarm->api_version = 1;
+    $strongarm->name = 'htmlmail_postfilter';
+    $strongarm->value = '0';
+    $export['htmlmail_postfilter'] = $strongarm;
+
+    $strongarm = new stdClass();
+    $strongarm->disabled = FALSE;
+    $strongarm->api_version = 1;
+    $strongarm->name = 'htmlmail_theme';
+    $strongarm->value = 'ts_glazed';
+    $export['htmlmail_theme'] = $strongarm;
+
+    $strongarm = new stdClass();
+    $strongarm->disabled = FALSE;
+    $strongarm->api_version = 1;
+    $strongarm->name = 'mailsystem_theme';
+    $strongarm->value = 'current';
+    $export['mailsystem_theme'] = $strongarm;
+
+    $strongarm = new stdClass();
+    $strongarm->disabled = FALSE;
+    $strongarm->api_version = 1;
+    $strongarm->name = 'mail_system';
+    $strongarm->value = array(
+        'default-system' => 'HTMLMailSystem__SmtpMailSystem',
+        'htmlmail' => 'HTMLMailSystem__SmtpMailSystem',
+    );
+    $export['mail_system'] = $strongarm;
+
+    //@todo probably remove this so can be overriden.
+    $strongarm = new stdClass();
+    $strongarm->disabled = FALSE;
+    $strongarm->api_version = 1;
+    $strongarm->name = 'pm_email_notify_body';
+    $strongarm->value = '<p>Hi [privatemsg_message:recipient],</p>
+<p>You have a new message. Click the button below to view and reply…</p>
+
+<a href="[privatemsg_message:url]" class="btn-view-message-container" style="margin: auto; display: flex; align-content: center; align-items: center; text-decoration: none;">
+    <button type="button" class="btn btn-lg btn-primary btn-view-message" style="width: 358px; height: 58px; border-radius: 40px; background-color: #3f73d2; margin:auto; color: #ffffff; border:0px; font-family: Montserrat; font-size: 16px; font-weight: 500; line-height: 22px;">View message</button>
+</a>
+
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi vitae quam rutrum, consectetur odio eget, semper leo. Donec varius sem non auctor tempor. Nam eu viverra dolor, faucibus tempor enim.</p>';
+
+    $export['pm_email_notify_body'] = $strongarm;
+    return $export;
+}

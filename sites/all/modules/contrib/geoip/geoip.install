@@ -1,0 +1,81 @@
+<?php
+/**
+ * @file
+ * Installation and update functions.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function geoip_requirements($phase) {
+  $requirements = array();
+  // Ensure translations don't break at install time.
+  $t = get_t();
+
+  // Test for a valid GeoIP database.
+  $requirements['geoip_database'] = array(
+    'title' => $t('GeoIP Database'),
+  );
+
+  // Check if the required libraries are available.
+  module_load_include('module', 'libraries');
+  $library_v1 = libraries_detect('geoip-api-php');
+  $library_v2 = libraries_detect('GeoIP2-php');
+  $library_v2_phar = libraries_detect('GeoIP2-phar');
+
+  if (variable_get('geoip_db_version', 2) == 1 && empty($library_v1['installed'])) {
+    $requirements['geoip_api_v1'] = array(
+      'title' => $t('GeoIP Library V1 - legacy'),
+    );
+    $message = $t('Maxmind API v1 not found. You need to install the API in order to use this module with this database version. Please see INSTALL.txt for further information');
+    $requirements['geoip_api_v1']['value'] = $t('Maxmind API v1 missing!');
+    $requirements['geoip_api_v1']['description'] = $message;
+    $requirements['geoip_api_v1']['severity'] = ($phase == 'runtime') ? REQUIREMENT_ERROR : REQUIREMENT_INFO;
+  }
+
+  if (variable_get('geoip_db_version', 2) == 2 && empty($library_v2['installed']) && empty($library_v2_phar['installed'])) {
+    $requirements['geoip_api_v2'] = array(
+      'title' => $t('GeoIP Library V2'),
+    );
+    $message = $t('Maxmind API v2 not found. You need to install the API in order to use this module with this database version. Please see INSTALL.txt for further information');
+    $requirements['geoip_api_v2']['value'] = $t('Maxmind API v2 missing!');
+    $requirements['geoip_api_v2']['description'] = $message;
+    $requirements['geoip_api_v2']['severity'] = ($phase == 'runtime') ? REQUIREMENT_ERROR : REQUIREMENT_INFO;
+  }
+
+  $database_link = 'http://dev.maxmind.com/geoip/geoip2/geolite2/#Downloads';
+  if (variable_get('geoip_db_version', 2) == 1) {
+    $database_link = 'http://dev.maxmind.com/geoip/legacy/downloadable/';
+  }
+
+  if (!($file = variable_get('geoip_data_file')) || !file_exists($file)) {
+    if ($phase == 'runtime') {
+      $requirements['geoip_database']['value'] = $t('Missing');
+      $requirements['geoip_database']['description'] = $t('The GeoIP database file is missing or not configured. Download the latest file at <a href="@url">Maxmind.com</a>.', array('@url' => $database_link));
+      $requirements['geoip_database']['severity'] = ($phase == 'runtime') ? REQUIREMENT_ERROR : REQUIREMENT_INFO;
+    }
+  }
+  else {
+    $mtime = filemtime($file);
+    if ($mtime < strtotime('1 months ago')) {
+      $requirements['geoip_database']['value'] = $t('Out of date!');
+      $requirements['geoip_database']['description'] = $t('The GeoIP database file is more than a month old. Download the latest file at <a href="@url">Maxmind.com</a>.', array('@url' => $database_link));
+      $requirements['geoip_database']['severity'] = REQUIREMENT_WARNING;
+    }
+    else {
+      $requirements['geoip_database']['value'] = $t('Installed and up to date.');
+    }
+  }
+
+  return $requirements;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function geoip_uninstall() {
+  // Delete the variable with the path to the database.
+  variable_del('geoip_data_file');
+  variable_del('geoip_debug');
+  variable_del('geoip_db_version');
+}

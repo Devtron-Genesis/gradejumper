@@ -1,0 +1,446 @@
+<?php
+
+/**
+ * Module by Computerminds http://www.computerminds.co.uk Jan 2007
+ *
+ * Upgraded to Drupal 5 with contributions from maartenvg
+ * PostgreSQL support added by jaydub
+ * Upgraded to Drupal 6 by jaydub
+ * Upgraded to Drupal 7 by jaydub
+ *
+ * This module is to remind users who have signed up a user account,
+ * but have never signed in. It's driven by the cron job and can be
+ * configured under "/admin/config/people/account_reminder" .
+ *
+ */
+
+/**
+ * Implements hook_help().
+ */
+function account_reminder_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#account_reminder':
+      return '<p>' . t('The account reminder module is designed to allow a site to communicate with users who have registered for an account at the site but have never logged in. If after a configurable number of days after a user registers the user has not yet logged in, this module will send them a reminder email. After a configurable number of days after the first reminder email if the user still has not logged in, a subsequent email reminder is sent. A cap to the number of reminder emails is also a configurable setting.') . '</p>';
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function account_reminder_permission() {
+  return array(
+    'administer account reminder' => array(
+      'title' => t('Administer Account Reminder'),
+      'description' => t('Configure settings for Account Reminder'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function account_reminder_menu() {
+  $items = array();
+
+  $items['admin/config/people/account_reminder'] = array(
+    'title' => 'Account Reminder',
+    'description' => 'Settings for Account Reminder module, sets reminder frequency and mail details',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('account_reminder_settings'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer account reminder'),
+  );
+  $items['account-reminder'] = array(
+    'title' => 'Unsubscribe',
+    'page callback' => 'account_reminder_unsubscribe',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK
+  );
+
+  return $items;
+}
+
+/**
+ * Account Reminder configuration settings page
+ * callback at path admin/config/people/account_reminder 
+ */
+function account_reminder_settings() {
+  $form = array();
+
+  $form['enable'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Enable / Disable'),
+  );
+  $form['enable']['account_reminder_enable'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable sending of Account Reminder emails'),
+    '#description' => t('Check to enable the sending out of reminder emails on cron. Sending is disabled by default in order to allow time for configuration of the email settings and copy before sending out to users.'),
+    '#default_value' => variable_get('account_reminder_enable', FALSE),
+  );
+
+  $form['frequency'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Reminder frequency'),
+  );
+  $form['frequency']['account_reminder_initial'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Days till initial reminder'),
+    '#description' => t('The time span (in days) between the user registering and the initial reminder being sent.'),
+    '#default_value' => variable_get('account_reminder_initial', 10),
+    '#size' => 10,
+  );
+  $form['frequency']['account_reminder_frequency'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Days between reminders'),
+    '#description' => t('The time (in days) between subsequent reminders.'),
+    '#default_value' => variable_get('account_reminder_frequency', 14),
+    '#size' => 10,
+  );
+  $form['frequency']['account_reminder_total'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Total number of reminders'),
+    '#description' => t("Total number of reminders to send to a user if they have not logged in. If they do not login after the reminder has been sent out this many times, no further mails will be sent out."),
+    '#default_value' => variable_get('account_reminder_total', 3),
+    '#size' => 10,
+  );
+  $form['frequency']['account_reminder_cronlimit'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of reminders sent per cron run'),
+    '#description' => t('The maximum number of account reminder emails sent per cron run. Enter 0 to send all account reminder emails.'),
+    '#default_value' => variable_get('account_reminder_cronlimit', 100),
+    '#size' => 10,
+  );
+
+  $form['mail'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Reminder email details'),
+  );
+  $form['mail']['account_reminder_bcc'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Bcc email address'),
+    '#description' => t('If you wish to receive a copy of all account reminder emails, enter an email address to Bcc.'),
+    '#default_value' => variable_get('account_reminder_bcc', ''),
+    '#size' => 40,
+  );
+  $form['mail']['account_reminder_subject'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email subject'),
+    '#default_value' => account_reminder_mail_text('subject', NULL, array(), FALSE),
+    '#description' => t('The subject of the account reminder email.  The placeholders [user:name] and [site:name] will be replaced by the username and the site name.'),
+  );
+  $form['mail']['account_reminder_msg'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Email body'),
+    '#default_value' => account_reminder_mail_text('msg', NULL, array(), FALSE),
+    '#description' => t('Customize the body of the account reminder email.  The placeholders [user:name] and [site:name] will be replaced by the username and the site name. [site:login-url], [user:one-time-login-url] (the one time login link) and [account_reminder:unsubsribe-url] (A URL allowing users to opt-out of recieving the reminder emails) will be replaced by the relevant URL.'),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Account Reminder configuration settings form validation
+ */
+function account_reminder_settings_validate($form, &$form_state) {
+  if (!is_numeric($form_state['values']['account_reminder_initial'])) {
+    form_set_error('account_reminder_initial', t('You must enter a number for "Days till initial reminder".'));
+  }
+  if (!is_numeric($form_state['values']['account_reminder_frequency'])) {
+    form_set_error('account_reminder_frequency', t('You must enter a number for "Days between reminders".'));
+  }
+  if (!is_numeric($form_state['values']['account_reminder_total'])) {
+    form_set_error('account_reminder_total', t('You must enter a number for "Total number of reminders".'));
+  }
+  if (!is_numeric($form_state['values']['account_reminder_cronlimit'])) {
+    form_set_error('account_reminder_cronlimit', t('You must enter a number for "Number of reminders sent per cron run".'));
+  }
+  if (!empty($form_state['values']['account_reminder_bcc']) && !valid_email_address($form_state['values']['account_reminder_bcc'])) {
+    form_set_error('account_reminder_bcc', t('You must enter a valid email address.'));
+  }
+}
+
+/**
+ * Implements hook_variable_info().
+ */
+function account_reminder_variable_info($options) {
+  $type['account_reminder_subject'] = array(
+    'type' => 'string',
+    'title' => t('Account Reminder email subject', array(), $options),
+    'default' => account_reminder_mail_text('subject', NULL, array(), FALSE),
+    'description' => t('The subject of the account reminder email.  The placeholders [user:name] and [site:name] will be replaced by the username and the site name.', array(), $options),
+    'localize' => TRUE,
+  );
+
+  $type['account_reminder_msg'] = array(
+    'type' => 'string',
+    'title' => t('Account Reminder email body', array(), $options),
+    'default' => account_reminder_mail_text('msg', NULL, array(), FALSE),
+    'description' => t('Customize the body of the account reminder email.  The placeholders [user:name] and [site:name] will be replaced by the username and the site name. [site:login-url], [user:one-time-login-url] (the one time login link) and [account_reminder:unsubsribe-url] (A URL allowing users to opt-out of recieving the reminder emails) will be replaced by the relevant URL.', array(), $options),
+    'localize' => TRUE,
+  );
+
+  return $type;  
+}
+
+/**
+ * Implements hook_user_operations().
+ */
+function account_reminder_user_operations() {
+  $operations = array(
+    'resend_reminder_email' => array(
+      'label' => t('Resend account reminder email'),
+      'callback' => 'account_reminder_resend_reminder_email',
+    ),
+    'cancel_reminder_email' => array(
+      'label' => t('Cancel account reminder email'),
+      'callback' => 'account_reminder_cancel_reminder_email',
+    ),
+  );
+
+  return $operations;
+}
+
+/**
+ * hook_user_operations callback function.
+ * 
+ * Selected users are marked to no longer receive any
+ * account reminder emails.
+ */
+function account_reminder_cancel_reminder_email($uids) {
+  foreach ($uids as $uid) {
+    db_merge('account_reminder')
+      ->key(array('uid' => $uid))
+      ->fields(array(
+          'msg_cnt' => -1,
+          'last_reminder' => REQUEST_TIME,
+        ))
+      ->execute();
+  }
+}
+
+/**
+ * hook_user_operations callback function.
+ * 
+ * Selected users are resent an account reminder email.
+ * The resending of the account reminder email does not
+ * increment the current count of reminder messages
+ * sent to a given user if the user has already received
+ * a reminder email (msg_cnt field of account_reminder table).
+ */
+function account_reminder_resend_reminder_email($uids) {
+  foreach ($uids as $uid) {
+    $user = user_load($uid);
+    account_reminder_send_email($user);
+  }
+}
+
+/**
+ * Implements hook_user_cancel().
+ *
+ * Delete the user from the account reminder table if the user is cancelled
+ */
+function account_reminder_user_cancel($edit, $account, $method) {
+  switch ($method) {
+    case 'user_cancel_block':
+    case 'user_cancel_block_unpublish':
+    case 'user_cancel_reassign':
+      db_delete('account_reminder')
+        ->condition('uid', $account->uid)
+        ->execute();
+      break;
+  }
+}
+
+/**
+ * Implement hook_user_delete().
+ *
+ * Delete the user from the account reminder table if the user is deleted
+ */
+function account_reminder_user_delete($account) {
+  db_delete('account_reminder')
+    ->condition('uid', $account->uid)
+    ->execute();
+}
+
+/**
+ * Implements hook_cron().
+ */
+function account_reminder_cron() {
+  if (!variable_get('account_reminder_enable', FALSE)) {
+    return;
+  }
+
+  // Remove users who have signed up from the reminder table...
+  $subquery = db_select('users', 'u');
+  $subquery->fields('u', array('uid'));
+  $subquery->condition('login', 0, '<>')
+    ->condition('uid', 0, '<>')
+    ->condition('status', 1);
+
+  db_delete('account_reminder')
+    ->condition('uid', $subquery, 'IN')
+    ->execute();
+
+  $count = 0;
+  $first_wait = variable_get('account_reminder_initial', 10);
+  $period = variable_get('account_reminder_frequency', 14);
+  $total_messages = variable_get('account_reminder_total', 3);
+  $cronlimit = variable_get('account_reminder_cronlimit', 100);
+
+  // Add users to the account_reminder table who are not already
+  $result = db_query('SELECT u.*, COALESCE(ar.msg_cnt, 0) AS msg_cnt, COALESCE(ar.last_reminder, :time) AS last_reminder FROM {users} u LEFT JOIN {account_reminder} ar ON u.uid = ar.uid WHERE u.login = 0 AND u.uid <> 0 AND u.status = 1', array(':time' => REQUEST_TIME));
+  while (($cronlimit == 0 || $count < $cronlimit) && $row = $result->fetchObject()) {
+    if ( ($row->msg_cnt == 0 && (($row->created + (86400 * $first_wait)) < REQUEST_TIME))
+      || (((int)((REQUEST_TIME - $row->last_reminder) / 86400)) >= $period && ($row->msg_cnt >= 0 && ($row->msg_cnt < $total_messages))) ) {
+      $user = user_load($row->uid);
+      account_reminder_send_email($user);
+      db_merge('account_reminder')
+        ->key(array('uid' => $row->uid))
+        ->fields(array(
+          'last_reminder' => REQUEST_TIME,
+          'msg_cnt' => $row->msg_cnt + 1,
+        ))
+        ->execute();
+      $count++;
+    }
+  }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function account_reminder_mail($key, &$message, $params) {
+  $language = $message['language'];
+  $account = $params['account'];
+  $context = $params['context'];
+
+  $account_reminder = new stdClass();
+  $account_reminder->url = $context['url'];
+
+  $variables = array(
+    'account_reminder' => $account_reminder,
+    'user' => $account,
+  );
+
+  $message['subject'] = account_reminder_mail_text('subject', $language, $variables);
+  $message['body'][] = account_reminder_mail_text('msg', $language, $variables);
+
+  if (isset($params['headers']['Bcc'])) {
+    $message['headers']['Bcc'] = $params['headers']['Bcc'];
+  }
+}
+
+/**
+ * Produce the URL for users to "just say no"
+ */
+function account_reminder_unsubscribe_url($user) {
+  return url('account-reminder/' . $user->uid . '/' . md5($user->uid . $user->pass . drupal_get_private_key()), array('absolute' => TRUE));
+}
+
+/**
+ * This user does not want us spamming them any more!
+ */
+function account_reminder_unsubscribe($uid, $hash) {
+  $account = user_load($uid);
+  if ($hash == md5($uid . $account->pass . drupal_get_private_key())) {
+    db_update('account_reminder')
+      ->fields(array('msg_cnt' => -1))
+      ->condition('uid', $uid)
+      ->execute();
+    drupal_set_message(t('Account reminder emails successfully cancelled'));
+    drupal_goto();
+  }
+  else{
+    drupal_set_message(t("invalid account reminder email unsubscription URL"));
+    drupal_goto();
+  }
+}
+
+/**
+ * Build and send the account reminder email out.
+ */
+function account_reminder_send_email($user) {
+  $params = array();
+  $params['account'] = $user;
+  $params['context']['url'] = account_reminder_unsubscribe_url($user);
+
+  $bcc = variable_get('account_reminder_bcc', '');
+  $params['headers'] = array();
+  if ($bcc) {
+    $params['headers']['Bcc'] = $bcc;
+  }
+
+  $message = drupal_mail('account_reminder', 'account_reminder_email', $user->mail, user_preferred_language($user), $params);
+  if ($message['result']) {
+    watchdog('account_reminder', 'Reminder email sent to !user at !email.', array('!user' => $user->name, '!email' => $user->mail));
+  }
+}
+
+/**
+ * Returns an email subject or body string.
+ *
+ * Used by account_reminder_send_mail() and the settings forms to retrieve strings.
+ */
+function account_reminder_mail_text($key, $language = NULL, $variables = array(), $replace = TRUE) {
+  $langcode = isset($language) ? $language->language : NULL;
+
+  if (module_exists('i18n_variable') && $langcode) {
+    $admin_setting = i18n_variable_get('account_reminder_'. $key, $langcode);
+  }
+  else {
+    $admin_setting = variable_get('account_reminder_' . $key, FALSE);
+  }
+
+  if ($admin_setting) {
+    $text = $admin_setting;
+  }
+  else {
+    switch ($key) {
+      case 'subject':
+        $text = t('Account details for [user:name] at [site:name]', array(), array('langcode' => $langcode));
+        break;
+      case 'msg':
+        $text = t('[user:name],
+
+This is a reminder from [site:name]. You have registered for a user account but have not yet validated your email address. To fully activate your account at [site:login-url] login using the following username and the password you signed up with:
+
+username: [user:name]
+password: Your password
+
+You may also log in by clicking on this link or copying and pasting it in your browser:
+
+[user:one-time-login-url]
+
+This is a one-time login, so it can be used only once.
+
+
+--  [site:name] team
+
+You can stop receiving these reminder emails by either activating your account, or using the unsubscribe link below:
+
+[account_reminder:unsubscribe-url]', array(), array('langcode' => $langcode));
+        break;
+    }
+  }
+
+  if ($replace) {
+    // We do not sanitize the token replacement, since the output of this
+    // replacement is intended for an e-mail message, not a web browser.
+    return token_replace($text, $variables, array('language' => $language, 'callback' => 'account_reminder_mail_tokens', 'sanitize' => FALSE));
+  }
+
+  return $text;
+}
+
+/**
+ * Generate the tokens for the reminder emails
+ */
+function account_reminder_mail_tokens(&$replacements, $data, $options) {
+  // Add any core mail tokens
+  user_mail_tokens($replacements, $data, $options);
+
+  if (isset($data['account_reminder'])) {
+    $replacements['[account_reminder:unsubscribe-url]'] = $data['account_reminder']->url;
+  }
+}
+

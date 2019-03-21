@@ -1,0 +1,7 @@
+name = Search & SEO pages
+description = Search & SEO pages
+core = 7.x
+package = "GJ Dean Hopkins"
+dependencies[] = term_ref_autocomplete
+files[] = gj_deanhopkins_search.install
+files[] = gj_deanhopkins_search.module

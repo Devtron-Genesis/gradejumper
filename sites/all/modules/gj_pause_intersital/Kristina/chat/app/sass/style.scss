@@ -1,0 +1,11 @@
+@import 'variables';
+@import 'mixins';
+
+//Блоки
+@import '../blocks/chat/chat';
+@import '../blocks/greeting/greeting';
+@import '../blocks/connected/connected';
+
+body{
+  background: #fafafa;
+}

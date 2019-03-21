@@ -1,0 +1,11 @@
+name = Minify Source HTML
+description = Minify the contents of the Drupal page
+package = "Performance and scalability"
+core = 7.x
+
+configure = admin/config/development/performance
+; Information added by Drupal.org packaging script on 2018-05-01
+version = "7.x-1.3"
+core = "7.x"
+project = "minifyhtml"
+datestamp = "1525194787"

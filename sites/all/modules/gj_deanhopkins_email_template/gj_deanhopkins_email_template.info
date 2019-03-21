@@ -1,0 +1,6 @@
+name = GradeJumpers Email Template
+description = Provides get_email_header and get_email_footer. Defines mail template.
+core = 7.x
+package = "GJ Dean Hopkins"
+files[] = gj_deanhopkins_email_template.install
+files[] = gj_deanhopkins_email_template.module

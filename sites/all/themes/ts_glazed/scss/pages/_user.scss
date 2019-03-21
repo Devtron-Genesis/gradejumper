@@ -1,0 +1,109 @@
+.page-user-login,
+.page-user-register {
+
+  // hide page nav-tabs
+  .nav-tabs {
+    display: none;
+  }
+
+  // main container
+  .main-container {
+    padding-top: 70px;
+    padding-bottom: 70px;
+
+    @media (max-width: $screen-xs-max) {
+      padding-top: 33px !important;
+      padding-left: 40px;
+      padding-right: 40px;
+    }
+
+    @extend .container;
+  }
+
+  // page title
+  .page-header {
+    display: none;
+  }
+
+  h3 {
+    display: none;
+  }
+
+  // form wrapper
+  .stand-alone-registration-just-form {
+    max-width: 300px;    
+    @include center-block;
+  }
+  
+  // form
+  form {
+    text-align: center;
+
+    .form-group {
+
+      &[class*="col-sm"] {
+        width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+
+      & > label {
+        display: none;
+      }
+    }
+
+    fieldset {
+      border: 0 none;
+      border-radius: 0;
+      padding: 0;
+      background: none;
+      box-shadow: none;
+
+      legend {
+        display: none;
+      }
+
+      .panel-body {
+        padding: 0;
+      }
+    }
+
+    .form-type-radio {
+      display: inline-block;
+      padding-left: 20px;
+    }
+
+    .form-submit {
+      display: block;
+      width: 100%;
+      max-width: 240px;
+      margin: 30px auto 20px auto;
+      @extend .btn-md;
+      @extend .btn-primary;
+
+      @media (max-width: $screen-xs-max) {
+        max-width: none;
+      }
+
+      .icon {
+        display: none;
+      }
+    }
+
+    a {
+      text-decoration: underline;
+    }
+
+    .login-links {
+      margin: 15px 0;
+    }
+
+    .help-block {
+      display: none !important;
+    }
+
+    .form-control-feedback {
+      top: 0;
+    }
+  }
+}

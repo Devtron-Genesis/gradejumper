@@ -1,0 +1,19 @@
+name = Profanity
+description = Provides an input format filter and also rule condition for detecting profanity or banned words.
+core = 7.x
+
+package = Other
+
+dependencies[] = entity
+dependencies[] = ctools
+
+files[] = profanity.views.inc
+
+configure = admin/config/content/profanity
+
+; Information added by Drupal.org packaging script on 2015-01-03
+version = "7.x-1.1+2-dev"
+core = "7.x"
+project = "profanity"
+datestamp = "1420319281"
+

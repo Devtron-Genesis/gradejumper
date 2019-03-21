@@ -1,0 +1,11 @@
+name = Maintenance Mode Redirect
+description = Redirect site visitors to another URL when Maintenance Mode is enabled.
+core = 7.x
+configure = admin/config/development/maintenance
+
+; Information added by Drupal.org packaging script on 2017-02-13
+version = "7.x-1.0-alpha3"
+core = "7.x"
+project = "maintenance_mode_redirect"
+datestamp = "1486957387"
+

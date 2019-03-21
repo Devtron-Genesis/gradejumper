@@ -1,0 +1,60 @@
+<?php
+
+/* @TODO FILE TO BE EMPTIED AFTER DEVELOPMENT */
+
+
+function gj_dh_proactive_response_templates_menu(){
+    $items['dev_respond_search_request'] = array(
+        'title' => '',
+        'page callback' => 'dev_respond_search_request_callback',
+        'access arguments' => array('access content'),
+    );
+
+
+    $items['dev_tutoring_requests'] = array(
+        'title' => '',
+        'page callback' => 'dev_tutoring_requests_callback',
+        'access arguments' => array('access content'),
+    );
+
+
+    $items['dev_proactive_responses'] = array(
+        'title' => '',
+        'page callback' => 'dev_proactive_responses_callback',
+        'access arguments' => array('access content'),
+    );
+
+    $items['dev_proactive_response'] = array(
+        'title' => '',
+        'page callback' => 'dev_proactive_response_callback',
+        'access arguments' => array('access content'),
+    );
+
+    return $items;
+}
+
+function dev_respond_search_request_callback(){
+    module_load_include('inc', 'gj_dh_proactive_response', 'gj_dh_proactive_response.form');
+    drupal_add_css(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/css/gj_dh_proactive_response.css");
+    $form = drupal_get_form('gj_dh_tutoring_request_form');
+    return theme('gj_dh_respond_search_request', array('form' => $form));
+}
+
+function dev_tutoring_requests_callback(){
+    $matching_requests = array("1" - "one", "2", - "two");
+    $applied_requests = array("1" - "one", "2", - "two");
+    drupal_add_css(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/css/gj_dh_proactive_response.css");
+    return theme('gj_dh_tutoring_requests', array('open_requests' => $matching_requests, 'applied_requests' => $applied_requests));
+}
+
+function dev_proactive_responses_callback(){
+    $search_requests = array("1" - "one", "2", - "two");
+    drupal_add_css(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/css/gj_dh_proactive_response.css");
+    return theme('gj_dh_proactive_responses', array('search_requests' => $search_requests));
+}
+
+function dev_proactive_response_callback(){
+    $responses = array("1" - "one", "2", - "two");
+    drupal_add_css(drupal_get_path("module", "gj_dh_proactive_response_templates"). "/css/gj_dh_proactive_response.css");
+    return theme('gj_dh_proactive_response', array('responses' => $responses));
+}

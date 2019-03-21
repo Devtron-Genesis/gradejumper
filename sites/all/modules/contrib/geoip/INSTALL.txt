@@ -1,0 +1,45 @@
+Database Files
+--------------------
+Before using this module, you will need to:
+
+1. Enable this module as usual.
+
+2. Install one of the Maxmind php API:
+   - GeoIP2 [https://github.com/maxmind/GeoIP2-php]:
+     -- # Composer (https://getcomposer.org/download/):
+          Install the library using composer in sites/all/libraries/GeoIP2-php
+          *nix Commands:
+            mkdir [path_to_drupal]/sites/all/libraries/GeoIP2-php
+            cd [path_to_drupal]/sites/all/libraries/GeoIP2-php
+            curl -sS https://getcomposer.org/installer | php
+            php composer.phar require geoip2/geoip2:~2.0
+
+     -- # phar package:
+          Download the latest phar package:
+          https://github.com/maxmind/GeoIP2-php/releases
+          Place the file geoip2.phar here:
+          sites/all/libraries/GeoIP2-phar/geoip2.phar
+
+   - Legacy [https://github.com/maxmind/geoip-api-php]:
+   -- Download from https://github.com/maxmind/geoip-api-php
+   -- Extract to sites/all/libraries/geoip-api-php
+      Make sure you've a path like sites/all/libraries/geoip-api-php/src
+
+3. Download one of the GeoLite database files (matching the API):
+   - GeoIP2: http://dev.maxmind.com/geoip/geoip2/geolite2/#Downloads
+   - Legacy: http://dev.maxmind.com/geoip/legacy/downloadable/
+
+4. Create the directory 'sites/all/libraries/geoip' and extract the database
+   file into this directory.
+   You can use other locations too e.g. to share a database with varnish or
+   other tools - to do so you can configure the path to the database to use in
+   the module configuration (admin/config/system/geoip).
+
+5. Profit!
+
+Updates
+--------------------
+Both of the Lite databases are updated monthly. The module will prompt
+administrators to update if the timestamp on the data file is older than one
+month. Simply replace the database file(s) with the latest one from the Maxmind
+site.

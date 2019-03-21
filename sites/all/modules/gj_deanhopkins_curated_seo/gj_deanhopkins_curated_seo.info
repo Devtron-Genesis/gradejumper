@@ -1,0 +1,9 @@
+name = GJ Curated SEO Pages
+description = GJ Curated SEO Pages
+core = 7.x
+package = "GJ Dean Hopkins"
+dependencies[] = gj_deanhopkins_search
+dependencies[] = email
+dependencies[] = hierarchical_select
+files[] = gj_deanhopkins_curated_seo.install
+files[] = gj_deanhopkins_curated_seo.module

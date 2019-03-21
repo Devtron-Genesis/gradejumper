@@ -1,0 +1,284 @@
+<?php
+
+define("REG_REDIRECT_COOKIE", "gj_registration_redirect");
+
+/************************************************************
+ * gj_registration_redirect_menu                             *
+ ************************************************************
+ * Description: Register menu hooks. Implements hook_menu() *
+ * Arguments:                                               *
+ * Return:      $items                                      *
+ ************************************************************
+ * Author:      Robin Fairless                              *
+ * Date:        2018-12-17                                  *
+ ************************************************************/
+function gj_registration_redirect_menu() {
+    $items['tc_redirect'] = array(
+      'title' => '',
+      'page callback' => 'gj_registration_redirect',
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+    );
+
+    $items['parent_query/%'] = array(
+      'title' => '',
+      'page callback' => 'gj_parent_query',
+      'page arguments' => array(1),
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+    );
+
+    $items['parent_reg/%ctools_js/%'] = array(
+     'title' => 'My first ctools modal window',
+     'page arguments' => array(1,2),
+     'page callback' => 'ctools_modal_page',
+     'access callback' => TRUE,
+     'type' => MENU_NORMAL_ITEM,
+    );
+
+    $items['rpf_ajax_sample'] = array(
+      'title' => 'Ctools Login Form Popup',
+      'page callback' => 'rpf_ajax_sample_page',
+      'access callback' => TRUE,
+      'type' => MENU_NORMAL_ITEM,
+    );
+
+  return $items;
+}
+
+function ctools_modal_page($js = NULL, $nid = 0) {
+
+  set_registration_redirect_cookie($nid);
+
+  $data = array();
+
+  if(isset($nid) && $nid > 0) {
+    $data['nid'] = $nid;
+  }
+  else {
+    drupal_goto("https://secure.tutorcruncher.com/gradejumpers/signup/tutor/");
+  }
+  drupal_add_css(drupal_get_path('module', 'gj_registration_redirect') . '/css/gj_registration_redirect.css');
+  $output = theme('gj_rr_parent_query_content', array('data' => $data ));
+
+    if ($js) {
+    // Required includes for ctools to work:
+    ctools_include('modal');
+    ctools_include('ajax');
+    return ctools_modal_render("", $output) ;
+  }
+  return $output;
+}
+
+/**
+ * Page callback to display login link.
+ */
+ function rpf_ajax_sample_page() {
+   // Required includes for ctools to work:
+   ctools_include('ajax');
+   ctools_include('modal');
+   ctools_modal_add_js();
+   $str = "";
+   $str = "Hi, this is my brand new page, created just to show ";
+   $str .= l("Ctools Login Form Link", "parent_reg/nojs/993", array(
+     "attributes" => array(
+     "class" => array(
+     "ctools-use-modal"
+      )
+     )
+    )
+   );
+   return $str;
+}
+
+function gj_registration_redirect() {
+  gj_registration_redirect_cookie();
+  $output = theme('gj_registration_redirect_content');
+  return $output;
+}
+
+function gj_parent_query($nid) {
+  // Set a cookie on the users PC. This will be used later for redirection purposes
+  set_registration_redirect_cookie($nid);
+
+  $data = array();
+
+  if(isset($nid) && $nid > 0) {
+    $data['nid'] = $nid;
+  }
+  drupal_add_css(drupal_get_path('module', 'gj_registration_redirect') . '/css/gj_registration_redirect.css');
+  $output = theme('gj_rr_parent_query_content', array('data' => $data ));
+  return $output;
+}
+
+function gj_registration_redirect_theme($existing, $type, $theme, $path) {
+    return array(
+      'gj_registration_redirect_content' => array(
+        'variables' => array('data' => NULL),
+        'template' => 'templates/gj_registration_redirect_content'
+      ),
+      'gj_rr_parent_query_content' => array(
+        'variables' => array('data' => NULL),
+        'template' => 'templates/gj_rr_parent_query_content'
+      ),
+    );
+}
+
+/************************************************************
+ * gj_registration_redirect_cookie                           *
+ ************************************************************
+ * Description: Redirct users if the user                   *
+ *               has a cookie set                           *
+ * Arguments:                                               *
+ * Return:      0 or nid of a tutor_ad from the cokkie      *
+ ************************************************************
+ * Author:      Robin Fairless                              *
+ * Date:        2018-12-17                                  *
+ ************************************************************/
+ function gj_registration_redirect_cookie() {
+   if(arg(0) == "tc_redirect") {
+     if(user_has_named_role("Tutor")) {
+       $nids = get_tutor_ads();
+       if(count($nids) > 0) {
+         $node = node_load($nids[0]->nid);
+         if($node->status == 1) {
+           // Node is published, redirect to messages
+           drupal_goto("messages");
+         }
+         else {
+           drupal_goto("tutor-application-submitted");
+         }
+       }
+       else {
+         //User does not have tutor_ad, therefore take them to the "Create Tutor Ad" pre_page
+         drupal_goto("node/add/tutor-ad");
+       }
+     }
+     elseif(user_has_named_role("Parent")) {
+       $cookie_nid = get_registration_redirect_nid();
+       if($cookie_nid > 0) {
+         /* REDIRECT USER TO NEW MESSAGE PAGE */
+         $node = node_load($cookie_nid);
+         drupal_goto(_get_message_url($node));
+       }
+       else {
+         // We don't have a valid node id here - just redirect to the base messaging page
+         drupal_goto("messages");
+       }
+     }
+     else {
+       //drupal_goto('https://secure.tutorcruncher.com/gradejumpers/login/');
+     }
+   }
+ }
+ /************************************************************
+  * get_registration_redirect_nid                            *
+  ************************************************************
+  * Description: Get cookie value from user, then delete the *
+  *               cookie                                     *
+  * Arguments:                                               *
+  * Return:      0 or nid of a tutor_ad from the cookie      *
+  ************************************************************
+  * Author:      Robin Fairless                              *
+  * Date:        2018-12-17                                  *
+  ************************************************************/
+function get_registration_redirect_nid() {
+  $nid = 0;
+
+  if(isset($_COOKIE[REG_REDIRECT_COOKIE])) {
+    $nid = $_COOKIE[REG_REDIRECT_COOKIE];
+  }
+
+  // Now set the cookie value to zero (just in case) AND set the expiry in the past so we don't redirect again
+  setcookie(REG_REDIRECT_COOKIE, 0, time() - 3600);
+
+  return $nid;
+}
+
+/************************************************************
+ * set_registration_redirect_cookie                         *
+ ************************************************************
+ * Description: Sets a cookie on the users machine          *
+ * Arguments:   Node Id                                     *
+ * Return:                                                  *
+ ************************************************************
+ * Author:      Robin Fairless                              *
+ * Date:        2018-12-17                                  *
+ ************************************************************/
+function set_registration_redirect_cookie($value) {
+  setcookie(REG_REDIRECT_COOKIE, $value);
+}
+
+/************************************************************
+ * get_tutor_ads                                            *
+ ************************************************************
+ * Description: Gets all tutor ad nids a user has           *
+ * Arguments:                                               *
+ * Return:      Array of nids                               *
+ ************************************************************
+ * Author:      Robin Fairless                              *
+ * Date:        2018-12-17                                  *
+ ************************************************************/
+function get_tutor_ads() {
+    global $user;
+    $query = array();
+    if(($user->uid > 0) && (user_has_named_role("Tutor"))) {
+        $query = db_query('SELECT n.nid FROM node AS n WHERE n.type = :tutor_ad AND n.uid = :uid', array(':tutor_ad' => 'tutor_ad', ':uid' => $user->uid))->fetchAll();
+    }
+    return $query;
+}
+
+/************************************************************
+ * user_has_named_role                                      *
+ ************************************************************
+ * Description: Checks to see if a user has a named role    *
+ * Arguments:   Role Name                                   *
+ *              user object
+ * Return:      TRUE/FALSE                                  *
+ ************************************************************
+ * Author:      Robin Fairless                              *
+ * Date:        2018-12-17                                  *
+ ************************************************************/
+function user_has_named_role($role_name, $user = NULL) {
+  if ($user == NULL) {
+    global $user;
+  }
+  $role = user_role_load_by_name($role_name);
+  if(user_has_role($role->rid, $user)) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+
+function generate_parent_sign_up_header_data($nid) {
+  $header_data = array();
+
+  $node = node_load($nid);
+  if(isset($node)) {
+    $header_data['tutor_image'] = get_tutor_ad_picture_uri($node);
+    $header_data['tutor_name'] = get_tutor_ad_first_name($node);;
+    /*$header_data['tutor_price'] = get_tutor_ad_lowest_price($node);*/
+    $header_data['tutor_stars'] = get_tutor_ad_star_rating_display($node);
+    $header_data['node_type'] = $node->type;
+  }
+  return $header_data;
+}
+
+function get_registration_redirect_firstname($nid) {
+  $retvalue = "";
+  $node = node_load($nid);
+  if(isset($node)) {
+    $retvalue = get_tutor_ad_first_name($node);
+  }
+  return $retvalue;
+}
+
+function format_parent_sign_up_header_lowest_price($price) {
+  $output = "<span class='gj_rr_parent_query_header_price_small'>From </span>£";
+  $output .= $price;
+  $output .= "<span class='gj_rr_parent_query_header_price_small'> /hr</span>";
+  return $output;
+}

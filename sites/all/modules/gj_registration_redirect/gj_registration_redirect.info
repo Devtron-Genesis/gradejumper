@@ -1,0 +1,7 @@
+name = GJ Registration Redirect
+description = Handles the redirection of pages on GJ when arriving from TutorCruncher.
+package = GJ eTalentPool
+core = 7.x
+version = "7.x-1.0"
+core = "7.x"
+project = "GJ eTalentPool"

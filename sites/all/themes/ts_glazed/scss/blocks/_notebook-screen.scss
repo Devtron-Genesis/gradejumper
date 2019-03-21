@@ -1,0 +1,22 @@
+.wrap-screen-block {
+  // width: 742px;
+  // height: 395px;
+  // padding: 32px 132px 64px;
+  background: url('../assets/img/mackbook.png') 50% 50% no-repeat;
+  background-size: cover;
+
+  @media (min-width: $screen-sm-min) and (max-width: $screen-sm-max) {
+    margin-top: 40px;
+  }
+
+  @media (max-width: $screen-xs-max) {
+    margin-top: 55px;
+    // width: 260px;
+    // height: 138px;
+    // padding: 11px 46px 22px;
+  }
+
+  iframe {
+    padding: 4.312% 15.789% 8.624%;
+  }
+}

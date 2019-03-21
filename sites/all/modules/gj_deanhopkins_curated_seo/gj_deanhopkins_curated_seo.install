@@ -1,0 +1,437 @@
+<?php
+
+/*******************************************************************
+ * gj_deanhopkins_curated_seo_install                              *
+ *******************************************************************
+ * Description: Implements hook_install()                          *
+ *              -Refresh content types (to register our new type)  *
+ *              -Create content type fields                        *
+ * Arguments:                                                      *
+ * Return:                                                         *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        2019-02-08                                         *
+ *******************************************************************/
+function gj_deanhopkins_curated_seo_install() {
+    _create_parent_search_request_content_type();
+    _create_parent_search_request_fields();
+}
+
+/*******************************************************************
+ * gj_deanhopkins_curated_seo_uninstall                            *
+ *******************************************************************
+ * Description: Implements hook_install()                          *
+ *              -Delete node type                                  *
+ *              -Delete node type fields                           *
+ * Arguments:                                                      *
+ * Return:                                                         *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        2019-02-08                                         *
+ *******************************************************************/
+function gj_deanhopkins_curated_seo_uninstall() {
+    /*
+    $node_type = 'parent_search_request';
+    node_type_delete($node_type);
+    delete_parent_search_request_fields();
+    */
+}
+
+/********************************************************************
+ * gj_deanhopkins_curated_seo_schema                                *
+ ********************************************************************
+ * Description: Implements hook_schema()                            *
+ *              Create gj_seo_curated_subjects table                *
+ *              Fields: tax_sub_lev_tid (pk), show_curated_page     *
+ * Arguments:                                                       *
+ * Return:      $schema                                             *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-02-08                                          *
+ ********************************************************************/
+function gj_deanhopkins_curated_seo_schema() {
+    $schema['gj_seo_curated_subjects'] = array(
+        'description' => 'Manually choose subjects for which to show curated SEO page.',
+        'fields' => array(
+            'tax_sub_lev_tid' => array(
+                'type' => 'int',
+                'unsigned' => TRUE,
+                'not null' => TRUE,
+                'description' => 'Taxonomy Subject Levels TID',
+            ),
+            'show_curated_page' => array(
+                'type' => 'int',
+                'not null' => TRUE,
+                'description' => '1 if show curated page',
+            ),
+        ),
+        'primary key' => array('tax_sub_lev_tid'),
+    );
+
+    return $schema;
+}
+
+/*******************************************************************
+ * gj_deanhopkins_curated_seo_create_content_type                     *
+ *******************************************************************
+ * Description: Rebuild node types to register our own defined in  *
+ *              module.                                            *
+ * Arguments:                                                      *
+ * Return:                                                         *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        2019-02-08                                         *
+ *******************************************************************/
+function _create_parent_search_request_content_type(){
+    node_types_rebuild();
+    $types = node_type_get_types();
+}
+
+/*******************************************************************
+ * _create_parent_search_request_fields                            *
+ *******************************************************************
+ * Description: Create field bases and instances attached to       *
+ *              content type / node                                *
+ * Arguments:                                                      *
+ * Return:                                                         *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        2019-02-08                                         *
+ *******************************************************************/
+function _create_parent_search_request_fields() {
+    foreach (_get_parent_search_request_field_bases() as $field) {
+        field_create_field($field);
+    }
+    foreach (_get_parent_search_request_field_instances() as $fieldinstance) {
+        $fieldinstance['entity_type'] = 'node';
+        $fieldinstance['bundle'] = 'parent_search_request';
+        print_r($fieldinstance);
+        field_create_instance($fieldinstance);
+    }
+}
+
+/*******************************************************************
+ * _get_parent_search_request_field_bases                          *
+ *******************************************************************
+ * Description: Generate field base data for content type          *
+ * Arguments:                                                      *
+ * Return:      Array of field bases                               *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        2019-02-08                                         *
+ *******************************************************************/
+function _get_parent_search_request_field_bases() {
+    $t = get_t();
+    return array(
+        'field_search_request_first_name' => array(
+            'field_name' => 'field_search_request_first_name',
+            'label' => $t('First Name'),
+            'type' => 'text',
+            'weight' => 1,
+        ),
+        'field_search_request_last_name' => array(
+            'field_name' => 'field_search_request_last_name',
+            'label' => $t('Last Name'),
+            'type' => 'text',
+            'weight' => 2
+        ),
+        'field_search_request_email' => array(
+            'field_name' => 'field_search_request_email',
+            'label' => $t('Email'),
+            'module' => 'email',
+            'type' => 'email',
+            'translatable' => 0,
+            'weight' => 3
+        ),
+        'field_search_request_phone' => array(
+            'field_name' => 'field_search_request_phone',
+            'label' => $t('Phone Number'),
+            'type' => 'text',
+            'weight' => 4
+        ),
+        'field_search_request_subject' => array(
+            'field_name' => 'field_search_request_subject',
+            'label' => $t('Subject'),
+            'type' => 'text',
+            'weight' => 5
+        ),
+        'field_search_request_level' => array(
+            'field_name' => 'field_search_request_level',
+            'label' => $t('Level'),
+            'type' => 'text',
+            'weight' => 6
+        ),
+        'field_search_request_tid' => array(
+            'field_name' => 'field_search_request_tid',
+            'label' => $t('Subject/Level Tid'),
+            'module' => 'number',
+            'type' => 'number_integer',
+            'weight' => 7
+        ),
+
+    );
+}
+
+/***********************************************************************
+ * _get_parent_search_request_field_instances                          *
+ ***********************************************************************
+ * Description: Generate field instance data for tutor ad content type *
+ * Arguments:                                                          *
+ * Return:      Array of field instances                               *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-02-08                                             *
+ ***********************************************************************/
+function _get_parent_search_request_field_instances() {
+    $t = get_t();
+    return array(
+        'field_search_request_first_name' => array(
+            'field_name' => 'field_search_request_first_name',
+            'type' => 'text',
+            'label' => $t('First Name'),
+            'widget' => array(
+                'type' => 'text_textfield'
+            ),
+            'required' => TRUE,
+            'weight' => 1
+        ),
+        'field_search_request_last_name' => array(
+            'field_name' => 'field_search_request_last_name',
+            'type' => 'text',
+            'label' => $t('Last Name'),
+            'widget' => array(
+                'type' => 'text_textfield'
+            ),
+            'required' => TRUE,
+            'weight' => 2
+        ),
+        'field_search_request_email' => array(
+            'field_name' => 'field_search_request_email',
+            'type' => 'text',
+            'label' => $t('Email'),
+            'display' => array(
+                'default' => array(
+                    'label' => 'above',
+                    'module' => 'email',
+                    'settings' => array(
+                        'field_formatter_class' => '',
+                    ),
+                    'type' => 'email_default',
+                ),
+                'teaser' => array(
+                    'label' => 'above',
+                    'settings' => array(),
+                    'type' => 'hidden',
+                ),
+            ),
+            'settings' => array(
+                'user_register_form' => FALSE,
+            ),
+            'widget' => array(
+                'module' => 'html5_tools',
+                'settings' => array(),
+                'type' => 'emailwidget',
+                'weight' => 32,
+            ),
+            'weight' => 3,
+            'required' => TRUE
+        ),
+        'field_search_request_phone' => array(
+            'field_name' => 'field_search_request_phone',
+            'type' => 'text',
+            'label' => $t('Phone Number'),
+            'widget' => array(
+                'type' => 'text_textfield'
+            ),
+            'weight' => 4,
+            'required' => FALSE
+        ),
+        'field_search_request_subject' => array(
+            'field_name' => 'field_search_request_subject',
+            'type' => 'text',
+            'label' => $t('Subject'),
+            'widget' => array(
+                'type' => 'text_textfield'
+            ),
+            'required' => TRUE
+        ),
+        'field_search_request_level' => array(
+            'field_name' => 'field_search_request_level',
+            'type' => 'text',
+            'label' => $t('Level'),
+            'widget' => array(
+                'type' => 'text_textfield'
+            ),
+            'weight' => 5,
+            'required' => FALSE
+        ),
+        'field_search_request_tid' => array(
+            'field_name' => 'field_search_request_tid',
+            'type' => 'text',
+            'label' => $t('Subject/Level Tid'),
+            'display' => array(
+                'default' => array(
+                    'label' => 'above',
+                    'module' => 'number',
+                    'settings' => array(
+                        'decimal_separator' => '.',
+                        'field_formatter_class' => '',
+                        'prefix_suffix' => TRUE,
+                        'scale' => 0,
+                        'thousand_separator' => '',
+                    ),
+                    'type' => 'number_integer',
+                ),
+                'teaser' => array(
+                    'label' => 'above',
+                    'settings' => array(),
+                    'type' => 'hidden',
+                ),
+            ),
+            'widget' => array(
+                'module' => 'number',
+                'settings' => array(),
+                'type' => 'number',
+                'weight' => 33,
+            ),
+            'weight' => 6,
+            'required' => TRUE
+        ),
+    );
+}
+
+/***********************************************************************
+ * delete_parent_search_request_fields                                 *
+ ***********************************************************************
+ * Description: Delete fields used by content type in uninstall        *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-02-08                                             *
+ ***********************************************************************/
+function delete_parent_search_request_fields() {
+    foreach (array_keys(_get_parent_search_request_field_bases()) as $field) {
+        field_delete_field($field);
+    }
+    $instances = field_info_instances('node', 'parent_search_request');
+    foreach ($instances as $instance_name => $fieldinstance) {
+        field_delete_instance($fieldinstance);
+    }
+}
+
+/***********************************************************************
+ * gj_deanhopkins_curated_seo_update_dependencies                      *
+ ***********************************************************************
+ * Description: Implements hook_update_dependencies.                   *
+ *              Enforce that gj_deanhopkins_curated_seo 7101 requires  *
+ *              tutor_ad 7102 to run first                             *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-14                                             *
+ ***********************************************************************/
+function gj_deanhopkins_curated_seo_update_dependencies() {
+    // gj_deanhopkins_curated_seo 7101 requires tutor_ad 7102 to run first
+    $dependencies['gj_deanhopkins_curated_seo'][7101] = array(
+        'gj_deanhopkins_tutor_ad' => 7102,
+    );
+
+    return $dependencies;
+}
+
+
+/***********************************************************************
+ * gj_deanhopkins_curated_seo_update_7101                              *
+ ***********************************************************************
+ * Description: Implements hook_update.                                *
+ *              Set all subject levels to curated by default           *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-11                                             *
+ ***********************************************************************/
+function gj_deanhopkins_curated_seo_update_7101(){
+    print "Running GJ_DEANHOPKINS_CURATED_SEO_UPDATE_7101. \n";
+    print "Defaulting subject/level terms to use curated system... ";
+    //Set all subject levels to curated by default
+    $terms = _get_active_subject_level_terms();
+
+    foreach ($terms as $term){
+        //check if term is already excluded
+        $result = db_select('gj_seo_curated_subjects', 'scs')
+            ->fields('scs')
+            ->condition('tax_sub_lev_tid', $term->tid,'=')
+            ->execute();
+
+        if ($result->rowCount() < 1){
+            //insert link to node
+            $txn = db_transaction();
+            try {
+                db_insert('gj_seo_curated_subjects')
+                    ->fields(array(
+                        'tax_sub_lev_tid' => $term->tid,
+                        'show_curated_page' => 1,
+                    ))
+                    ->execute();
+            } catch (Exception $e) {
+                $txn->rollback();
+                watchdog_exception('type', $e);
+            }
+        }
+    }
+    print "DONE. \n";
+}
+
+
+
+/***********************************************************************
+ * gj_deanhopkins_curated_seo_update_7102                              *
+ ***********************************************************************
+ * Description: Implements hook_update.                                *
+ *              Send email to SH when parent search request created    *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-12                                             *
+ ***********************************************************************/
+function gj_deanhopkins_curated_seo_update_7102(){
+    print "Running GJ_DEANHOPKINS_CURATED_SEO_UPDATE_7102. \n";
+    print "Creating new rule to email SH on parent search request node creation... ";
+
+    $rule = rules_config_load('rules_email_sh_on_parent_search_request_creation');
+    if (!isset($rule)){
+        $config = '{ "rules_email_sh_on_parent_search_request_creation" : {
+            "LABEL" : "Email SH on Parent Search Request Creation",
+            "PLUGIN" : "reaction rule",
+            "OWNER" : "rules",
+            "TAGS" : [ "Custom" ],
+            "REQUIRES" : [ "rules" ],
+            "ON" : { "node_insert--parent_search_request" : { "bundle" : "parent_search_request" } },
+            "DO" : [
+              { "mail" : {
+                  "to" : "simon.hood@tutorsave.com",
+                  "subject" : "New Parent Search Request Created on GradeJumpers",
+                  "message" : "Hi,\r\n\r\nA new tutor advert has been created on GradeJumpers. It can be found at [node:url] .\r\n\r\nPlease review and approve\/disaprove.\r\n\r\nGradeJumpers",
+                  "language" : [ "" ]
+                }
+              }
+            ]
+          }
+        }';
+
+        $rules_config = rules_import($config, $error_msg);
+
+        if (!$error_msg){
+            $rules_config->save();
+        }
+    } else {
+        print "Rule already exists.";
+    }
+
+
+    print "DONE. \n";
+}

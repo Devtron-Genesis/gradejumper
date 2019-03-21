@@ -1,0 +1,65 @@
+<?php
+
+/***********************************************************************
+ * gj_dh_menu_changes_update_7103                                      *
+ ***********************************************************************
+ * Description: Implements hook_update.                                *
+ *              Add new menu items to TutorCruncher Sidebar:           *
+ *              Proactive Responses (Tutor only)                       *
+ *              Proactive Responses (Parent only)                      *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-12                                             *
+ ***********************************************************************/
+function gj_dh_menu_changes_update_7103(){
+    print "Running GJ_DH_MENU_CHANGES_UPDATE_7103. \n";
+    print "Creating new menu items... ";
+    $tutor_link = array(
+        'link_title' => st('Proactive Responses'),
+        'link_path' => 'tutoring_requests',
+        'menu_name' => 'menu-tutorcruncher-left-sidebar',
+    );
+
+    $parent_link = array(
+        'link_title' => st('Proactive Responses'),
+        'link_path' => 'proactive_responses',
+        'menu_name' => 'menu-tutorcruncher-left-sidebar',
+    );
+
+    $tutor_link_mlid = menu_link_save($tutor_link);
+    $parent_link_mlid = menu_link_save($parent_link);
+    print "\n Tutor link mlid: " . $tutor_link_mlid;
+    print "\n Parent link mlid: " . $parent_link_mlid;
+    print "DONE. \n";
+
+    // Only show tutor link to tutors, parent link to parents
+    print "Updating menu permissions... ";
+    $tutor_rid = user_role_load_by_name('Tutor')->rid;
+    $parent_rid = user_role_load_by_name('Parent')->rid;
+
+    //set permission for tutor only menu item
+    $tutor_role_fields = array('rids' => $tutor_rid, 'hrids' => "");
+    $count = db_select('menu_per_role')->condition('mlid', $tutor_link_mlid)->countQuery()->execute()->fetchField();
+    if ($count == 0) {
+        $tutor_role_fields['mlid'] = $tutor_link_mlid;
+        db_insert('menu_per_role')->fields($tutor_role_fields)->execute();
+    }
+    else {
+        db_update('menu_per_role')->fields($tutor_role_fields)->condition('mlid', $tutor_link_mlid)->execute();
+    }
+
+    //set permission for parent only menu item
+    $parent_role_fields = array('rids' => $parent_rid, 'hrids' => "");
+    $count = db_select('menu_per_role')->condition('mlid', $parent_link_mlid)->countQuery()->execute()->fetchField();
+    if ($count == 0) {
+        $parent_role_fields['mlid'] = $parent_link_mlid;
+        db_insert('menu_per_role')->fields($parent_role_fields)->execute();
+    }
+    else {
+        db_update('menu_per_role')->fields($parent_role_fields)->condition('mlid', $parent_link_mlid)->execute();
+    }
+
+    print "DONE. \n";
+}

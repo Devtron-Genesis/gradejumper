@@ -1,0 +1,9 @@
+name = GJ Proactive Response
+description = GJ Proactive Response
+core = 7.x
+package = "GJ Dean Hopkins"
+dependencies[] = gj_dh_proactive_response_templates
+dependencies[] = gj_deanhopkins_tutor_ad
+dependencies[] = gj_deanhopkins_curated_seo
+files[] = gj_dh_proactive_response.install
+files[] = gj_dh_proactive_response.module

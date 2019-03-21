@@ -1,0 +1,6 @@
+name = TutorSave Username Filler
+description = Module copies data between profile and adverts.
+package = GJ Custom
+core = 7.x
+version = "7.x-1.0"
+core = "7.x"

@@ -1,0 +1,209 @@
+<?php
+
+define('MINIFYHTML_PLACEHOLDER', 'MINIFYHTML_' . md5(REQUEST_TIME));
+
+/**
+ * Implements hook_permission()
+ */
+function minifyhtml_permission() {
+  return array(
+    'administer minifyhtml' => array(
+      'title'       => t('Administer Minify HTML Module'),
+      'description' => t('Perform administration tasks for Minify HTML module.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_FORM_ID_alter().
+ */
+function minifyhtml_form_system_performance_settings_alter(&$form, &$form_state, $form_id) {
+  if (user_access('administer minifyhtml')) {
+    $form['bandwidth_optimization']['minifyhtml_minify'] = array(
+      '#type'          => 'checkbox',
+      '#title'         => t('Minified Source HTML.'),
+      '#description'   => t('Toggle minified HTML on or off.'),
+      '#default_value' => variable_get('minifyhtml_minify', 0),
+    );
+  }
+}
+
+/**
+ * Implements hook_exit().
+ */
+function minifyhtml_exit() {
+  if (variable_get('minifyhtml_minify', 0)) {
+
+    // Get current path value.
+    $current_path = function_exists('current_path') ? current_path() : $_GET['q'];
+
+    // The content type of the page must be text/html to proceed. All other
+    // content types must be ignored - the name of the module is minifyhtml
+    // after all.
+    // Make sure to exclude image style images (is this even required anymore??).
+    // Make sure the buffer has a length.
+    if (stripos(drupal_get_http_header('content-type'), 'text/html') !== FALSE && !is_file($current_path) && ob_get_length()) {
+
+      // Catch the output buffer. Converted from ob_get_clean().
+      $page = ob_get_contents();
+
+      // If the content should be encoded, try to decode it.
+      $decoded = FALSE;
+      if (variable_get('page_compression', TRUE) && extension_loaded('zlib')) {
+        $decoded = @gzinflate(substr(substr($page, 10), 0, -8));
+        if ($decoded) {
+          $page = $decoded;
+        }
+      }
+
+      // Minify the HTML.
+      minifyhtml_minify($page);
+
+      // If the content was decoded before being minified, it needs to be
+      // re-encoded.
+      if (variable_get('page_compression', TRUE) && extension_loaded('zlib') && $decoded) {
+        $page = gzencode($page, 9, FORCE_GZIP);
+      }
+
+      // Re-populate the output buffer.
+      ob_clean();
+      print $page;
+    }
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function minifyhtml_module_implements_alter(&$implementations, $hook) {
+
+  // Move this module's hook_exit() to the end of the call order.
+  if ($hook == 'exit' && isset($implementations['minifyhtml'])) {
+    $group = $implementations['minifyhtml'];
+    unset($implementations['minifyhtml']);
+    $implementations['minifyhtml'] = $group;
+  }
+}
+
+/**
+ * Helper function to minify HTML.
+ */
+function minifyhtml_minify(&$page) {
+
+  // Replace <textarea>, <pre>, <iframe>, <script>, and <style> with a
+  // placeholder.
+  $page = preg_replace_callback('/\\s*<textarea(\\b[^>]*?>[\\s\\S]*?<\\/textarea>)\\s*/i', 'minifyhtml_placeholder_callback',        $page);
+  $page = preg_replace_callback('/\\s*<pre(\\b[^>]*?>[\\s\\S]*?<\\/pre>)\\s*/i',           'minifyhtml_placeholder_callback',        $page);
+  $page = preg_replace_callback('/\\s*<iframe(\\b[^>]*?>[\\s\\S]*?<\\/iframe>)\\s*/i',     'minifyhtml_placeholder_callback_iframe', $page);
+  $page = preg_replace_callback('/\\s*<script(\\b[^>]*?>[\\s\\S]*?<\\/script>)\\s*/i',     'minifyhtml_placeholder_callback_script', $page);
+  $page = preg_replace_callback('/\\s*<style(\\b[^>]*?>[\\s\\S]*?<\\/style>)\\s*/i',       'minifyhtml_placeholder_callback_style',  $page);
+
+  // Remove HTML comments.
+  $page = preg_replace_callback('/<!--([\\s\\S]*?)-->/',                                   'minifyhtml_remove_html_comment',         $page);
+
+  // Minify the page.
+  minifyhtml_minify_html($page);
+
+  // Restore all values that are currently represented by a placeholder.
+  global $placeholders;
+  if (!empty($placeholders)) {
+    $page = str_replace(array_keys($placeholders), array_values($placeholders), $page);
+  }
+}
+
+/*
+ * Helper function to add place holder for <textarea> and <pre> tag
+ */
+function minifyhtml_placeholder_callback($matches) {
+  return minify_placeholder_replace(trim($matches[0]));
+}
+
+/*
+ * Helper function to add place holder for <iframe> tag
+ */
+function minifyhtml_placeholder_callback_iframe($matches) {
+  $iframe = preg_replace('/^\\s+|\\s+$/m', '', $matches[0]);
+
+  return minify_placeholder_replace(trim($iframe));
+}
+
+/*
+ * Helper function to add place holder for <script> tag
+ */
+function minifyhtml_placeholder_callback_script($matches) {
+  $search = array(
+    '!/\*.*?\*/!s',     // remove multi-line comment
+    '/^\\s+|\\s+$/m',   // trim each line
+    '/\n(\s*\n)+/',     // remove multiple empty line
+  );
+  $replace = array('', "\n", "\n");
+  $script = preg_replace($search, $replace, $matches[0]);
+
+  return minify_placeholder_replace(trim($script));
+}
+
+/*
+ * Helper function to add place holder for <style> tag
+ */
+function minifyhtml_placeholder_callback_style($matches) {
+  $search = array(
+    '!/\*.*?\*/!s',   // remove multiline comment
+    '/^\\s+|\\s+$/m'  // trim each line
+  );
+  $replace = array('');
+  $style = preg_replace($search, $replace, $matches[0]);
+
+  return minify_placeholder_replace(trim($style));
+}
+
+/*
+ * Helper function to add tag key and value for further replacement
+ */
+function minify_placeholder_replace($content) {
+  global $placeholders;
+
+  // PHP 7.2 fix, if the variable is not set count() will emit a warning.
+  if (!isset($placeholders)) {
+    $placeholders = array();
+  }
+
+  $placeholder = '%' . MINIFYHTML_PLACEHOLDER . count($placeholders) . '%';
+  $placeholders[$placeholder] = $content;
+
+  return $placeholder;
+}
+
+/**
+ * Helper function to remove HTML comments (not containing IE conditional
+ * comments).
+ */
+function minifyhtml_remove_html_comment($string) {
+  return (0 === strpos($string[1], '[') || FALSE !== strpos($string[1], '<![')) ? $string[0] : '';
+}
+
+/**
+ * Helper function to minify the HTML.
+ */
+function minifyhtml_minify_html(&$page) {
+  $search = array(
+    '/\>[^\S ]+/s',                 // remove whitespaces after tags, except space
+    '/[^\S ]+\</s',                 // remove whitespaces before tags, except space
+    '/(\s)+/s',                     // shorten multiple whitespace sequences
+    '/\\s+(<\\/?(?:area|base(?:font)?|blockquote|body'
+        .'|caption|center|col(?:group)?|dd|dir|div|dl|dt|fieldset|form'
+        .'|frame(?:set)?|h[1-6]|head|hr|html|legend|li|link|map|menu|meta'
+        .'|ol|opt(?:group|ion)|p|param|t(?:able|body|head|d|h||r|foot|itle)'
+        .'|ul)\\b[^>]*>)/i',        // remove whitespaces around block/undisplayed elements
+    '/^\\s+|\\s+$/m',               // trim each line
+  );
+
+  $replace = array(
+    '>',        // remove whitespaces after tags, except space
+    '<',        // remove whitespaces before tags, except space
+    '\\1',      // shorten multiple whitespace sequences
+    '$1',       // remove whitespaces around block/undisplayed elements
+    '',         // trim each line
+  );
+
+  $page = preg_replace($search, $replace, $page);
+}

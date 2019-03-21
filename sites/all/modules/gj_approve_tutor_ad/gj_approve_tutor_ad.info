@@ -1,0 +1,6 @@
+name = GradeJumpers Approve/Deny Tutor Advert
+description = Gradejumpers custom module that allows a tutor advert to be approved or deleted.
+package = GJ Custom
+core = 7.x
+version = "7.x-1.0"
+core = "7.x"

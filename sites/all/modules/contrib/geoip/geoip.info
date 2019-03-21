@@ -1,0 +1,18 @@
+name = GeoIP
+description = API for using the Maxmind Geo databases.
+core = 7.x
+configure = admin/config/system/geoip
+
+dependencies[] = libraries
+
+files[] = tests/geoip.test
+files[] = src/GeoIpHandlerInterface.php
+files[] = src/GeoIpHandlerV1.php
+files[] = src/GeoIpHandlerV2.php
+
+; Information added by Drupal.org packaging script on 2016-02-06
+version = "7.x-2.0"
+core = "7.x"
+project = "geoip"
+datestamp = "1454782153"
+

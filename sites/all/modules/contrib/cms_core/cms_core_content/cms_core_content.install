@@ -1,0 +1,203 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ * Implements hook_install()
+ */
+function cms_core_content_install() {
+
+  drupal_flush_all_caches();
+
+ // Enable some standard blocks.
+  if (variable_get('cms_theme')) {
+    $cms_theme = variable_get('cms_theme');
+  }
+  else {
+    $cms_theme = variable_get('theme_default', 'bartik');
+  }
+
+
+  $blocks = array(
+    array(
+      'module' => 'system',
+      'delta' => 'main-menu',
+      'theme' => $cms_theme,
+      'status' => '1',
+      'visibility' => '0',
+      'weight' => '1',
+      'region' => 'navigation',
+      'pages' => '',
+      'title' => '<none>',
+      'cache' => '-1',
+      'css_class' => '',
+    ),
+    array(
+      'module' => 'glazed_helper',
+      'delta' => 'full_screen_search',
+      'theme' => $cms_theme,
+      'status' => '1',
+      'visibility' => '0',
+      'weight' => '0',
+      'region' => 'navigation',
+      'pages' => '',
+      'title' => '',
+      'cache' => '-1',
+      'css_class' => '',
+    ),
+    array(
+      'cache' => '-1',
+      'css_class' => 'col-sm-6',
+      'delta' => 'sooperthemes-copyright-drupal-tm',
+      'module' => 'bean',
+      'pages' => '',
+      'region' => 'footer',
+      'status' => '1',
+      'theme' => $cms_theme,
+      'title' => '<none>',
+      'visibility' => '0',
+      'weight' => '0',
+    ),
+    array(
+      'cache' => '-1',
+      'css_class' => 'col-sm-6',
+      'delta' => 'menu-footer-menu',
+      'module' => 'menu',
+      'pages' => '',
+      'region' => 'footer',
+      'status' => '1',
+      'theme' => $cms_theme,
+      'title' => '<none>',
+      'visibility' => '0',
+      'weight' => '1',
+    ),
+    array(
+      'cache' => '-1',
+      'css_class' => '',
+      'delta' => 'contact-form-text',
+      'module' => 'bean',
+      'pages' => 'contact',
+      'region' => 'content',
+      'status' => '1',
+      'theme' => $cms_theme,
+      'title' => '<none>',
+      'visibility' => '1',
+      'weight' => '-1',
+    ),
+  );
+  if (module_exists('cms_portfolio')) {
+    $blocks[] = array(
+      'cache' => '-1',
+      'css_class' => 'clear-both col-sm-12',
+      'delta' => 'cms_portfolio-block_6x1',
+      'module' => 'views',
+      'pages' => '<front>',
+      'region' => 'content',
+      'status' => '1',
+      'theme' => $cms_theme,
+      'title' => '',
+      'visibility' => '1',
+      'weight' => '50',
+    );
+  }
+  if (module_exists('cms_blog')) {
+    $blocks[] = array(
+      'cache' => '-1',
+      'css_class' => 'col-sm-8',
+      'delta' => 'cms_blog-recent_blog_teasers',
+      'module' => 'views',
+      'pages' => '<front>',
+      'region' => 'content_bottom',
+      'status' => '1',
+      'theme' => $cms_theme,
+      'title' => '',
+      'visibility' => '1',
+      'weight' => '-1',
+    );
+    $blocks[] = array(
+      'module' => 'views',
+      'delta' => 'cms_blog-blog_headline',
+      'theme' => $cms_theme,
+      'status' => '1',
+      'visibility' => '0',
+      'weight' => '0',
+      'region' => 'secondary_header',
+      'pages' => '',
+      'title' => '',
+      'cache' => '-1',
+      'css_class' => '',
+    );
+  }
+  if (module_exists('cms_events')) {
+    $blocks[] = array(
+      'cache' => '-1',
+      'css_class' => 'col-sm-4',
+      'delta' => 'cms_events-upcoming_events',
+      'module' => 'views',
+      'pages' => '<front>',
+      'region' => 'content_bottom',
+      'status' => '1',
+      'theme' => $cms_theme,
+      'title' => '',
+      'visibility' => '1',
+      'weight' => '-1',
+    );
+  }
+  if (module_exists('cms_news')) {
+    $blocks[] = array(
+      'cache' => '-1',
+      'css_class' => 'col-sm-4',
+      'delta' => 'cms_news-block',
+      'module' => 'views',
+      'pages' => '<front>',
+      'region' => 'content_bottom',
+      'status' => '1',
+      'theme' => $cms_theme,
+      'title' => '',
+      'visibility' => '1',
+      'weight' => '-1',
+    );
+  }
+  foreach ($blocks as $block) {
+    db_merge('block')
+      ->key(array(
+        'module' => $block['module'],
+        'delta' => $block['delta'],
+        'theme' => $cms_theme,
+      ))
+      ->fields($block)
+      ->execute();
+  }
+
+}
+
+/**
+ * Implements hook_enable()
+ */
+function cms_core_content_enable() {
+  drupal_flush_all_caches();
+
+  if (variable_get('cms_theme')) {
+    $cms_theme = variable_get('cms_theme');
+  }
+  else {
+    $cms_theme = variable_get('theme_default', 'bartik');
+  }
+  if ($cms_theme == 'glazed' OR $cms_theme == 'glazed_free') {
+    require_once(drupal_get_path('theme', $cms_theme) . '/' . $cms_theme . '_callbacks.inc');
+    _color_module_css_write($cms_theme);
+    $css_function = $cms_theme . '_css_cache_build';
+    $css_function($cms_theme);
+  }
+
+  module_load_include('module', 'uuid');
+  $nid = entity_get_id_by_uuid('node', array('244f31f4-c131-441a-8cb2-5dcfc3b6ca02'));
+  $system_path = 'node/' . array_pop($nid);
+  if (!variable_get('site_frontpage')) {
+    variable_set('site_frontpage', $system_path);
+  }
+
+  drupal_flush_all_caches();
+}

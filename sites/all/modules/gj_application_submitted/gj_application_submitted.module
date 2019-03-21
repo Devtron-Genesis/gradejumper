@@ -1,0 +1,84 @@
+<?PHP
+/* gj_application_submitted module - this module stops user accessing their tutor ads once they have been submitted, but are not yet live
+
+
+/**
+ * Implements hook_help().
+ *
+ * Displays help and module information.
+ *
+ * @param path
+ *   Which path of the site we're using to display help
+ * @param arg
+ *   Array that holds the current path as returned from arg() function
+ */
+function gj_application_submitted_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#tsquickcompare":
+      return '' . t("Manages the Quick Compare Functionality") . '';
+      break;
+  }
+}
+
+function gj_application_submitted_menu() {
+  $items = array();
+
+  $items['tutor-application-submitted'] = array(
+    'title' => 'Application submitted', //page title
+    'description' => 'Tutor Application Submitted page',
+    'page callback' => 'application_submitted_page', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+    'access callback' => 'gj_application_submitted_user_has_role',
+    'access arguments' =>  array('Tutor'),
+	  'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+function gj_application_submitted_user_has_role() {
+  global $user;
+  $roles = func_get_args();
+  foreach ($roles as $role) {
+    if (in_array($role, $user->roles)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+function application_submitted_page() {
+  $output = '';
+  $data['output'] = $output;
+  $output = theme('gj_application_submitted_content', array('data' => $data));
+  drupal_add_css(drupal_get_path('module', 'gj_application_submitted') . '/style/gj_application_submitted.css');
+  return $output;
+
+}
+
+
+function gj_application_submitted_theme($existing, $type, $theme, $path) {
+  return array(
+    'gj_application_submitted_content' => array(
+      'variables' => array('data' => NULL),
+      'template' => 'templates/gj_application_submitted_content',
+    ),
+  );
+}
+
+function gj_application_submitted_preprocess_page(&$variables) {
+  global $user;
+  if(arg(0) == "node" && arg(2) == "edit") {
+    $node = node_load(arg(1));
+
+    if($node->type == "tutor_ad" && $node->status == 0 && $user->uid == $node->uid) {
+      drupal_goto("tutor-application-submitted");
+    }
+  }
+  elseif(arg(0) == "node") {
+    $node = node_load(arg(1));
+
+    if($node->type == "tutor_ad" && $node->status == 0 && $user->uid == $node->uid) {
+      drupal_goto("tutor-application-submitted");
+    }
+  }
+}

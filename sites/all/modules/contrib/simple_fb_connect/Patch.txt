@@ -1,0 +1,95 @@
+--- C:/Users/admin/Downloads/simple_fb_connect/simple_fb_connect.module	Fri Apr 01 14:47:38 2016
++++ C:/Users/admin/Desktop/simple_fb_connect.module	Wed Oct 12 12:01:02 2016
+@@ -19,13 +19,13 @@
+  * Implements hook_menu().
+  */
+ function simple_fb_connect_menu() {
+-  $items['user/simple-fb-connect'] = array(
++  $items['abc/simple-fb-connect'] = array(
+     'title' => 'Facebook login',
+     'page callback' => 'simple_fb_connect_redirect_to_fb',
+     'access callback' => 'user_is_anonymous',
+     'type' => MENU_LOCAL_TASK,
+   );
+-  $items['user/simple-fb-connect/return'] = array(
++  $items['abc/simple-fb-connect/return'] = array(
+     'title' => 'Facebook login',
+     'page callback' => 'simple_fb_connect_return_from_fb',
+     'access callback' => 'user_is_anonymous',
+@@ -113,7 +113,7 @@
+ 
+   // Save the post login URL to $_SESSION if it was explicitly defined.
+   $destination = drupal_get_destination();
+-  if (!url_is_external($destination['destination']) && $destination['destination'] != 'user/simple-fb-connect') {
++  if (!url_is_external($destination['destination']) && $destination['destination'] != 'abc/simple-fb-connect') {
+     $_SESSION['simple_fb_connect']['post_login_url'] = $destination['destination'];
+     // We need to unset the GET parameter so that we actually redirect the user to FB
+     unset($_GET['destination']);
+@@ -122,6 +122,10 @@
+   // Generate the URL where FB will return the user after authentication
+   $return_url = simple_fb_connect_get_return_url();
+ 
++  if(isset($_SESSION['custom_fb_connect_role'])){
++    $_SESSION['simple_fb_connect']['user_role'] = $_SESSION['custom_fb_connect_role'];
++  }
++  
+   // Allow other modules to modify FB permission scope
+   $scope = simple_fb_connect_get_scope();
+ 
+@@ -146,6 +150,15 @@
+     drupal_goto("user");
+   }
+ 
++  $user_role = '';
++  if (isset($_SESSION) && isset($_SESSION['simple_fb_connect']) && isset($_SESSION['simple_fb_connect']['user_role'])) {
++    $user_role = $_SESSION['simple_fb_connect']['user_role'];
++  }else if(isset($_SESSION) && isset($_SESSION['custom_fb_connect_role'])){
++    $user_role = $_SESSION['custom_fb_connect_role'];
++  }
++  unset($_SESSION['custom_fb_connect_role']);
++  unset($_SESSION['simple_fb_connect']['user_role']);
++
+   // FB SDK can start FacebookSession from the page where FB returned the user
+   $return_url = simple_fb_connect_get_return_url();
+   $login_helper = new FacebookRedirectLoginHelper($return_url);
+@@ -184,7 +197,7 @@
+   }
+ 
+   // If there was no existing user, try to create a new user and try to log in
+-  if ($drupal_user = simple_fb_connect_create_user($fb_profile, $fb_session)) {
++  if ($drupal_user = simple_fb_connect_create_user($fb_profile, $fb_session,$user_role)) {
+     if (simple_fb_connect_login_user($drupal_user)) {
+       // Check if new users should be redirected to Drupal user form.
+       $redirect_to_user_form = variable_get('simple_fb_connect_redirect_user_form', 0);
+@@ -532,7 +545,7 @@
+  * @return
+  *   Drupal user account. FALSE on errors.
+  */
+-function simple_fb_connect_create_user(GraphObject $fb_profile, FacebookSession $fb_session) {
++function simple_fb_connect_create_user(GraphObject $fb_profile, FacebookSession $fb_session, $user_role = '') {
+   // Check if Drupal account settings allow users to register
+   if (!variable_get('user_register', 1)) {
+     drupal_set_message(t('Creation of new accounts on this site is disabled.'), 'error');
+@@ -580,6 +593,13 @@
+       ),
+     );
+ 
++    if($user_role == 'parent'){
++      $fields['roles'][4] = 'Parent';
++    }
++    if($user_role == 'tutor'){
++      $fields['roles'][5] = 'Tutor';
++    }
++     
+     // If user pictures are enabled, try to get the profile picture from FB
+     if (variable_get('user_pictures', 0)) {
+       $fid = simple_fb_connect_get_fb_profile_pic($fb_session);
+@@ -797,7 +817,7 @@
+  */
+ function simple_fb_connect_get_return_url() {
+   // Generate the URL where FB will return the user after authentication
+-  $return_url = url('user/simple-fb-connect/return', array('absolute' => TRUE));
++  $return_url = url('abc/simple-fb-connect/return', array('absolute' => TRUE));
+ 
+   // If clean URLs is disabled, we need to encode slashes in the query string
+   $query_pos = strpos($return_url, '?');

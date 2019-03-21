@@ -1,0 +1,36 @@
+#gj_search_subject_form {
+  
+  .dropdown {
+    position: absolute;
+    top: 55px;
+    left: 0;
+    width: 60%;
+    max-height: 200px; 
+    border: 1px solid #b9b9b9;
+    border-top: 0 none;
+    border-radius: 0 0 5px 5px;
+    padding: 10px 10px 10px 31px;
+    background-color: #fff;
+    font-size: 16px;
+    line-height: 1em;
+    color: rgba(#000, 0.7);
+    z-index: 2;
+    overflow-y: auto;
+
+    @media (max-width: $screen-xs-max) {
+      width: 100%;
+    }
+
+    ul {
+      @include reset-list();
+
+      li:not(:last-child) {
+        margin-bottom: 10px;
+      }
+    }
+
+    a {
+      color: inherit;
+    }
+  }
+}

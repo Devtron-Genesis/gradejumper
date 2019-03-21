@@ -1,0 +1,1799 @@
+<?php
+
+/*******************************************************************
+ * gj_deanhopkins_tutor_ad_install                                 *
+ *******************************************************************
+ * Description: Implements hook_install()                          *
+ *              -Create taxonomy vocabularies                      *
+ *              -Refresh content types (to register our new type)  *
+ *              -Create content type fields                        *
+ * Arguments:                                                      *
+ * Return:                                                         *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        10-12-2018                                         *
+ *******************************************************************/
+function gj_deanhopkins_tutor_ad_install() {
+    create_alevel_subject_taxonomy();
+    create_alevel_grades_taxonomy();
+    create_popular_subject_taxonomy();
+    create_popular_level_taxonomy();
+    create_subject_level_taxonomy();
+    create_degree_issuing_institutions_taxonomy();
+    create_price_per_hour_taxonomy();
+
+    gj_deanhopkins_tutor_ad_create_content_type();
+
+    _create_tutor_ad_fields();
+
+}
+
+/*******************************************************************
+ * gj_deanhopkins_tutor_ad_uninstall                               *
+ *******************************************************************
+ * Description: Implements hook_install()                          *
+ *              -Delete node type                                  *
+ *              -Delete node type fields                           *
+ *              -Delete taxonomy vocabularies                      *
+ * Arguments:                                                      *
+ * Return:                                                         *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        10-12-2018                                         *
+ *******************************************************************/
+function gj_deanhopkins_tutor_ad_uninstall() {
+    /*
+    $node_type = 'tutor_ad';
+    node_type_delete($node_type);
+    delete_tutor_ad_fields();
+
+    delete_taxonomy("taxonomy_alevel_subjects");
+    delete_taxonomy("taxonomy_alevel_grades");
+    delete_taxonomy("taxonomy_popular_subjects");
+    delete_taxonomy("taxonomy_popular_levels");
+    delete_taxonomy("taxonomy_degree_institutions");
+    delete_taxonomy("taxonomy_subject_levels");
+    delete_taxonomy("taxonomy_price_per_hour");
+    */
+}
+
+/*******************************************************************
+ * gj_deanhopkins_tutor_ad_create_content_type                     *
+ *******************************************************************
+ * Description: Rebuild node types to register our own defined in  *
+ *              module.                                            *
+ * Arguments:                                                      *
+ * Return:                                                         *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        10-12-2018                                         *
+ *******************************************************************/
+function gj_deanhopkins_tutor_ad_create_content_type(){
+    node_types_rebuild();
+    $types = node_type_get_types();
+    variable_set('node_preview_' . 'tutor_ad', '0');
+}
+
+/*******************************************************************
+ * create_content_type_fields                                      *
+ *******************************************************************
+ * Description: Create field bases and instances attached to       *
+ *              content type / node                                *
+ * Arguments:                                                      *
+ * Return:                                                         *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        10-12-2018                                         *
+ *******************************************************************/
+function _create_tutor_ad_fields() {
+    foreach (_get_tutor_ad_field_bases() as $field) {
+        field_create_field($field);
+    }
+    foreach (_get_tutor_ad_field_instances() as $fieldinstance) {
+        $fieldinstance['entity_type'] = 'node';
+        $fieldinstance['bundle'] = 'tutor_ad';
+        print_r($fieldinstance);
+        field_create_instance($fieldinstance);
+    }
+
+    _add_tutor_ad_field_collections();
+}
+
+/*******************************************************************
+ * _get_content_type_field_bases                                   *
+ *******************************************************************
+ * Description: Generate field base data for tutor ad content type *
+ * Arguments:                                                      *
+ * Return:      Array of field bases                               *
+ *******************************************************************
+ * Author:      Dean Hopkins                                       *
+ * Date:        10-12-2018                                         *
+ *******************************************************************/
+function _get_tutor_ad_field_bases() {
+    $t = get_t();
+    return array(
+        'field_tutor_ad_title' => array(
+            'field_name' => 'field_tutor_ad_title',
+            'label' => $t('Title'),
+            'type' => 'text'
+        ),
+        'field_tutor_first_name' => array(
+            'field_name' => 'field_tutor_first_name',
+            'label' => $t('First Name'),
+            'type' => 'text'
+        ),
+        'field_tutor_second_name' => array(
+            'field_name' => 'field_tutor_second_name',
+            'label' => $t('Last Name'),
+            'type' => 'text'
+        ),
+        'field_tutor_full_description' => array(
+            'field_name' => 'field_tutor_full_description',
+            'label' => $t('About Me'),
+            'type' => 'text_long'
+        ),
+        'field_tutor_about_sessions' => array(
+            'field_name' => 'field_tutor_about_sessions',
+            'label' => $t('About my sessions'),
+            'type' => 'text_long'
+        ),
+        'field_tutor_upload_profile_image' => array(
+            'field_name' => 'field_tutor_upload_profile_image',
+            'label' => $t('Profile Image'),
+            'type' => 'file',
+            'widget' => array(
+                'type' => 'file_generic',
+                'weight' => -1,
+            ),
+        ),
+        'field_enter_a_youtube_profile_vi' => array(
+            'field_name' => 'field_enter_a_youtube_profile_vi',
+            'label' => $t('Profile Video'),
+            'module' => 'video_embed_field',
+            'settings' => array(),
+            'translatable' => 0,
+            'type' => 'video_embed_field'
+        ),
+        'field_my_availability_for_tutori' => array(
+            'field_name' => 'field_my_availability_for_tutori',
+            'label' => $t('General Availability'),
+            'type' => 'text'
+        ),
+        'field_tutor_accept_tos' => array(
+            'label' => $t('Accept Terms of Service'),
+            'active' => 1,
+            'cardinality' => 1,
+            'deleted' => 0,
+            'entity_types' => array(),
+            'field_name' => 'field_tutor_accept_tos',
+            'indexes' => array(
+                'value' => array(
+                    0 => 'value',
+                ),
+            ),
+            'locked' => 0,
+            'module' => 'list',
+            'settings' => array(
+                'allowed_values' => array(),
+                'allowed_values_function' => '',
+            ),
+            'translatable' => 0,
+            'type' => 'list_boolean',
+        ),
+        'field_tutor_dbs_certificate' => array(
+            'active' => 1,
+            'cardinality' => 1,
+            'deleted' => 0,
+            'entity_types' => array(),
+            'field_name' => 'field_tutor_dbs_certificate',
+            'indexes' => array(
+                'value' => array(
+                    0 => 'value',
+                ),
+            ),
+            'locked' => 0,
+            'module' => 'list',
+            'settings' => array(
+                'allowed_values' => array(
+                    'No' => 'No',
+                    'Basic' => 'Yes - Basic DBS Certificate',
+                    'Enhanced' => 'Yes - Enhanced DBS Certificate',
+                ),
+                'allowed_values_function' => '',
+            ),
+            'translatable' => 0,
+            'type' => 'list_text',
+        ),
+
+        'field_tutor_available' => array(
+            'active' => 1,
+            'cardinality' => 1,
+            'deleted' => 0,
+            'entity_types' => array(),
+            'field_name' => 'field_tutor_available',
+            'indexes' => array(
+                'value' => array(
+                    0 => 'value',
+                ),
+            ),
+            'locked' => 0,
+            'module' => 'list',
+            'settings' => array(
+                'allowed_values' => array(
+                    'Yes' => 'Yes - Available',
+                    'No' => 'No - Unavailable',
+                ),
+                'allowed_values_function' => '',
+            ),
+            'translatable' => 0,
+            'type' => 'list_text',
+        ),
+
+        'field_tutor_gender' => array(
+            'active' => 1,
+            'cardinality' => 1,
+            'deleted' => 0,
+            'entity_types' => array(),
+            'field_name' => 'field_tutor_gender',
+            'indexes' => array(
+                'value' => array(
+                    0 => 'value',
+                ),
+            ),
+            'locked' => 0,
+            'module' => 'list',
+            'settings' => array(
+                'allowed_values' => array(
+                    'male' => 'Male',
+                    'female' => 'Female',
+                ),
+                'allowed_values_function' => '',
+            ),
+            'translatable' => 0,
+            'type' => 'list_text',
+        )
+
+    );
+}
+
+/***********************************************************************
+ * _get_tutor_ad_field_instances                                       *
+ ***********************************************************************
+ * Description: Generate field instance data for tutor ad content type *
+ * Arguments:                                                          *
+ * Return:      Array of field instances                               *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function _get_tutor_ad_field_instances() {
+    $t = get_t();
+    return array(
+        'field_tutor_ad_title' => array(
+            'field_name' => 'field_tutor_ad_title',
+            'type' => 'text',
+            'label' => $t('Title'),
+            'widget' => array(
+                'type' => 'text_textfield'
+            )
+        ),
+        'field_tutor_first_name' => array(
+            'field_name' => 'field_tutor_first_name',
+            'type' => 'text',
+            'label' => $t('First Name'),
+            'widget' => array(
+                'type' => 'text_textfield'
+            )
+        ),
+        'field_tutor_second_name' => array(
+            'field_name' => 'field_tutor_second_name',
+            'type' => 'text',
+            'label' => $t('Last Name'),
+            'widget' => array(
+                'type' => 'text_textfield'
+            )
+        ),
+        'field_tutor_full_description' => array(
+            'field_name' => 'field_tutor_full_description',
+            'type' => 'text',
+            'label' => $t('About Me'),
+            'widget' => array(
+                'type' => 'text_textarea'
+            ),
+            'required' => TRUE
+        ),
+        'field_tutor_about_sessions' => array(
+            'field_name' => 'field_tutor_about_sessions',
+            'type' => 'text',
+            'label' => $t('About my sessions'),
+            'widget' => array(
+                'type' => 'text_textarea'
+            ),
+            'required' => TRUE
+        ),
+        'field_tutor_upload_profile_image' => array(
+            'field_name' => 'field_tutor_upload_profile_image',
+            'type' => 'file',
+            'label' => $t('Profile Image'),
+            'settings' => array('file_extensions' => 'jpg jpeg png gif'),
+            'required' => TRUE
+        ),
+        'field_enter_a_youtube_profile_vi' => array(
+            'field_name' => 'field_enter_a_youtube_profile_vi',
+            'type' => 'text',
+            'label' => $t('Profile Video'),
+            'widget' => array(
+                'type' => 'text_textfield'
+            ),
+            'display' => array(
+                'default' => array(
+                    'label' => 'above',
+                    'module' => 'video_embed_field',
+                    'settings' => array(
+                        'description' => 1,
+                        'description_position' => 'bottom',
+                        'field_formatter_class' => '',
+                        'video_style' => 'normal',
+                    ),
+                    'type' => 'video_embed_field',
+                    'weight' => 23,
+                ),
+                'teaser' => array(
+                    'label' => 'above',
+                    'settings' => array(),
+                    'type' => 'hidden',
+                    'weight' => 0,
+                ),
+            ),
+            'required' => FALSE,
+            'settings' => array(
+                'allowed_providers' => array(
+                    0 => 'youtube',
+                ),
+                'description_field' => 0,
+                'description_length' => 128,
+                'user_register_form' => FALSE,
+            ),
+            'widget' => array(
+                'module' => 'video_embed_field',
+                'settings' => array(),
+                'type' => 'video_embed_field_video',
+                'weight' => 42,
+            ),
+        ),
+        'field_my_availability_for_tutori' => array(
+            'field_name' => 'field_my_availability_for_tutori',
+            'label' => $t('General Availability'),
+            'type' => 'text',
+            'widget' => array(
+                'type' => 'text_textfield'
+            ),
+            'required' => TRUE,
+        ),
+        'field_tutor_accept_tos' => array(
+            'bundle' => 'tutor_ad',
+            'default_value' => NULL,
+            'deleted' => 0,
+            'description' => '',
+            'display' => array(
+                'default' => array(
+                    'label' => 'above',
+                    'module' => 'list',
+                    'settings' => array(),
+                    'type' => 'list_default',
+                    'weight' => 17,
+                ),
+                'teaser' => array(
+                    'label' => 'above',
+                    'settings' => array(),
+                    'type' => 'hidden',
+                    'weight' => 0,
+                ),
+            ),
+            'entity_type' => 'node',
+            'field_name' => 'field_tutor_accept_tos',
+            'label' => $t('Accept Terms of Service'),
+            'required' => FALSE, //has custom validation
+            'settings' => array(
+                'user_register_form' => FALSE,
+            ),
+            'widget' => array(
+                'module' => 'options',
+                'type' => 'options_onoff',
+                'weight' => 17,
+            ),
+        ),
+        'field_tutor_dbs_certificate' => array(
+            'bundle' => 'tutor_ad',
+            'default_value' => NULL,
+            'deleted' => 0,
+            'description' => '',
+            'display' => array(
+                'default' => array(
+                    'label' => 'above',
+                    'module' => 'list',
+                    'settings' => array(
+                        'field_formatter_class' => '',
+                    ),
+                    'type' => 'list_default',
+                    'weight' => 21,
+                ),
+                'teaser' => array(
+                    'label' => 'above',
+                    'settings' => array(),
+                    'type' => 'hidden',
+                    'weight' => 0,
+                ),
+            ),
+            'entity_type' => 'node',
+            'field_name' => 'field_tutor_dbs_certificate',
+            'label' => 'DBS Certificate',
+            'required' => TRUE,
+            'settings' => array(
+                'user_register_form' => FALSE,
+            ),
+            'widget' => array(
+                'module' => 'options',
+                'settings' => array(),
+                'type' => 'options_buttons',
+                'weight' => 40,
+            ),
+        ),
+        'field_tutor_available' => array(
+            'bundle' => 'tutor_ad',
+            'default_value' => 'Yes',
+            'deleted' => 0,
+            'description' => '',
+            'display' => array(
+                'default' => array(
+                    'label' => 'above',
+                    'module' => 'list',
+                    'settings' => array(
+                        'field_formatter_class' => '',
+                    ),
+                    'type' => 'list_default',
+                    'weight' => 22,
+                ),
+                'teaser' => array(
+                    'label' => 'above',
+                    'settings' => array(),
+                    'type' => 'hidden',
+                    'weight' => 0,
+                ),
+            ),
+            'entity_type' => 'node',
+            'field_name' => 'field_tutor_available',
+            'label' => 'Availability',
+            'required' => TRUE,
+            'settings' => array(
+                'user_register_form' => FALSE,
+            ),
+            'widget' => array(
+                'module' => 'options',
+                'settings' => array(),
+                'type' => 'options_buttons',
+                'weight' => 41,
+            ),
+        ),
+        'field_tutor_gender' => array(
+            'bundle' => 'tutor_ad',
+            'default_value' => NULL,
+            'deleted' => 0,
+            'description' => '',
+            'display' => array(
+                'default' => array(
+                    'label' => 'above',
+                    'module' => 'list',
+                    'settings' => array(
+                        'field_formatter_class' => '',
+                    ),
+                    'type' => 'list_default',
+                    'weight' => 23,
+                ),
+                'teaser' => array(
+                    'label' => 'above',
+                    'settings' => array(),
+                    'type' => 'hidden',
+                    'weight' => 0,
+                ),
+            ),
+            'entity_type' => 'node',
+            'field_name' => 'field_tutor_gender',
+            'label' => 'Gender',
+            'required' => TRUE,
+            'settings' => array(
+                'user_register_form' => FALSE,
+            ),
+            'widget' => array(
+                'module' => 'options',
+                'settings' => array(),
+                'type' => 'options_buttons',
+                'weight' => 42,
+            ),
+        )
+    );
+}
+
+/***********************************************************************
+ * _add_tutor_ad_field_collections                                     *
+ ***********************************************************************
+ * Description: Generate fieldcollection data for tutorad content type *
+ * Arguments:                                                          *
+ * Return:      Array of field collections and their fields            *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function _add_tutor_ad_field_collections() {
+    $t = get_t();
+
+    $fields_array = array(
+        array(
+            'field' => array(
+                'field_name' => 'field_col_add_degree',
+                'label' => $t('Qualifications (Degree)'),
+                'cardinality' => -1,
+                'type' => 'field_collection',
+            ),
+            'instance' => array(
+                'field_name' => 'field_col_add_degree',
+                'entity_type' => 'node',
+                'bundle' => 'tutor_ad',
+                'label' => $t('Qualifications (Degree)'),
+                'description' => '',
+                'display' => array(
+                    'default' => array(
+                        'label' => 'above',
+                        'module' => 'field_collection_table',
+                        'settings' => array(
+                            'add' => 'Add',
+                            'delete' => 'Delete',
+                            'description' => TRUE,
+                            'edit' => 'Edit',
+                            'empty' => TRUE,
+                            'hide_empty' => FALSE,
+                            'view_mode' => 'full',
+                        ),
+                        'type' => 'field_collection_table_view',
+                        'weight' => 18,
+                    ),
+                ),
+                'widget' => array(
+                    'module' => 'field_collection_table',
+                    'settings' => array(
+                        'nodragging' => FALSE,
+                        'title_on_top' => TRUE,
+                    ),
+                    'type' => 'field_collection_table',
+                    'weight' => 18,
+                ),
+                'required' => TRUE
+            ),
+        ),
+        array(
+            'field' => array(
+                'field_name' => 'field_degree_university',
+                'type' => 'text',
+                'label' => 'University',
+                'cardinality' => 1
+            ),
+            'instance' => array(
+                'field_name' => 'field_degree_university',
+                'entity_type' => 'field_collection_item',
+                'bundle' => 'field_col_add_degree',
+                'label' => 'University',
+                'cardinality' => 1,
+                'description' => '',
+                'widget' => array(
+                    'type' => 'text_textfield'
+                ),
+                'required' => TRUE
+            )
+        ),
+        array(
+            'field' => array(
+                'field_name' => 'field_degree_name',
+                'type' => 'text',
+                'label' => 'Degree',
+                'cardinality' => 1
+            ),
+            'instance' => array(
+                'field_name' => 'field_degree_name',
+                'entity_type' => 'field_collection_item',
+                'bundle' => 'field_col_add_degree',
+                'label' => 'Degree',
+                'cardinality' => 1,
+                'description' => '',
+                'widget' => array(
+                    'type' => 'text_textfield'
+                ),
+                'required' => TRUE
+            )
+        ),
+
+
+
+
+        array(
+            'field' => array(
+                'field_name' => 'field_col_add_an_a_level_grade',
+                'label' => $t('Qualifications (A-Level)'),
+                'cardinality' => -1,
+                'type' => 'field_collection',
+            ),
+            'instance' => array(
+                'field_name' => 'field_col_add_an_a_level_grade',
+                'entity_type' => 'node',
+                'bundle' => 'tutor_ad',
+                'label' => $t('Qualifications (A-Level)'),
+                'description' => '',
+                'display' => array(
+                    'default' => array(
+                        'label' => 'above',
+                        'module' => 'field_collection_table',
+                        'settings' => array(
+                            'add' => 'Add',
+                            'delete' => 'Delete',
+                            'description' => TRUE,
+                            'edit' => 'Edit',
+                            'empty' => TRUE,
+                            'hide_empty' => TRUE,
+                            'view_mode' => 'full',
+                        ),
+                        'type' => 'field_collection_table_view',
+                        'weight' => 19,
+                    ),
+                ),
+                'widget' => array(
+                    'module' => 'field_collection_table',
+                    'settings' => array(
+                        'nodragging' => TRUE,
+                        'title_on_top' => TRUE,
+                    ),
+                    'type' => 'field_collection_table',
+                    'weight' => 19,
+                ),
+                'required' => TRUE
+            ),
+        ),
+        array(
+            'field' => array(
+                'field_name' => 'field_alevel_subject',
+                'type' => 'text',
+                'label' => 'A-Level subject',
+                'cardinality' => 1,
+                'entity_types' => array(),
+                'indexes' => array(
+                    'tid' => array(
+                        0 => 'tid',
+                    ),
+                ),
+                'locked' => 0,
+                'module' => 'taxonomy',
+                'settings' => array(
+                    'allowed_values' => array(
+                        0 => array(
+                            'vocabulary' => 'taxonomy_alevel_subjects',
+                            'parent' => 0,
+                            'depth' => 1,
+                        ),
+                    ),
+                    'options_list_callback' => 'content_taxonomy_allowed_values',
+                ),
+                'translatable' => 0,
+                'type' => 'taxonomy_term_reference',
+            ),
+            'instance' => array(
+                'field_name' => 'field_alevel_subject',
+                'entity_type' => 'field_collection_item',
+                'bundle' => 'field_col_add_an_a_level_grade',
+                'label' => 'A-Level subject',
+                'cardinality' => 1,
+                'description' => '',
+                'widget' => array(
+                    'type' => 'text_textfield'
+                ),
+                'required' => TRUE,
+                'display' => array(
+                    'default' => array(
+                        'label' => 'above',
+                        'module' => 'taxonomy',
+                        'settings' => array(),
+                        'type' => 'taxonomy_term_reference_link',
+                        'weight' => 1,
+                    ),
+                    'teaser' => array(
+                        'label' => 'above',
+                        'settings' => array(),
+                        'type' => 'hidden',
+                        'weight' => 0,
+                    ),
+                ),
+                'settings' => array(
+                    'user_register_form' => FALSE,
+                ),
+                'widget' => array(
+                    'active' => 1,
+                    'module' => 'options',
+                    'settings' => array(
+                        'content_taxonomy_opt_groups' => 0,
+                    ),
+                    'type' => 'options_select',
+                    'weight' => 1,
+                ),
+            )
+        ),
+        array(
+            'field' => array(
+                'field_name' => 'field_alevel_grade',
+                'type' => 'text',
+                'label' => 'Grade',
+                'cardinality' => 1,
+                'entity_types' => array(),
+                'indexes' => array(
+                    'tid' => array(
+                        0 => 'tid',
+                    ),
+                ),
+                'locked' => 0,
+                'module' => 'taxonomy',
+                'settings' => array(
+                    'allowed_values' => array(
+                        0 => array(
+                            'vocabulary' => 'taxonomy_alevel_grades',
+                            'parent' => 0,
+                            'depth' => 1,
+                        ),
+                    ),
+                    'options_list_callback' => 'content_taxonomy_allowed_values',
+                ),
+                'translatable' => 0,
+                'type' => 'taxonomy_term_reference',
+            ),
+            'instance' => array(
+                'field_name' => 'field_alevel_grade',
+                'entity_type' => 'field_collection_item',
+                'bundle' => 'field_col_add_an_a_level_grade',
+                'label' => 'Grade',
+                'cardinality' => 1,
+                'description' => '',
+                'required' => TRUE,
+                'display' => array(
+                    'default' => array(
+                        'label' => 'above',
+                        'module' => 'taxonomy',
+                        'settings' => array(),
+                        'type' => 'taxonomy_term_reference_link',
+                        'weight' => 1,
+                    ),
+                    'teaser' => array(
+                        'label' => 'above',
+                        'settings' => array(),
+                        'type' => 'hidden',
+                        'weight' => 0,
+                    ),
+                ),
+                'settings' => array(
+                    'user_register_form' => FALSE,
+                ),
+                'widget' => array(
+                    'active' => 1,
+                    'module' => 'options',
+                    'settings' => array(
+                        'content_taxonomy_opt_groups' => 0,
+                    ),
+                    'type' => 'options_select',
+                    'weight' => 1,
+                ),
+            )
+        ),
+
+
+
+
+
+
+
+
+
+
+        array(
+            'field' => array(
+                'field_name' => 'field_col_subject_level_pricing',
+                'label' => $t('Subject, levels and pricing'),
+                'cardinality' => -1,
+                'type' => 'field_collection',
+            ),
+            'instance' => array(
+                'field_name' => 'field_col_subject_level_pricing',
+                'entity_type' => 'node',
+                'bundle' => 'tutor_ad',
+                'label' => $t('Subject, levels and pricing'),
+                'description' => '',
+                'display' => array(
+                    'default' => array(
+                        'label' => 'above',
+                        'module' => 'field_collection_table',
+                        'settings' => array(
+                            'add' => 'Add',
+                            'delete' => 'Delete',
+                            'description' => TRUE,
+                            'edit' => 'Edit',
+                            'empty' => TRUE,
+                            'hide_empty' => FALSE,
+                            'view_mode' => 'full',
+                        ),
+                        'type' => 'field_collection_table_view',
+                        'weight' => 18,
+                    ),
+                ),
+                'widget' => array(
+                    'module' => 'gj_deanhopkins_subject_level_pricing',
+                    'settings' => array(
+                        'nodragging' => TRUE,
+                        'title_on_top' => TRUE,
+                    ),
+                    'type' => 'field_collection_subject_level_pricing',
+                    'weight' => 18,
+                ),
+                'required' => TRUE
+            ),
+        ),
+        array(
+            'field' => array(
+                'active' => 1,
+                'cardinality' => 1,
+                'deleted' => 0,
+                'entity_types' => array(),
+                'field_name' => 'field_offered_subject',
+                'indexes' => array(
+                    'tid' => array(
+                        0 => 'tid',
+                    ),
+                ),
+                'locked' => 0,
+                'module' => 'taxonomy',
+                'settings' => array(
+                    'allowed_values' => array(
+                        0 => array(
+                            'vocabulary' => 'taxonomy_subject_levels',
+                            'parent' => 0,
+                            'depth' => 1,
+                        ),
+                    ),
+                    'options_list_callback' => 'content_taxonomy_allowed_values',
+                ),
+                'translatable' => 0,
+                'type' => 'taxonomy_term_reference',
+            ),
+            'instance' => array(
+                'bundle' => 'field_col_subject_level_pricing',
+                'deleted' => 0,
+                'description' => '',
+                'display' => array(
+                    'default' => array(
+                        'label' => 'above',
+                        'module' => 'taxonomy',
+                        'settings' => array(),
+                        'type' => 'taxonomy_term_reference_link',
+                        'weight' => 1,
+                    ),
+                    'teaser' => array(
+                        'label' => 'above',
+                        'settings' => array(),
+                        'type' => 'hidden',
+                        'weight' => 0,
+                    ),
+                ),
+                'entity_type' => 'field_collection_item',
+                'field_name' => 'field_offered_subject',
+                'label' => 'Subject',
+                'required' => TRUE,
+                'settings' => array(
+                    'user_register_form' => FALSE,
+                ),
+                'widget' => array(
+                    'active' => 1,
+                    'module' => 'options',
+                    'settings' => array(
+                        'content_taxonomy_opt_groups' => 0,
+                    ),
+                    'type' => 'options_select',
+                    'weight' => 1,
+                ),
+            )
+        ),
+
+
+        array(
+            'field' => array(
+                'active' => 1,
+                'cardinality' => 1,
+                'deleted' => 0,
+                'entity_types' => array(),
+                'field_name' => 'field_offered_level',
+                'indexes' => array(
+                    'tid' => array(
+                        0 => 'tid',
+                    ),
+                ),
+                'locked' => 0,
+                'module' => 'taxonomy',
+                'settings' => array(
+                    'allowed_values' => array(
+                        0 => array(
+                            'vocabulary' => 'taxonomy_subject_levels',
+                            'parent' => 0,
+                            'depth' => '',
+                        ),
+                    ),
+                    'options_list_callback' => 'content_taxonomy_allowed_values',
+                ),
+                'translatable' => 0,
+                'type' => 'taxonomy_term_reference',
+            ),
+            'instance' => array(
+                'bundle' => 'field_col_subject_level_pricing',
+                'deleted' => 0,
+                'description' => '',
+                'display' => array(
+                    'default' => array(
+                        'label' => 'above',
+                        'module' => 'taxonomy',
+                        'settings' => array(),
+                        'type' => 'taxonomy_term_reference_link',
+                        'weight' => 2,
+                    ),
+                    'teaser' => array(
+                        'label' => 'above',
+                        'settings' => array(),
+                        'type' => 'hidden',
+                        'weight' => 0,
+                    ),
+                ),
+                'entity_type' => 'field_collection_item',
+                'field_name' => 'field_offered_level',
+                'label' => 'Level',
+                'required' => TRUE,
+                'settings' => array(
+                    'user_register_form' => FALSE,
+                ),
+                'widget' => array(
+                    'active' => 1,
+                    'module' => 'options',
+                    'settings' => array(
+                        'content_taxonomy_opt_groups' => 0,
+                    ),
+                    'type' => 'options_select',
+                    'weight' => 2,
+                ),
+            )
+        ),
+
+        array(
+            'field' => array(
+                'field_name' => 'field_subject_level_price',
+                'type' => 'text',
+                'label' => 'Price',
+                'module' => 'list',
+                'settings' => array(
+                    'allowed_values_function' => 'gj_deanhopkins_get_price_per_hour_values',
+                ),
+                'type' => 'list_text',
+                'cardinality' => 1,
+            ),
+            'instance' => array(
+                'field_name' => 'field_subject_level_price',
+                'entity_type' => 'field_collection_item',
+                'bundle' => 'field_col_subject_level_pricing',
+                'label' => 'Price',
+                'cardinality' => 1,
+                'description' => '',
+                'widget' => array(
+                    'type' => 'options_select',
+                    'weight' => 3,
+                ),
+                'required' => TRUE
+            )
+        ),
+
+
+
+
+
+
+
+
+        array(
+            'field' => array(
+                'field_name' => 'field_col_add_reference',
+                'label' => $t('Add References'),
+                'cardinality' => -1,
+                'type' => 'field_collection',
+            ),
+            'instance' => array(
+                'field_name' => 'field_col_add_reference',
+                'entity_type' => 'node',
+                'bundle' => 'tutor_ad',
+                'label' => $t('Add References'),
+                'description' => '',
+                'widget' => array('type' => 'field_collection_embed'),
+                'required' => TRUE
+            ),
+        ),
+        array(
+            'field' => array(
+                'field_name' => 'field_reference_star_rating',
+                'module' => 'fivestar',
+                'settings' => array(
+                    'axis' => 'vote',
+                ),
+                'translatable' => 0,
+                'type' => 'fivestar',
+                'label' => 'Star Rating',
+                'cardinality' => 1
+            ),
+            'instance' => array(
+                'field_name' => 'field_reference_star_rating',
+                'entity_type' => 'field_collection_item',
+                'bundle' => 'field_col_add_reference',
+                'label' => 'Star Rating',
+                'cardinality' => 1,
+                'description' => '',
+                'required' => TRUE,
+                'display' => array(
+                    'default' => array(
+                        'label' => 'above',
+                        'module' => 'fivestar',
+                        'settings' => array(
+                            'expose' => TRUE,
+                            'style' => 'average',
+                            'text' => 'average',
+                            'widget' => array(
+                                'fivestar_widget' => 'fontawesome-star',
+                            ),
+                        ),
+                        'type' => 'fivestar_formatter_default',
+                        'weight' => 12,
+                    ),
+                    'teaser' => array(
+                        'label' => 'above',
+                        'settings' => array(),
+                        'type' => 'hidden',
+                        'weight' => 0,
+                    ),
+                ),
+                'settings' => array(
+                    'allow_clear' => 0,
+                    'allow_ownvote' => 0,
+                    'allow_revote' => 0,
+                    'stars' => 5,
+                    'target' => 'none',
+                    'user_register_form' => FALSE,
+                ),
+                'widget' => array(
+                    'active' => 1,
+                    'module' => 'fivestar',
+                    'settings' => array(
+                        'widget' => array(
+                            'fivestar_widget' => 'sites/all/modules/gj_deanhopkins_tutor_ad/widgets/fontawesome/fontawesome-star.css',
+                        ),
+                    ),
+                    'type' => 'stars',
+                    'weight' => 8,
+                ),
+            )
+        ),
+        array(
+            'field' => array(
+                'field_name' => 'field_reference_first_name',
+                'type' => 'text',
+                'label' => 'First Name',
+                'cardinality' => 1
+            ),
+            'instance' => array(
+                'field_name' => 'field_reference_first_name',
+                'entity_type' => 'field_collection_item',
+                'bundle' => 'field_col_add_reference',
+                'label' => 'First Name',
+                'cardinality' => 1,
+                'description' => '',
+                'widget' => array(
+                    'type' => 'text_textfield'
+                ),
+                'required' => TRUE,
+            )
+        ),
+        array(
+            'field' => array(
+                'field_name' => 'field_reference_last_name_init',
+                'label' => 'Last Name Initial',
+                'cardinality' => 1,'module' => 'list',
+                'settings' => array(
+                    'allowed_values' => array(
+                        'A' => 'A',
+                        'B' => 'B',
+                        'C' => 'C',
+                        'D' => 'D',
+                        'E' => 'E',
+                        'F' => 'F',
+                        'G' => 'G',
+                        'H' => 'H',
+                        'I' => 'I',
+                        'J' => 'J',
+                        'K' => 'K',
+                        'L' => 'L',
+                        'M' => 'M',
+                        'N' => 'N',
+                        'O' => 'O',
+                        'P' => 'P',
+                        'Q' => 'Q',
+                        'R' => 'R',
+                        'S' => 'S',
+                        'T' => 'T',
+                        'U' => 'U',
+                        'V' => 'V',
+                        'W' => 'W',
+                        'X' => 'X',
+                        'Y' => 'Y',
+                        'Z' => 'Z',
+                    ),
+                    'allowed_values_function' => '',
+                ),
+                'translatable' => 0,
+                'type' => 'list_text',
+            ),
+            'instance' => array(
+                'field_name' => 'field_reference_last_name_init',
+                'entity_type' => 'field_collection_item',
+                'bundle' => 'field_col_add_reference',
+                'label' => 'Last Name Initial',
+                'cardinality' => 1,
+                'description' => '',
+                'widget' => array(
+                    'module' => 'options',
+                    'settings' => array(),
+                    'type' => 'options_select',
+                ),
+                'required' => TRUE
+            )
+        ),
+        array(
+            'field' => array(
+                'field_name' => 'field_reference_text',
+                'type' => 'text_long',
+                'label' => 'Reference',
+                'cardinality' => 1
+            ),
+            'instance' => array(
+                'field_name' => 'field_reference_text',
+                'entity_type' => 'field_collection_item',
+                'bundle' => 'field_col_add_reference',
+                'label' => 'Reference',
+                'cardinality' => 1,
+                'description' => '',
+                'widget' => array(
+                    'type' => 'text_textarea'
+                ),
+                'required' => TRUE
+            )
+        ),
+    );
+
+    // Loop through fields array and create field and instance
+    foreach ($fields_array as $field) {
+        // Check if field already exists
+        if (!field_info_field($field['field']['field_name'])) {
+            field_create_field($field['field']);
+        }
+
+        // Check if instance exists
+        if (!field_info_instance($field['instance']['entity_type'], $field['instance']['field_name'], $field['instance']['bundle'])) {
+            field_create_instance($field['instance']);
+        }
+    }
+}
+
+/***********************************************************************
+ * delete_tutor_ad_fields                                              *
+ ***********************************************************************
+ * Description: Delete fields used by content type in uninstall        *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function delete_tutor_ad_fields() {
+    foreach (array_keys(_get_tutor_ad_field_bases()) as $field) {
+        field_delete_field($field);
+    }
+    $instances = field_info_instances('node', 'tutor_ad');
+    foreach ($instances as $instance_name => $fieldinstance) {
+        field_delete_instance($fieldinstance);
+    }
+}
+
+
+function create_popular_subject_taxonomy(){
+    $vocab = create_popular_subject_vocab();
+    $terms = create_popular_subject_vocab_terms();
+    save_single_level_taxonomy($vocab, $terms);
+}
+
+function create_popular_subject_vocab(){
+    $new_vocab = (object) array(
+        'name' => 'Popular Subjects',
+        'description' => 'List of Popular subjects.',
+        'machine_name' => 'taxonomy_popular_subjects',
+    );
+    taxonomy_vocabulary_save($new_vocab);
+
+    return taxonomy_vocabulary_machine_name_load('taxonomy_popular_subjects');
+}
+
+function create_popular_subject_vocab_terms(){
+    $file = drupal_get_path("module", "gj_deanhopkins_tutor_ad") . "/taxonomy_files/" . "Popular-Subjects.txt";
+    $contents = file_get_contents($file);
+    $lines = explode("\n", $contents); // this is your array of words
+    $terms = array();
+
+    foreach($lines as $line) {
+        if (strlen($line) > 0 and !in_array($line, $terms)){
+            array_push($terms, $line);
+        }
+    }
+
+    return $terms;
+}
+
+
+
+function create_popular_level_taxonomy(){
+    $vocab = create_popular_level_vocab();
+    $terms = create_popular_level_vocab_terms();
+    save_single_level_taxonomy($vocab, $terms);
+}
+
+function create_popular_level_vocab(){
+    $new_vocab = (object) array(
+        'name' => 'Popular Levels',
+        'description' => 'List of Popular levels.',
+        'machine_name' => 'taxonomy_popular_levels',
+    );
+    taxonomy_vocabulary_save($new_vocab);
+
+    return taxonomy_vocabulary_machine_name_load('taxonomy_popular_levels');
+}
+
+function create_popular_level_vocab_terms(){
+    $file = drupal_get_path("module", "gj_deanhopkins_tutor_ad") . "/taxonomy_files/" . "Popular-Levels.txt";
+    $contents = file_get_contents($file);
+    $lines = explode("\n", $contents); // this is your array of words
+    $terms = array();
+
+    foreach($lines as $line) {
+        if (strlen($line) > 0 and !in_array($line, $terms)){
+            array_push($terms, $line);
+        }
+    }
+
+    return $terms;
+}
+
+
+function create_alevel_subject_taxonomy(){
+    $vocab = create_alevel_subject_vocab();
+    $terms = create_alevel_subject_vocab_terms();
+    save_single_level_taxonomy($vocab, $terms);
+}
+
+function create_alevel_subject_vocab(){
+    $new_vocab = (object) array(
+        'name' => 'A-Level Subjects',
+        'description' => 'List of A-Level subjects.',
+        'machine_name' => 'taxonomy_alevel_subjects',
+    );
+    taxonomy_vocabulary_save($new_vocab);
+
+    return taxonomy_vocabulary_machine_name_load('taxonomy_alevel_subjects');
+}
+
+function create_alevel_subject_vocab_terms(){
+    $file = drupal_get_path("module", "gj_deanhopkins_tutor_ad") . "/taxonomy_files/" . "A-Level-Subjects.txt";
+    $contents = file_get_contents($file);
+    $lines = explode("\n", $contents); // this is your array of words
+    $terms = array();
+
+    foreach($lines as $line) {
+        if (strlen($line) > 0 and !in_array($line, $terms)){
+            array_push($terms, $line);
+        }
+    }
+
+    return $terms;
+}
+
+
+
+function create_alevel_grades_taxonomy(){
+    $vocab = create_alevel_grades_vocab();
+    $terms = create_alevel_grades_vocab_terms();
+    save_single_level_taxonomy($vocab, $terms);
+}
+
+function create_alevel_grades_vocab(){
+    $new_vocab = (object) array(
+        'name' => 'A-Level Grades',
+        'description' => 'List of A-Level Grades.',
+        'machine_name' => 'taxonomy_alevel_grades',
+    );
+    taxonomy_vocabulary_save($new_vocab);
+
+    return taxonomy_vocabulary_machine_name_load('taxonomy_alevel_grades');
+}
+
+function create_alevel_grades_vocab_terms(){
+    $file = drupal_get_path("module", "gj_deanhopkins_tutor_ad") . "/taxonomy_files/" . "A-Level-Grades.txt";
+    $contents = file_get_contents($file);
+    $lines = explode("\n", $contents); // this is your array of words
+    $terms = array();
+
+    foreach($lines as $line) {
+        if (strlen($line) > 0 and !in_array($line, $terms)){
+            array_push($terms, $line);
+        }
+    }
+
+    return $terms;
+}
+
+
+
+
+/***********************************************************************
+ * create_subject_level_taxonomy                                       *
+ ***********************************************************************
+ * Description: Create subject-level multilevel taxonomy               *
+ *              Example: Maths (subject)                               *
+ *                       A-Level (level)                               *
+ *                       Maths -> GCSE (Subject - Level)               *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function create_subject_level_taxonomy(){
+    $vocab = create_subject_level_vocab();
+    $terms = create_subject_level_vocab_terms();
+    save_multi_level_taxonomy($vocab, $terms);
+}
+
+/***********************************************************************
+ * create_subject_level_vocab                                          *
+ ***********************************************************************
+ * Description: Create subject-level multilevel vocab                  *
+ *              Example: Maths (subject)                               *
+ *                       A-Level (level)                               *
+ *                       Maths -> GCSE (Subject - Level)               *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function create_subject_level_vocab(){
+    $new_vocab = (object) array(
+        'name' => 'Subject Levels',
+        'description' => 'This vocabulary is a hierarchical structure of Subject and levels available for that subject.',
+        'machine_name' => 'taxonomy_subject_levels',
+    );
+    taxonomy_vocabulary_save($new_vocab);
+
+    $field_example = array(
+        'field_name' => 'term_type',
+        'type' => 'text',
+    );
+    field_create_field($field_example);
+
+    $field_example_instance = array(
+        'field_name' => 'term_type',
+        'label' => st('Subject / Level'),
+        'bundle' => 'taxonomy_subject_levels',
+        'entity_type' => 'taxonomy_term',
+        'widget' => array(
+            'type' => 'text_textfield',
+        ),
+    );
+    field_create_instance($field_example_instance);
+
+    return taxonomy_vocabulary_machine_name_load('taxonomy_subject_levels');
+}
+
+/***********************************************************************
+ * create_subject_level_vocab_terms                                    *
+ ***********************************************************************
+ * Description: Create subject-level vocab terms                       *
+ *              Reads terms from CSV file in taxonomy_files/           *
+                Subject_Levels_Taxonomy.csv                            *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function create_subject_level_vocab_terms(){
+    $terms = array();
+    $file = fopen(drupal_get_path("module", "gj_deanhopkins_tutor_ad") . "/taxonomy_files/" . "Subject_Levels_Taxonomy.csv", "r");
+
+    $last_parent_name = "";
+    while (($data = fgetcsv($file)) !== FALSE) {
+        $tid = $data[1];
+        $term_name = $data[2];
+        $parent_tid = $data[4];
+
+        if (!$parent_tid){
+            $terms[$term_name] = [];
+            $last_parent_name = $term_name;
+        } else {
+            array_push($terms[$last_parent_name], $term_name);
+        }
+    }
+
+    return $terms;
+}
+
+/***********************************************************************
+ * create_degree_issuing_institutions_taxonomy                         *
+ ***********************************************************************
+ * Description: Create degree issuing institutions taxonomy            *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function create_degree_issuing_institutions_taxonomy(){
+    $vocab = create_degree_issuing_institutions_vocab();
+    $terms = create_degree_issuing_institutions_vocab_terms();
+    save_single_level_taxonomy($vocab, $terms);
+}
+
+/***********************************************************************
+ * create_degree_issuing_institutions_vocabulary                       *
+ ***********************************************************************
+ * Description: Create degree issuing institutions vocabulary          *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function create_degree_issuing_institutions_vocab(){
+    $new_vocab = (object) array(
+        'name' => 'Degree Issuing Institutions',
+        'description' => 'List of UK degree issuing institutions.',
+        'machine_name' => 'taxonomy_degree_institutions',
+    );
+    taxonomy_vocabulary_save($new_vocab);
+
+    return taxonomy_vocabulary_machine_name_load('taxonomy_degree_institutions');
+}
+
+/***********************************************************************
+ * create_degree_issuing_institutions_vocab_terms                      *
+ ***********************************************************************
+ * Description: Create degree-issuing-institutions vocab terms         *
+ *              Reads terms line-by-line from text file in             *
+ *              taxonomy_files/Degree-Issuing-Institutions.txt         *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function create_degree_issuing_institutions_vocab_terms(){
+    $file = drupal_get_path("module", "gj_deanhopkins_tutor_ad") . "/taxonomy_files/" . "Degree-Issuing-Institutions.txt";
+    $contents = file_get_contents($file);
+    $lines = explode("\n", $contents); // this is your array of words
+    $terms = array();
+
+    foreach($lines as $line) {
+        if (strlen($line) > 0 and !in_array($line, $terms)){
+            array_push($terms, $line);
+        }
+    }
+
+    return $terms;
+}
+
+/***********************************************************************
+ * create_price_per_hour_taxonomy                                      *
+ ***********************************************************************
+ * Description: Create price-per-hour taxonomy                         *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function create_price_per_hour_taxonomy(){
+    $vocab = create_price_per_hour_vocab();
+    $terms = create_price_per_hour_vocab_terms();
+    save_single_level_taxonomy($vocab, $terms);
+}
+
+/***********************************************************************
+ * create_price_per_hour_vocab                                         *
+ ***********************************************************************
+ * Description: Create price-per-hour vocabulary                       *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function create_price_per_hour_vocab(){
+    $new_vocab = (object) array(
+        'name' => 'Price per hour',
+        'description' => 'List of valid price per hour values.',
+        'machine_name' => 'taxonomy_price_per_hour',
+    );
+    taxonomy_vocabulary_save($new_vocab);
+
+    return taxonomy_vocabulary_machine_name_load('taxonomy_price_per_hour');
+}
+
+/***********************************************************************
+ * create_price_per_hour_vocab_terms                                   *
+ ***********************************************************************
+ * Description: Create price-per-hour vocabulary terms                 *
+ *              (Even numbers between 17 and 37)                       *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function create_price_per_hour_vocab_terms(){
+    $terms = array();
+
+    foreach (range(17, 37) as $number) {
+        if (0 === $number % 2) {
+            array_push($terms, $number);
+        }
+    }
+
+    return $terms;
+}
+
+/***********************************************************************
+ * save_multi_level_taxonomy                                           *
+ ***********************************************************************
+ * Description: Saves a multi-level (parent->child) taxonomy to DB     *
+ * Arguments:   $vocab, $terms                                         *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function save_multi_level_taxonomy($vocab, $terms){
+    foreach ($terms as $parent => $children) {
+        //create parent term
+        $term_type = array();
+        $term_type[LANGUAGE_NONE] = [['value' => "Subject",],];
+
+        taxonomy_term_save((object) array(
+            'name' => $parent,
+            'term_type' => $term_type,
+            'vid' => $vocab->vid,
+        ));
+
+        //get parent term id
+        $tid = db_query("SELECT tid FROM {taxonomy_term_data} WHERE name = :name AND vid = :vid ORDER BY tid DESC LIMIT 1", array('name' => $parent, ':vid' => $vocab->vid,))->fetchField();
+
+        $term_type[LANGUAGE_NONE] = [['value' => "Level",],];
+        //create child terms
+        foreach ($children as $term) {
+            taxonomy_term_save((object) array(
+                'name' => $term,
+                'term_type' => $term_type,
+                'vid' => $vocab->vid,
+                'parent' => array($tid),
+            ));
+        }
+    }
+}
+
+/***********************************************************************
+ * save_multi_level_taxonomy                                           *
+ ***********************************************************************
+ * Description: Saves a single-level taxonomy and its terms to DB      *
+ * Arguments:   $vocab, $terms                                         *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function save_single_level_taxonomy($vocab, $terms){
+    foreach ($terms as $term) {
+        taxonomy_term_save((object) array(
+            'name' => $term,
+            'vid' => $vocab->vid
+        ));
+    }
+}
+
+/***********************************************************************
+ * delete_taxonomy                                                     *
+ ***********************************************************************
+ * Description: Delete taxonomy by machine name during uninstall       *
+ * Arguments:   $machine_name                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        10-12-2018                                             *
+ ***********************************************************************/
+function delete_taxonomy($machine_name){
+    $vocab = taxonomy_vocabulary_machine_name_load($machine_name);
+    taxonomy_vocabulary_delete($vocab->vid);
+}
+
+/***********************************************************************
+ * gj_deanhopkins_tutor_ad_update_7102                                 *
+ ***********************************************************************
+ * Description: Implements hook_update.                                *
+ *              Disable tutor ad preview.                              *
+ *              Delete duplicate subject-level taxonomy from TS        *
+ *              Add new terms to subject-level taxonomy                *
+ *              Set menu-per-role config to hide menu items from tutor *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-11                                             *
+ ***********************************************************************/
+function gj_deanhopkins_tutor_ad_update_7102(){
+    print "Running GJ_DEANHOPKINS_TUTOR_AD_UPDATE_7102. \n";
+    //disable tutor ad preview
+    variable_set('node_preview_' . 'tutor_ad', '0');
+
+    //delete tutorsave (duplicate level-subject taxonomy)
+    $old_vocab = taxonomy_vocabulary_machine_name_load('subject_upload');
+    if (isset($old_vocab)){
+        print "Removing duplicate taxonomy terms (takes a long time)... \n";
+        $terms = taxonomy_get_tree($old_vocab->vid);
+        $count = 0;
+        if (!empty($terms)) {
+            foreach ($terms as $term) {
+                taxonomy_term_delete($term->tid);
+                $count++;
+                print "Removed " . $count . " of " . sizeof($terms) . " terms... \n";
+            }
+        }
+        print "DONE. \n";
+        print "Removing duplicate vocabulary ...";
+        taxonomy_vocabulary_delete($old_vocab->vid);
+        print "DONE. \n";
+    } else {
+        print "Duplicate taxonomy already removed. \n";
+    }
+
+    //Add new terms to subejct-level taxonomy
+    $new_terms = array(
+        "Maths" => array("13+"),
+        "English" => array("13+", "A-Level", "GCSE"),
+        "English Language" => array("Degree"),
+        "English Literature" => array("Degree"),
+        "German" => array("GCSE"),
+        "Science" => array("13+", "Primary"),
+
+    );
+
+    $vocab = taxonomy_vocabulary_machine_name_load('taxonomy_subject_levels');
+
+    foreach ($new_terms as $parent => $children){
+        $parent_term = array_pop(taxonomy_get_term_by_name($parent, 'taxonomy_subject_levels'));
+
+        $term_type = array();
+        $term_type[LANGUAGE_NONE] = [['value' => "Level",],];
+        foreach ($children as $level){
+            $exists = false;
+
+            $existing_terms = taxonomy_get_children($parent_term->tid);
+            foreach ($existing_terms as $existing_term){
+                if (strtolower($existing_term->name) == strtolower($level)){
+                    $exists = true;
+                }
+            }
+            if (!$exists){
+                taxonomy_term_save((object) array(
+                    'name' => $level,
+                    'term_type' => $term_type,
+                    'vid' => $vocab->vid,
+                    'parent' => array($parent_term->tid),
+                ));
+                print "New Term = Parent: " . $parent . "\t Level: " . $level . "\n";
+            } else {
+                print "Term already exists. Skipping = Parent: " . $parent . "\t Level: " . $level . "\n";
+            }
+        }
+    }
+
+    // Hide menu items from users who are already Tutors:
+    // "How it works (2216), Become a tutor (2228), Prices (3708)"
+    print "Updating menu permissions... ";
+    $menu_link_ids = array(2216, 2228, 3708);
+    $tutor_rid = user_role_load_by_name('Tutor')->rid;
+
+    foreach ($menu_link_ids as $mlid){
+        $fields = array('rids' => "", 'hrids' => $tutor_rid);
+        $count = db_select('menu_per_role')
+            ->condition('mlid', $mlid)
+            ->countQuery()
+            ->execute()
+            ->fetchField();
+        if ($count == 0) {
+            $fields['mlid'] = $mlid;
+            db_insert('menu_per_role')
+                ->fields($fields)
+                ->execute();
+        }
+        else {
+            db_update('menu_per_role')
+                ->fields($fields)
+                ->condition('mlid', $mlid)
+                ->execute();
+        }
+    }
+    print "DONE. \n";
+}
+
+/***********************************************************************
+ * gj_deanhopkins_tutor_ad_update_7103                                 *
+ ***********************************************************************
+ * Description: Implements hook_update.                                *
+ *              Add new rule to email SH on tutor ad node create       *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-11                                             *
+ ***********************************************************************/
+function gj_deanhopkins_tutor_ad_update_7103(){
+    print "Running GJ_DEANHOPKINS_TUTOR_AD_UPDATE_7103. \n";
+    print "Creating new rule to email SH on tutor ad node creation... ";
+
+    $rule = rules_config_load('rules_email_sh_on_parent_search_request_creation');
+    if (!isset($rule)) {
+        $config = '{ "rules_email_sh_on_tutor_ad_creation" : {
+            "LABEL" : "Email SH on Tutor Ad Creation",
+            "PLUGIN" : "reaction rule",
+            "OWNER" : "rules",
+            "TAGS" : [ "Custom" ],
+            "REQUIRES" : [ "rules" ],
+            "ON" : { "node_insert--tutor_ad" : { "bundle" : "tutor_ad" } },
+            "DO" : [
+              { "mail" : {
+                  "to" : "simon.hood@tutorsave.com",
+                  "subject" : "New Tutor Ad Created on GradeJumpers",
+                  "message" : "Hi,\r\n\r\nA new tutor advert has been created on GradeJumpers. It can be found at [node:url] .\r\n\r\nPlease review and approve\/disaprove.\r\n\r\nGradeJumpers",
+                  "language" : [ "" ]
+                }
+              }
+            ]
+          }
+        }';
+
+        $rules_config = rules_import($config, $error_msg);
+        if (!$error_msg) {
+            $rules_config->save();
+        }
+    } else {
+        print "Rule already exists.";
+    }
+
+
+    print "DONE. \n";
+}

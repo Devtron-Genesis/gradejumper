@@ -1,0 +1,90 @@
+.tutor-search-select-wrap {
+  display: block;
+  margin-bottom: 20px;
+  overflow: auto;
+  display: block;
+  justify-content: flex-end;
+
+  width: 100%;
+}
+
+.page-subject .tutor-search-container-v2,
+.page-level .tutor-search-container-v2,
+.page-level-subject .tutor-search-container-v2 {
+  max-width: 720px;
+  margin: 0 auto;
+  margin-bottom: 0;
+}
+
+.tutor-search-container-v2 .tutor-search-subject, .tutor-search-container-v2 .tutor-search-level, .tutor-search-container-v2 .tutor-search-button {
+  width: 33%;
+  display: inline-block;
+  float: left;
+  padding-left: 7px;
+  padding-right: 7px;
+}
+
+
+.tutor-search-container-v2 .tutor-search-subject {
+
+}
+
+.tutor-search-container-v2 .tutor-search-level {
+
+}
+
+.tutor-search-container-v2 .form-type-select {
+    text-align: left !important;
+}
+.tutor-search-container-v2 label {
+  color: white !important;
+  text-align: left !important;
+}
+
+.tutor-search-container-v2 #edit-subject, .tutor-search-container-v2 #edit-level {
+  height: 55px;
+  vertical-align: bottom;
+  font-size: 16px;
+  border-radius: 5px;
+  -webkit-box-shadow: 0 2px 10px 0 #000;
+  box-shadow: 0 2px 10px 0 RGBA(51,51,51,0.51);;
+  margin-bottom: 5px;
+}
+
+.tutor-search-container-v2 .has-error .form-control {
+  border-width: 2px !important;
+}
+
+.tutor-search-container-v2 .tutor-search-button {
+  margin-top: 30px;
+  margin-bottom: 5px;
+}
+
+.tutor-search-container-v2 #edit-submit {
+  width: 100%;
+  height: 55px;
+  background-color: #57B182 !important;
+  color: white !important;
+  font-size: 20px !important;
+  font-weight: bold !important;
+  border-radius: 5px !important;
+  vertical-align: bottom;
+  -webkit-box-shadow: 0 2px 10px 0 #000;
+  box-shadow: 0 2px 10px 0 RGBA(51,51,51,0.51);
+
+}
+
+@media (max-width: 990px) {
+  .tutor-search-container-v2 {
+    margin-bottom: 40px;
+  }
+
+  .tutor-search-container-v2 .tutor-search-subject, .tutor-search-container-v2 .tutor-search-level {
+      width: 50%;
+      margin-bottom: 10px;
+  }
+  .tutor-search-container-v2 .tutor-search-button {
+    width: 100%;
+    margin-top: 10px;
+  }
+}
