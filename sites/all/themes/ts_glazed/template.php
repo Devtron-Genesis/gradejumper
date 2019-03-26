@@ -1,5 +1,7 @@
 <?php
 
+//test comment
+
 function ts_glazed_menu_tree(&$vars) {
   return '<ul class="menu nav navbar-nav">' . $vars['tree'] . '</ul>';
 }
@@ -231,4 +233,20 @@ function ts_glazed_get_footer_link() {
         'popular_searches1' => $popular_searches1,
         'popular_searches2' => $popular_searches2,
     );
+}
+
+
+function ts_glazed_menu_link(array $variables) {
+    //if its a tutor cruncher URL, inject correct server key for dev/test/live
+    $search_str = 'secure.tutorcruncher.com';
+    $element_url = $variables["element"]["#href"];
+    if (strpos($element_url, $search_str) !== false){
+        if (module_exists("gj_dh_deployment")){
+            $variables["element"]["#href"] = gj_transform_tc_url($element_url);
+        } else {
+            $variables["element"]["#href"] = "";
+        }
+    }
+
+    return theme_menu_link($variables);
 }

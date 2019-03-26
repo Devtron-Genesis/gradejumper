@@ -159,7 +159,8 @@ function gj_registration_redirect_theme($existing, $type, $theme, $path) {
        if($cookie_nid > 0) {
          /* REDIRECT USER TO NEW MESSAGE PAGE */
          $node = node_load($cookie_nid);
-         drupal_goto(_get_message_url($node));
+         $url_with_options = _get_message_url($node);
+         drupal_goto($url_with_options['url'], $url_with_options['options']);
        }
        else {
          // We don't have a valid node id here - just redirect to the base messaging page
@@ -206,7 +207,7 @@ function get_registration_redirect_nid() {
  * Date:        2018-12-17                                  *
  ************************************************************/
 function set_registration_redirect_cookie($value) {
-  setcookie(REG_REDIRECT_COOKIE, $value);
+  setcookie(REG_REDIRECT_COOKIE, $value, 0, "/");
 }
 
 /************************************************************

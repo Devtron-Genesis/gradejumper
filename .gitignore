@@ -1,18 +1,82 @@
-# Ignore configuration files that may contain sensitive information.
-sites/*/*settings*.php
 
-# Ignore paths that contain generated content.
-cache/
-files/
-sites/*/files
-sites/*/private
+\.idea/
 
-# Ignore ide files
-.idea
+/includes/
 
-# Ignore SASS cache
-.sass-cache
-.sass-cache/*
+/misc/
 
-# Ignore OS specific files.
-.DS_Store
+/profiles/
+
+/scripts/
+
+/authorize\.php
+
+/CHANGELOG\.txt
+
+/COPYRIGHT\.txt
+
+/cron\.php
+
+/index\.php
+
+/INSTALL\.mysql\.txt
+
+/INSTALL\.pgsql\.txt
+
+/install\.php
+
+/INSTALL\.sqlite\.txt
+
+/INSTALL\.txt
+
+/LICENSE\.txt
+
+/MAINTAINERS\.txt
+
+/README\.txt
+
+/robots\.txt
+
+/update\.php
+
+/UPGRADE\.txt
+
+/web\.config
+
+/xmlrpc\.php
+
+/sites/default/
+
+/sites/\.DS_Store
+
+/sites/example\.sites\.php
+
+/modules/
+
+/themes/
+
+sites/all/libraries/
+
+sites/README\.txt
+
+sites/all/vendor/
+
+sites/all/themes/adminimal_theme/
+
+sites/all/themes/bootstrap/
+
+sites/all/themes/README\.txt
+
+sites/all/modules/contrib/
+
+sites/all/modules/gj_search_frm_v2\.zip
+
+sites/all/modules/proactive-response-modules\.tar\.gz
+
+sites/all/modules/README\.txt
+
+sites/all/themes/ts_glazed/\.sass-cache/
+
+sites/all/themes/ts_glazed/node_modules/
+
+sites/all/themes/ts_glazed/package-lock\.json

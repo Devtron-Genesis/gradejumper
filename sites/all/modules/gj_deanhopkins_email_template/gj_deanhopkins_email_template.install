@@ -1,0 +1,36 @@
+<?php
+
+
+/***********************************************************************
+ * gj_deanhopkins_email_template_update_7104                           *
+ ***********************************************************************
+ * Description: Implements hook_update.                                *
+ *              Persist settings to database                           *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-19                                             *
+ ***********************************************************************/
+function gj_deanhopkins_email_template_update_7104(){
+    print "Running GJ_DEANHOPKINS_EMAIL_TEMPLATE_UPDATE_7103. \n";
+    print "Persist email notification settings... ";
+
+    $subject = "You have a new message!";
+    $from = "lisa@gradejumpers.com";
+    $email_body = '<p>Hi [privatemsg_message:recipient:first-name],</p>
+<p>You have a new message. Click the button below to view and reply…</p>
+
+<a href="[privatemsg_message:url]" class="btn-view-message-container" style="margin: auto; display: flex; align-content: center; align-items: center; text-decoration: none;">
+    <button type="button" class="btn btn-lg btn-primary btn-view-message" style="width: 358px; height: 58px; border-radius: 40px; background-color: #3f73d2; margin:auto; color: #ffffff; border:0px; font-family: Montserrat; font-size: 16px; font-weight: 500; line-height: 22px;">View message</button>
+</a>
+
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi vitae quam rutrum, consectetur odio eget, semper leo. Donec varius sem non auctor tempor. Nam eu viverra dolor, faucibus tempor enim.</p>';
+
+    variable_set('pm_email_notify_default', TRUE);
+    variable_set('pm_email_notify_subject', $subject);
+    variable_set('pm_email_notify_body', $email_body);
+    variable_set('pm_email_notify_from', $from);
+
+    print "DONE. \n";
+}

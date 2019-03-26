@@ -1,6 +1,26 @@
 <?php
 
 /***********************************************************************
+ * gj_dh_menu_changes_install                                          *
+ ***********************************************************************
+ * Description: Implements hook_install                                *
+ *              Add new menu items to TutorCruncher Sidebar:           *
+ *              Proactive Responses (Tutor only)                       *
+ *              Proactive Responses (Parent only)                      *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-12                                             *
+ ***********************************************************************/
+function gj_dh_menu_changes_install()
+{
+    gj_dh_menu_changes_create_new_items();
+    gj_dh_menu_changes_update_existing_items();
+}
+
+
+/***********************************************************************
  * gj_dh_menu_changes_update_7103                                      *
  ***********************************************************************
  * Description: Implements hook_update.                                *
@@ -13,9 +33,47 @@
  * Author:      Dean Hopkins                                           *
  * Date:        2019-03-12                                             *
  ***********************************************************************/
-function gj_dh_menu_changes_update_7103(){
-    print "Running GJ_DH_MENU_CHANGES_UPDATE_7103. \n";
+function gj_dh_menu_changes_update_7104(){
+    print "Running GJ_DH_MENU_CHANGES_UPDATE_7104. \n";
     print "Creating new menu items... ";
+    gj_dh_menu_changes_create_new_items();
+    print "DONE. \n";
+}
+
+
+
+/***********************************************************************
+ * gj_dh_menu_changes_update_7105                                      *
+ ***********************************************************************
+ * Description: Implements hook_update.                                *
+ *              Change path for Parent Sign up on main menu            *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-18                                             *
+ ***********************************************************************/
+function gj_dh_menu_changes_update_7105(){
+    print "Running GJ_DH_MENU_CHANGES_UPDATE_7105. \n";
+    print "Changing path for Parent Sign up on main menu...";
+    gj_dh_menu_changes_update_existing_items();
+    print "DONE. \n";
+}
+
+
+/***********************************************************************
+ * gj_dh_menu_changes_create_new_items                                 *
+ ***********************************************************************
+ * Description: Add new menu items to TutorCruncher Sidebar:           *
+ *              Proactive Responses (Tutor only)                       *
+ *              Proactive Responses (Parent only)                      *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-12                                             *
+ ***********************************************************************/
+function gj_dh_menu_changes_create_new_items(){
     $tutor_link = array(
         'link_title' => st('Proactive Responses'),
         'link_path' => 'tutoring_requests',
@@ -30,8 +88,6 @@ function gj_dh_menu_changes_update_7103(){
 
     $tutor_link_mlid = menu_link_save($tutor_link);
     $parent_link_mlid = menu_link_save($parent_link);
-    print "\n Tutor link mlid: " . $tutor_link_mlid;
-    print "\n Parent link mlid: " . $parent_link_mlid;
     print "DONE. \n";
 
     // Only show tutor link to tutors, parent link to parents
@@ -60,6 +116,21 @@ function gj_dh_menu_changes_update_7103(){
     else {
         db_update('menu_per_role')->fields($parent_role_fields)->condition('mlid', $parent_link_mlid)->execute();
     }
+}
 
-    print "DONE. \n";
+/***********************************************************************
+ * gj_dh_menu_changes_update_existing_items                            *
+ ***********************************************************************
+ * Description: Change path for parent sign up menu link               *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-12                                             *
+ ***********************************************************************/
+function gj_dh_menu_changes_update_existing_items(){
+    $link = menu_link_load(2218);
+    $link['path'] = "https://secure.tutorcruncher.com/gradejumpers/signup/client/";
+    $link['link_path'] = "https://secure.tutorcruncher.com/gradejumpers/signup/client/";
+    menu_link_save($link);
 }

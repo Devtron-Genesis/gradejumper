@@ -388,7 +388,7 @@ function gj_deanhopkins_curated_seo_update_7101(){
 
 
 /***********************************************************************
- * gj_deanhopkins_curated_seo_update_7102                              *
+ * gj_deanhopkins_curated_seo_update_7104                              *
  ***********************************************************************
  * Description: Implements hook_update.                                *
  *              Send email to SH when parent search request created    *
@@ -398,12 +398,12 @@ function gj_deanhopkins_curated_seo_update_7101(){
  * Author:      Dean Hopkins                                           *
  * Date:        2019-03-12                                             *
  ***********************************************************************/
-function gj_deanhopkins_curated_seo_update_7102(){
-    print "Running GJ_DEANHOPKINS_CURATED_SEO_UPDATE_7102. \n";
+function gj_deanhopkins_curated_seo_update_7104(){
+    print "Running GJ_DEANHOPKINS_CURATED_SEO_UPDATE_7104. \n";
     print "Creating new rule to email SH on parent search request node creation... ";
 
     $rule = rules_config_load('rules_email_sh_on_parent_search_request_creation');
-    if (!isset($rule)){
+    if (!isset($rule->id)){
         $config = '{ "rules_email_sh_on_parent_search_request_creation" : {
             "LABEL" : "Email SH on Parent Search Request Creation",
             "PLUGIN" : "reaction rule",
@@ -415,7 +415,7 @@ function gj_deanhopkins_curated_seo_update_7102(){
               { "mail" : {
                   "to" : "simon.hood@tutorsave.com",
                   "subject" : "New Parent Search Request Created on GradeJumpers",
-                  "message" : "Hi,\r\n\r\nA new tutor advert has been created on GradeJumpers. It can be found at [node:url] .\r\n\r\nPlease review and approve\/disaprove.\r\n\r\nGradeJumpers",
+                  "message" : "Hi,\r\n\r\nA new parent search request has been created on GradeJumpers. It can be found at [node:url] .\r\n\r\nPlease review and approve\/disaprove.\r\n\r\nGradeJumpers",
                   "language" : [ "" ]
                 }
               }
@@ -431,6 +431,61 @@ function gj_deanhopkins_curated_seo_update_7102(){
     } else {
         print "Rule already exists.";
     }
+
+
+    print "DONE. \n";
+}
+
+
+
+
+
+/***********************************************************************
+ * gj_deanhopkins_curated_seo_update_7106                              *
+ ***********************************************************************
+ * Description: Implements hook_update.                                *
+ *               left-sidebar block page visibility settings...        *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-12                                             *
+ ***********************************************************************/
+function gj_deanhopkins_curated_seo_update_7107(){
+    print "Running GJ_DEANHOPKINS_CURATED_SEO_UPDATE_7107. \n";
+    print "Updating left-sidebar block page visibility settings... ";
+
+    $rule = '<?php
+        global $user;
+        $ret = false;
+        if (arg()[0] == \'messages\'){
+            $ret = true;
+        }
+        if (strpos($_GET[\'q\'], \'proactive_response/\') !== false){
+            if ((!user_is_anonymous()) && (node_load(base64_decode(arg()[1]))->uid == $user->uid)){
+                $ret = true;
+            }
+        }
+        if (strpos($_GET[\'q\'], \'proactive_responses\') !== false){
+            if (!user_is_anonymous()){
+                $ret = true;
+            }
+        }
+        if (strpos($_GET[\'q\'], \'tutoring_requests\') !== false){
+            $ret = true;
+        }
+        if (strpos($_GET[\'q\'], \'respond_search_request\') !== false){
+            $ret = true;
+        }
+        return $ret;?>';
+
+    db_update('block')
+        ->fields(array(
+            'pages' => $rule,
+            'visibility' => 2,
+        ))
+        ->condition('delta', 'menu-tutorcruncher-left-sidebar')
+        ->execute();
 
 
     print "DONE. \n";

@@ -36,7 +36,7 @@
                 <img src="<?php print file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/info.svg"); ?>">
             </div>
             <div class="gj-pr-tutor-request-info-text">
-                If <?php print ucwords(get_user_firstname($search_request->uid)) . " " . substr(ucwords(get_user_lastname($search_request->uid)), 0, 1); ?> has already contacted you via the private messaging system then there is no need to complete the form below.
+                If <?php print ucwords($search_request->field_search_request_first_name['und'][0]['value']) . " " . substr(ucwords($search_request->field_search_request_first_name['und'][0]['value']), 0, 1); ?> has already contacted you via the private messaging system then there is no need to complete the form below.
             </div>
         </div>
     </div>

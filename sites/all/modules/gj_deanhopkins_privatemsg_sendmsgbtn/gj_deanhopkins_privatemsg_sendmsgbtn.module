@@ -53,14 +53,14 @@ function generate_tutor_ad_node_send_message_button($node, $mobile=false){
  *              Otherwise, open a new thread.                       *
  *              One thread per tutor-ad / parent.                   *
  * Arguments:   $node                                               *
- * Return:      URL string                                          *
+ * Return:      Array[url, options]                                 *
  ********************************************************************
  * Author:      Dean Hopkins                                        *
  * Date:        08-01-2019                                          *
  ********************************************************************/
 function _get_message_url($node){
     global $user;
-    $ret_url = "";
+    $ret = array();
 
     //check if message thread already has link to node
     $query = db_select('message_tutor_node_link', 'mtnl');
@@ -74,10 +74,14 @@ function _get_message_url($node){
     if ($result->rowCount() > 0){
         $existing_thread_id = $result->fetchAssoc()['message_thread_id'];
         $ret_url = url('messages/view/'. $existing_thread_id);
+        $ret['url'] = $ret_url;
+        $ret['options'] = array();
     } else {
-        $nid_base64 = base64_encode($node->nid);
-        $ret_url = url('messages/new/'. $node->uid) . "?nid=" . $nid_base64;
+        $options = array('query' => array('nid' => base64_encode($node->nid)));
+        $ret_url = url('messages/new/'. $node->uid);
+        $ret['url'] = $ret_url;
+        $ret['options'] = $options;
     }
 
-    return $ret_url;
+    return $ret;
 }

@@ -1751,7 +1751,7 @@ function gj_deanhopkins_tutor_ad_update_7102(){
 }
 
 /***********************************************************************
- * gj_deanhopkins_tutor_ad_update_7103                                 *
+ * gj_deanhopkins_tutor_ad_update_7104                                 *
  ***********************************************************************
  * Description: Implements hook_update.                                *
  *              Add new rule to email SH on tutor ad node create       *
@@ -1761,12 +1761,12 @@ function gj_deanhopkins_tutor_ad_update_7102(){
  * Author:      Dean Hopkins                                           *
  * Date:        2019-03-11                                             *
  ***********************************************************************/
-function gj_deanhopkins_tutor_ad_update_7103(){
-    print "Running GJ_DEANHOPKINS_TUTOR_AD_UPDATE_7103. \n";
+function gj_deanhopkins_tutor_ad_update_7105(){
+    print "Running GJ_DEANHOPKINS_TUTOR_AD_UPDATE_7105. \n";
     print "Creating new rule to email SH on tutor ad node creation... ";
 
-    $rule = rules_config_load('rules_email_sh_on_parent_search_request_creation');
-    if (!isset($rule)) {
+    $rule = rules_config_load('rules_email_sh_on_tutor_ad_creation');
+    if (!isset($rule->id)){
         $config = '{ "rules_email_sh_on_tutor_ad_creation" : {
             "LABEL" : "Email SH on Tutor Ad Creation",
             "PLUGIN" : "reaction rule",

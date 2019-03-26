@@ -78,21 +78,15 @@ function gj_deanhopkins_parent_search_request_form_validate($form, &$form_state)
 }
 
 function gj_deanhopkins_parent_search_request_form_submit($form, &$form_state) {
-    if (user_is_anonymous()){
-        $tid = isset($form['tid']['#value']) ? $form['tid']['#value'] : NULL;
-        $subject = isset($form['subject']['#value']) ? $form['subject']['#value'] : NULL;
-        $level = isset($form['level']['#value']) ? $form['level']['#value'] : NULL;
-        $email = $form['email']['#value'];
+    $tid = isset($form['tid']['#value']) ? $form['tid']['#value'] : NULL;
+    $subject = isset($form['subject']['#value']) ? $form['subject']['#value'] : NULL;
+    $level = isset($form['level']['#value']) ? $form['level']['#value'] : NULL;
+    $email = $form['email']['#value'];
 
-        print $email;
-        $results = _get_parent_search_requests_by_email_and_subject_level_tid($email, $tid);
-        if (sizeof($results) > 0){
-            $options = array('query' => array('managed_search' => base64_encode(date("M,d,Y h:i:s A"))));
-            drupal_goto('level-subject/' . $level . '/' . $subject, $options);
-        } else {
-            _handle_parent_search_request_node_from_form($form);
-        }
-
+    $results = _get_parent_search_requests_by_email_and_subject_level_tid($email, $tid);
+    if (sizeof($results) > 0){
+        $options = array('query' => array('managed_search' => base64_encode(date("M,d,Y h:i:s A"))));
+        drupal_goto('level-subject/' . $level . '/' . $subject, $options);
     } else {
         _handle_parent_search_request_node_from_form($form);
     }

@@ -7,7 +7,7 @@
 <div class="gj-pr-request-header-container">
     <div class="gj-pr-request-header-top">
         <div class="gj-pr-request-header-top-left">
-            Hi <?php print ucwords(get_user_firstname($search_request->uid)); ?>
+            Hi <?php print ucwords($search_request->field_search_request_first_name['und'][0]['value']); ?>
         </div>
         <div class="gj-pr-request-header-top-right">
             <?php

@@ -26,19 +26,21 @@ function gj_deanhopkins_privatemsg_page_callback($tutor_ad_nid){
     $proactive = isset($_GET['proactive']) ? $_GET['proactive'] : null;
 
     if (!user_is_anonymous()){
-        $url = _get_message_url(node_load($tutor_ad_nid));
+        $url_with_options = _get_message_url(node_load($tutor_ad_nid));
+        $options = $url_with_options['options'];
+        if ($proactive) {
+            $options['query']['proactive'] = $proactive;
+        }
+        drupal_goto($url_with_options['url'], $options);
     } else {
         $url = "/parent_query/" . $tutor_ad_nid;
         if ($proactive){
             _create_proactive_cookie($proactive);
+            $options = array('query' => array('proactive' => $proactive));
+            drupal_goto($url, $options);
+        } else {
+            drupal_goto($url);
         }
-    }
-
-    if ($proactive){
-        $options = array('query' => array('proactive' => $proactive));
-        drupal_goto($url, $options);
-    } else {
-        drupal_goto($url);
     }
 }
 

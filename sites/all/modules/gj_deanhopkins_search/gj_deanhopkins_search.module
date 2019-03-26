@@ -334,16 +334,7 @@ function gj_deanhopkins_search_level_subject($level_str, $subject_str){
     }
 
     if (!is_subject_level_enabled_by_manager($level_tid) && !isset($_GET['managed_search'])){
-        $node = node_view(node_load('1020'));
-        $node['#node']->title = "";
-        $page = array
-        (   'content' => $node,
-            'gj_deanhopkins_search_subject' => array
-            (
-                '#content' => $node,
-                '#hide_search_block' => TRUE,
-            ),
-        );
+        $page = get_search_request_page();
         return $page;
     } else {
         if (!isset($_GET['threshold']) && !isset($_GET['managed_search'])){
@@ -354,15 +345,7 @@ function gj_deanhopkins_search_level_subject($level_str, $subject_str){
 
 
     if (_check_search_qry_string_for_redirect()){
-        $node = node_view(node_load('1020'));
-        $page = array
-        (   'content' => $node,
-            'gj_deanhopkins_search_subject' => array
-            (
-                '#content' => $node,
-                '#hide_search_block' => TRUE,
-            ),
-        );
+        $page = get_search_request_page();
         return $page;
     };
 
@@ -1533,4 +1516,19 @@ function get_level_subject_from_path($path=null){
     }
 
     return $ret;
+}
+
+function get_search_request_page(){
+    $node = node_view(node_load('1020'));
+    $node['#node']->title = "";
+    $page = array
+    (   'content' => $node,
+        'gj_deanhopkins_search_subject' => array
+        (
+            '#content' => $node,
+            '#hide_search_block' => TRUE,
+        ),
+    );
+
+    return $page;
 }

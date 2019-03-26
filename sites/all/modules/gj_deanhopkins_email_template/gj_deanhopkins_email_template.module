@@ -160,6 +160,11 @@ function gj_deanhopkins_email_template_token_info() {
         'name' => t('Email Footer'),
         'description' => t('Email footer template html'),
     );
+
+    $info['tokens']['user']['first-name'] = array(
+        'name' => t('First Name'),
+        'description' => t('Users first name from TC username'),
+    );
     return $info;
 }
 
@@ -195,81 +200,27 @@ function gj_deanhopkins_email_template_tokens($type, $tokens, array $data = arra
         }
     }
 
+    if ($type == 'user') {
+        foreach ($tokens as $name => $original) {
+            switch ($name) {
+                case 'first-name':
+                    $first_name = ucwords(get_user_firstname($data['user']->uid));
+                    $replacements[$original] = $first_name;
+                    break;
+            }
+        }
+    }
+
     // Return the replacements.
     return $replacements;
 }
 
-/**
- * Implements hook_strongarm().
- */
-/************************************************************
- * gj_deanhopkins_email_template_strongarm                  *
- ************************************************************
- * Description: Implements hook_strongarm().                *
- *              Use strongarm to configure htmlmail template*
- *              settings to work out-of-the-box             *
-of footer accordingly                                       *
- * Arguments:   $type, $tokens, $data, $options             *
- * Return:      replaced token string                       *
- ************************************************************
- * Author:      Dean Hopkins                                *
- * Date:        10-01-2019                                  *
- ************************************************************/
-function gj_deanhopkins_email_template_strongarm() {
-    $export = array();
-
-    $strongarm = new stdClass();
-    $strongarm->disabled = FALSE;
-    $strongarm->api_version = 1;
-    $strongarm->name = 'htmlmail_html_with_plain';
-    $strongarm->value = 1;
-    $export['htmlmail_html_with_plain'] = $strongarm;
-
-    $strongarm = new stdClass();
-    $strongarm->disabled = FALSE;
-    $strongarm->api_version = 1;
-    $strongarm->name = 'htmlmail_postfilter';
-    $strongarm->value = '0';
-    $export['htmlmail_postfilter'] = $strongarm;
-
-    $strongarm = new stdClass();
-    $strongarm->disabled = FALSE;
-    $strongarm->api_version = 1;
-    $strongarm->name = 'htmlmail_theme';
-    $strongarm->value = 'ts_glazed';
-    $export['htmlmail_theme'] = $strongarm;
-
-    $strongarm = new stdClass();
-    $strongarm->disabled = FALSE;
-    $strongarm->api_version = 1;
-    $strongarm->name = 'mailsystem_theme';
-    $strongarm->value = 'current';
-    $export['mailsystem_theme'] = $strongarm;
-
-    $strongarm = new stdClass();
-    $strongarm->disabled = FALSE;
-    $strongarm->api_version = 1;
-    $strongarm->name = 'mail_system';
-    $strongarm->value = array(
-        'default-system' => 'HTMLMailSystem__SmtpMailSystem',
-        'htmlmail' => 'HTMLMailSystem__SmtpMailSystem',
-    );
-    $export['mail_system'] = $strongarm;
-
-    //@todo probably remove this so can be overriden.
-    $strongarm = new stdClass();
-    $strongarm->disabled = FALSE;
-    $strongarm->api_version = 1;
-    $strongarm->name = 'pm_email_notify_body';
-    $strongarm->value = '<p>Hi [privatemsg_message:recipient],</p>
-<p>You have a new message. Click the button below to view and reply…</p>
-
-<a href="[privatemsg_message:url]" class="btn-view-message-container" style="margin: auto; display: flex; align-content: center; align-items: center; text-decoration: none;">
-    <button type="button" class="btn btn-lg btn-primary btn-view-message" style="width: 358px; height: 58px; border-radius: 40px; background-color: #3f73d2; margin:auto; color: #ffffff; border:0px; font-family: Montserrat; font-size: 16px; font-weight: 500; line-height: 22px;">View message</button>
-</a>
-
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi vitae quam rutrum, consectetur odio eget, semper leo. Donec varius sem non auctor tempor. Nam eu viverra dolor, faucibus tempor enim.</p>';
-
-    $export['pm_email_notify_body'] = $strongarm;
-    return $export;
+function gj_deanhopkins_email_template_mail_alter(&$message)
+{
+    switch ($message['id']) {
+        case 'pm_email_notify_notice':
+            $message['body'][0]=get_email_header() . $message['body'][0] . get_email_footer();
+            $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+            break;
+    }
 }

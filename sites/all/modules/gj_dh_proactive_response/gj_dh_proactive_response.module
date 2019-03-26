@@ -320,6 +320,28 @@ function gj_dh_proactive_response_preprocess_page(&$variables){
     }
 }
 
+function _get_parent_search_requests_by_subject_level_tid($tid){
+    $ret_nodes = array();
+
+    $qry_str = "
+        SELECT nid FROM node 
+        join field_data_field_search_request_tid SRT 
+        on node.nid = SRT.entity_id 
+        where node.type = 'parent_search_request' 
+        and SRT.field_search_request_tid_value = :tid
+    ";
+
+
+    $results = db_query($qry_str,array('tid'=>$tid))->fetchAll();
+
+    foreach ($results as $result){
+        array_push($ret_nodes, node_load($result->nid));
+    }
+
+    return $ret_nodes;
+
+}
+
 function _get_parent_search_requests_by_uid_and_subject_level_tid($uid, $tid){
     $ret_nodes = array();
 
@@ -782,15 +804,15 @@ function gj_dh_proactive_response_send_unsent_emails($parent_search_request_enc_
 }
 
 function _send_tutoring_responses_email_to_parent($parent_search_request, $responses){
-    $first_time = _search_request_parent_mail_already_sent($parent_search_request);
+    $first_time = !(_search_request_parent_mail_already_sent($parent_search_request));
 
     usort($responses, "gj_dh_compare_tutor_ad_average_rating_and_count");
 
     $subject_level_str = _get_subject_level_term_display_name(taxonomy_term_load($parent_search_request->field_search_request_tid['und'][0]['value']));
-    $link_url = $GLOBALS['base_url'] . "/search_request/" . base64_encode($parent_search_request->nid) . "/" . base64_encode($parent_search_request->created);
+    $link_url = $GLOBALS['base_url'] . "/proactive_response/" . base64_encode($parent_search_request->nid) . "/" . base64_encode($parent_search_request->created);
     $link = l("Please click here to view the full short-list on our website and message tutors directly.", $link_url);
     $link_button = l("Visit website to reply", $link_url);
-    $message = 'Hi ' . ucwords(get_user_firstname($parent_search_request->uid)) . ', <br /> <br />';
+    $message = 'Hi ' . ucwords($parent_search_request->field_search_request_first_name['und'][0]['value']) . ', <br /> <br />';
     if ($first_time){
         $message .= 'Re: Your ' . $subject_level_str . ' tutor request<br /><br />';
         $message .= 'Thank you so much for contacting us. We have had responses from a range of tutors wishing to assist you. To get you started, we have begun carefully short-listing any tutor(s) that are available and we feel may be of interest to you. <br /><br />';
@@ -803,7 +825,7 @@ function _send_tutoring_responses_email_to_parent($parent_search_request, $respo
     $message .= '<div style="' . _get_hr_email_style() . '"></div><br />';
 
     foreach ($responses as $response){
-        $message .= '<a style="text-decoration: none !important; color: black;" href="' . $GLOBALS['base_url'] . "/node/". get_tutor_ad_by_user(user_load($response->uid))->nid . '">';
+        $message .= '<a style="text-decoration: none !important; color: black;" href="' . $link_url . '">';
         $message .= _get_tutor_ad_teaser_email_html(get_tutor_ad_by_user(user_load($response->uid)));
         $message .= "<p style='color: #222222;font-family: Montserrat;font-size: 20px;font-weight: 800;line-height: 22px;'>Why " . ucwords(get_user_firstname($response->uid)) . "</p>";
         $message .= "<p>" . _get_tutor_response_about_me_display($response) . "</p>";

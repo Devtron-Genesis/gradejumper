@@ -1,0 +1,136 @@
+<?php
+
+/************************************************************
+ * gj_detect_environment_by_hostname                        *
+ ************************************************************
+ * Description: Detects current env by hostname             *
+ * Arguments:                                               *
+ * Return:     string: "dev", "test" or "live"              *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-03-14                                  *
+ ************************************************************/
+function gj_detect_environment_by_hostname(){
+    $host = strtolower(gethostname());
+
+    if (substr( $host, 0, 3 ) == "dev"){
+        return "dev";
+    } else if (substr( $host, 0, 4 ) == "test"){
+        return "test";
+    } else {
+        return "live";
+    }
+}
+
+/************************************************************
+ * gj_transform_tc_url                                      *
+ ************************************************************
+ * Description: Returns the value set by admin (TC server id*
+ * for the current environment                              *
+ * Arguments:                                               *
+ * Return:     string
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-03-14                                  *
+ ************************************************************/
+function gj_get_tc_server_id_for_current_instance(){
+    $current_env = gj_detect_environment_by_hostname();
+
+    if ($current_env == "dev"){
+        $env_tc_id = variable_get('gj_dev_server_id');
+    } else if ($current_env == "test"){
+        $env_tc_id = variable_get('gj_test_server_id');
+    } else {
+        $env_tc_id = variable_get('gj_live_server_id');
+    }
+
+    return $env_tc_id;
+}
+
+/************************************************************
+ * gj_transform_tc_url                                      *
+ ************************************************************
+ * Description: Takes an input url string and replaces the  *
+ *  tutorcruncher server id with one for current instance   *
+ * Arguments:  $url                                         *
+ * Return:     string, transformed url                      *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-03-14                                  *
+ ************************************************************/
+function gj_transform_tc_url($url){
+    $search_str = 'secure.tutorcruncher.com/' . variable_get('gj_live_server_id');
+    $ret_str = $url;
+    $env_tc_id = gj_get_tc_server_id_for_current_instance();
+
+    if (strpos($url, $search_str) !== false){
+        $parts = explode("/", $url);
+        $ret_str = "";
+        $last_part = "";
+        foreach ($parts as $part) {
+            if ($last_part == 'secure.tutorcruncher.com'){
+                $part = $env_tc_id;
+            }
+            $ret_str .= $part . "/";
+            $last_part = $part;
+        }
+    }
+
+    if (substr($ret_str, -2) == "//"){
+        $ret_str = substr($ret_str, 0, strlen($ret_str)-1);
+    }
+
+    return $ret_str;
+}
+
+/************************************************************
+ * gj_dh_deployment_token_info                              *
+ ************************************************************
+ * Description: Implements hook_token_info().               *
+ *              Register tokens [tutorcruncher-server]      *
+ * Arguments:                                               *
+ * Return:                                                  *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-03-14                                  *
+ ************************************************************/
+function gj_dh_deployment_token_info() {
+    $info['tokens']['site']['tutorcruncher-server'] = array(
+        'name' => t('TutorCruncher Server'),
+        'description' => t('TC Server corresponding to current deployment environment.'),
+    );
+
+    return $info;
+}
+
+/************************************************************
+ * gj_dh_deployment_tokens                                  *
+ ************************************************************
+ * Description: Implements hook_tokens().                   *
+ *              Define logic for [tutorcruncher-server]     *
+ * Arguments:   $type, $tokens, $data, $options             *
+ * Return:      replaced token string                       *
+ ************************************************************
+ * Author:      Dean Hopkins                                *
+ * Date:        2019-03-14                                  *
+ ************************************************************/
+function gj_dh_deployment_tokens($type, $tokens, array $data = array(), array $options = array()) {
+    $replacements = array();
+
+    if ($type == 'site') {
+        foreach ($tokens as $name => $original) {
+            switch ($name) {
+                case 'tutorcruncher-server':
+                    $replacements[$original] = gj_get_tc_server_id_for_current_instance();
+                    break;
+            }
+        }
+    }
+
+    // Return the replacements.
+    return $replacements;
+}
+
+
+//include admin config page functions
+include('gj_dh_deployment_admin_config.php');
