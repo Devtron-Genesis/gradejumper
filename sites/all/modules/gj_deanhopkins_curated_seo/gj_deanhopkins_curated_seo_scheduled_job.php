@@ -78,8 +78,7 @@ function _process_thresholds(){
         'subject' => 'GradeJumpers Curated SEO Threshold Report',
         'headers'=>'simple',
     );
-    $to = "gjcuratedtest@mailinator.com";
-    $to = "deanhopkins@gmail.com";
+    $to = "simon.hood@tutorsave.com";
     $from = "support@gradejumpers.com";
 
     drupal_mail('gj_deanhopkins_availability', 'send_link', $to, language_default(), $params, $from, TRUE);

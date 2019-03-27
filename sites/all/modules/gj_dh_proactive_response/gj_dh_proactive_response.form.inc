@@ -87,11 +87,10 @@ function _notify_customer_services_of_tutoring_request($node){
 
     $params = array(
         'body' => $message,
-        'subject' => 'New Tutoring Request',
+        'subject' => 'New Tutoring Request Application',
         'headers'=>'simple',
     );
-    $to = "gjcuratedtest@mailinator.com";
-    $to = "deanhopkins@gmail.com";
+    $to = "simon.hood@tutorsave.com";
     $from = "support@gradejumpers.com";
 
     drupal_mail('gj_dh_proactive_response', 'gj_dh', $to, language_default(), $params, $from, TRUE);

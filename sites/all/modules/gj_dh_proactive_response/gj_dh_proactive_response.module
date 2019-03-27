@@ -849,8 +849,7 @@ function _send_tutoring_responses_email_to_parent($parent_search_request, $respo
         'subject' => 'New Tutoring Request',
         'headers'=>'simple',
     );
-    $to = "gjcuratedtest@mailinator.com";
-    $to = "deanhopkins@gmail.com";
+    $to = "simon.hood@tutorsave.com";
     $from = "support@gradejumpers.com";
 
     drupal_mail('gj_dh_proactive_response', 'gj_dh', $to, language_default(), $params, $from, TRUE);
