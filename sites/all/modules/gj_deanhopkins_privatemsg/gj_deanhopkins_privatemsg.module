@@ -138,6 +138,31 @@ function gj_deanhopkins_privatemsg_privatemsg_message_insert($message){
 }
 
 /********************************************************************
+ * gj_deanhopkins_privatemsg_privatemsg_message_presave_alter       *
+ ********************************************************************
+ * Description: Implements hook_private_message_presave_alter()     *
+ *              Set subject for customer service emails
+ * Arguments:   &$message                                           *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-03-27                                          *
+ ********************************************************************/
+function gj_deanhopkins_privatemsg_privatemsg_message_presave_alter(&$message) {
+    $author = user_load($message->author->uid);
+    $recipient = user_load(array_pop($message->recipients)->uid);
+    if (has_role_manager($author) || has_role_manager($recipient)){
+        if (has_role_tutor($author)){
+            $message->subject = "Message from Tutor";
+        } else if (has_role_parent($author)){
+            $message->subject = "Message from Parent";
+        } else if (has_role_student($author)){
+            $message->subject = "Message from Student";
+        }
+    }
+}
+
+/********************************************************************
  * get_tutor_ad_nid_by_thread_id                                    *
  ********************************************************************
  * Description: Returns the tutor ad node id attached to a given    *
