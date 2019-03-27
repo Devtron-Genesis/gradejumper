@@ -11,7 +11,7 @@
         </div>
         <div class="gj-pr-request-header-top-right">
             <?php
-            $count = _search_request_num_responses_display($search_request->nid);
+            $count = _search_request_num_responses($search_request->nid);
             $output = $count . " proactive response";
             if ($count > 1 || $count == 0){ $output .= "s"; }
             print $output;
