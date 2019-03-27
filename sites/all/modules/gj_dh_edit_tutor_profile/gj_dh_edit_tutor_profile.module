@@ -1,0 +1,53 @@
+<?php
+
+/********************************************************************
+ * gj_dh_edit_tutor_profile_menu                                    *
+ ********************************************************************
+ * Description: Implements hook_menu()                              *
+ *              Register module page callbacks and                  *
+ * Arguments:                                                       *
+ * Return:      $items                                              *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-03-26                                          *
+ ********************************************************************/
+function gj_dh_edit_tutor_profile_menu(){
+    $items['edit-tutor-profile'] = array(
+        'type' => MENU_NORMAL_ITEM,
+        'title' => t('Edit Tutor Profile'),
+        'description' => 'Edit Tutor Profile',
+        'page callback' => 'gj_dh_edit_tutor_profile_callback',
+        'access arguments' => array('access content'),
+        'access callback' => TRUE,
+    );
+
+    return $items;
+}
+
+/********************************************************************
+ * gj_dh_edit_tutor_profile_callback                                *
+ ********************************************************************
+ * Description: Callback for edit-tutor-profile                     *
+ * Arguments:                                                       *
+ * Return:                                                          *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-03-26                                          *
+ ********************************************************************/
+function gj_dh_edit_tutor_profile_callback(){
+    global $user;
+    if (has_role_tutor($user)){
+        $tutor_ad = get_tutor_ad_by_user_ignore_status($user);
+        if ($tutor_ad != null){
+            if ($tutor_ad->status == NODE_PUBLISHED){
+                drupal_goto('node/' . $tutor_ad->nid . '/edit');
+            } else {
+                drupal_goto('/tutor-application-submitted');
+            }
+        } else {
+            drupal_goto('node/add/tutor-ad');
+        }
+    } else {
+        drupal_access_denied();
+    }
+}

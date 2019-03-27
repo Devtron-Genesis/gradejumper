@@ -1,0 +1,5 @@
+name = GJ Edit Tutor Profile
+description = Provides functionality for /edit-tutor-profile route
+core = 7.x
+package = "GJ Dean Hopkins"
+files[] = gj_dh_edit_tutor_profile.module
