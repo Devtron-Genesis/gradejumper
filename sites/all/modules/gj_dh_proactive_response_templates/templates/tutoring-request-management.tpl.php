@@ -6,6 +6,7 @@
     <span><b>Email: </b><?php print _get_search_request_display_email($search_request); ?></span> <br />
     <span><b>Telephone Number: </b><?php print _get_search_request_display_phone($search_request); ?></span> <br />
     <span><b>Request Created: </b><?php print _get_search_request_display_time_created($search_request); ?></span> <br />
+    <span><b>Node ID (Search Request): </b><?php print $search_request->nid; ?></span> <br />
 </div>
 
 <br />
