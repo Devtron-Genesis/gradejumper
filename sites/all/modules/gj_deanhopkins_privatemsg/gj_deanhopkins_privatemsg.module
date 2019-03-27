@@ -304,27 +304,23 @@ function set_page_content_new_message(&$page){
  ********************************************************************/
 function set_page_content_view_message(&$page){
     global $user;
-
-    drupal_add_js(drupal_get_path("module", "gj_deanhopkins_privatemsg"). "/js/gj_deanhopkins_privatemsg.js");
-
-    $thread_id = $page['content']['system_main']['#thread']['thread_id'];
-    $tutor_ad = node_load(get_tutor_ad_nid_by_thread_id($thread_id));
-
-    $recipient_uid = 0;
-    if (has_role_tutor($user) || has_role_manager($user)){
-        $participants = $page['content']['system_main']['#thread']['participants'];
-        foreach ($participants as $participant){
-            if ($participant->uid != $user->uid){
-                $recipient = $participant;
-                break;
-            }
+    $allowed = false;
+    $participants = $page['content']['system_main']['#thread']['participants'];
+    foreach ($participants as $participant){
+        if ($participant->uid == $user->uid){
+            $allowed = true;
         }
-        $recipient_uid = $recipient->uid;
     }
-    if (has_role_parent($user)){
-        if ($tutor_ad){
-            $recipient_uid = $tutor_ad->uid;
-        } else {
+    if (!$allowed) {
+        drupal_goto('/messages');
+    } else {
+        drupal_add_js(drupal_get_path("module", "gj_deanhopkins_privatemsg"). "/js/gj_deanhopkins_privatemsg.js");
+
+        $thread_id = $page['content']['system_main']['#thread']['thread_id'];
+        $tutor_ad = node_load(get_tutor_ad_nid_by_thread_id($thread_id));
+
+        $recipient_uid = 0;
+        if (has_role_tutor($user) || has_role_manager($user)){
             $participants = $page['content']['system_main']['#thread']['participants'];
             foreach ($participants as $participant){
                 if ($participant->uid != $user->uid){
@@ -334,32 +330,46 @@ function set_page_content_view_message(&$page){
             }
             $recipient_uid = $recipient->uid;
         }
+        if (has_role_parent($user)){
+            if ($tutor_ad){
+                $recipient_uid = $tutor_ad->uid;
+            } else {
+                $participants = $page['content']['system_main']['#thread']['participants'];
+                foreach ($participants as $participant){
+                    if ($participant->uid != $user->uid){
+                        $recipient = $participant;
+                        break;
+                    }
+                }
+                $recipient_uid = $recipient->uid;
+            }
+        }
+
+        $page['content']['system_main']['wrapper'] = get_message_header($tutor_ad, $recipient_uid);
+        $page['content']['system_main']['thread_wrapper'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'class' => array('message-thread-container'),
+            ),
+        );
+
+        $page['content']['system_main']['thread_wrapper']['messages'] = $page['content']['system_main']['messages'];
+        unset($page['content']['system_main']['messages']);
+
+
+        unset($page['content']['system_main']['reply']['reply']);
+        unset($page['content']['system_main']['participants']);
+
+        $page['content']['system_main']['reply']['message_input_main'] = get_message_input($page, false);
+        unset($page['content']['system_main']['reply']['body']);
+        unset($page['content']['system_main']['reply']['actions']);
+        unset($page['content']['system_main']['reply']['message_input_main']['button']['cancel']);
+        unset($page['content']['system_main']['reply']['message_input_main']['message']['value']['#title']);
+
+        $page['content']['system_main']['wrapper']['#weight'] = 1;
+        $page['content']['system_main']['thread_wrapper']['#weight'] = 2;
+        $page['content']['system_main']['reply']['#weight'] = 3;
     }
-
-    $page['content']['system_main']['wrapper'] = get_message_header($tutor_ad, $recipient_uid);
-    $page['content']['system_main']['thread_wrapper'] = array(
-        '#type' => 'container',
-        '#attributes' => array(
-            'class' => array('message-thread-container'),
-        ),
-    );
-
-    $page['content']['system_main']['thread_wrapper']['messages'] = $page['content']['system_main']['messages'];
-    unset($page['content']['system_main']['messages']);
-
-
-    unset($page['content']['system_main']['reply']['reply']);
-    unset($page['content']['system_main']['participants']);
-
-    $page['content']['system_main']['reply']['message_input_main'] = get_message_input($page, false);
-    unset($page['content']['system_main']['reply']['body']);
-    unset($page['content']['system_main']['reply']['actions']);
-    unset($page['content']['system_main']['reply']['message_input_main']['button']['cancel']);
-    unset($page['content']['system_main']['reply']['message_input_main']['message']['value']['#title']);
-
-    $page['content']['system_main']['wrapper']['#weight'] = 1;
-    $page['content']['system_main']['thread_wrapper']['#weight'] = 2;
-    $page['content']['system_main']['reply']['#weight'] = 3;
 }
 
 /********************************************************************
