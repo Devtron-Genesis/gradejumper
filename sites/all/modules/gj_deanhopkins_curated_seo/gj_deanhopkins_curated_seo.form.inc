@@ -85,17 +85,15 @@ function gj_deanhopkins_parent_search_request_form_submit($form, &$form_state) {
 
     $results = _get_parent_search_requests_by_email_and_subject_level_tid($email, $tid);
     if (sizeof($results) > 0){
+        $node = _create_parent_search_request_node($form);
+        _notify_relevant_tutors($form, $node);
         $options = array('query' => array('managed_search' => base64_encode(date("M,d,Y h:i:s A"))));
         drupal_goto('level-subject/' . $level . '/' . $subject, $options);
     } else {
-        _handle_parent_search_request_node_from_form($form);
+        $node = _create_parent_search_request_node($form);
+        _notify_relevant_tutors($form, $node);
+        _redirect_search_request($form);
     }
-}
-
-function _handle_parent_search_request_node_from_form($form){
-    $node = _create_parent_search_request_node($form);
-    _notify_relevant_tutors($form, $node);
-    _redirect_search_request($form);
 }
 
 function _create_parent_search_request_node($form){
