@@ -25,8 +25,12 @@ include('gj_deanhopkins_ts_sso_imp.php');
  ************************************************************/
 function get_user_firstname($uid){
     $account = user_load($uid);
-    $parts = explode('_', $account->name);
-    return $parts[0];
+    if (has_role_manager($account)){
+        return "Customer Services";
+    } else {
+        $parts = explode('_', $account->name);
+        return $parts[0];
+    }
 }
 
 /************************************************************
@@ -43,16 +47,20 @@ function get_user_firstname($uid){
  ************************************************************/
 function get_user_lastname($uid){
     $account = user_load($uid);
-    $parts = explode('_', $account->name);
-    unset($parts[count($parts)-1]); //remove tcid;
-    unset($parts[0]); //remove first name
+    if (has_role_manager($account)) {
+        return "";
+    } else {
+        $parts = explode('_', $account->name);
+        unset($parts[count($parts)-1]); //remove tcid;
+        unset($parts[0]); //remove first name
 
-    $last_name = "";
-    foreach ($parts as $key => $value){
-        $last_name = $last_name . $value . " ";
+        $last_name = "";
+        foreach ($parts as $key => $value){
+            $last_name = $last_name . $value . " ";
+        }
+        $last_name = substr($last_name, 0, -1);
+        return $last_name;
     }
-    $last_name = substr($last_name, 0, -1);
-    return $last_name;
 }
 
 /************************************************************
