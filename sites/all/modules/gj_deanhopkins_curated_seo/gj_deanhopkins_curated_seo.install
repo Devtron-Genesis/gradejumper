@@ -490,3 +490,56 @@ function gj_deanhopkins_curated_seo_update_7107(){
 
     print "DONE. \n";
 }
+
+
+/***********************************************************************
+ * gj_deanhopkins_curated_seo_update_7108                              *
+ ***********************************************************************
+ * Description: Implements hook_update.                                *
+ *              Add emails_sent field to parent search request node    *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-12                                             *
+ ***********************************************************************/
+function gj_deanhopkins_curated_seo_update_7108(){
+    print "Running GJ_DEANHOPKINS_CURATED_SEO_UPDATE_7108. \n";
+    print "Add emails_sent field to parent search request node type... ";
+
+    $t = get_t();
+    $bases = array(
+        'field_search_request_emails_sent' => array(
+            'field_name' => 'field_search_request_emails_sent',
+            'label' => $t('Emails Sent'),
+            'module' => 'number',
+            'type' => 'number_integer',
+            'weight' => 8
+        ));
+
+    $instances = array(
+        'field_search_request_emails_sent' => array(
+            'field_name' => 'field_search_request_emails_sent',
+            'type' => 'text',
+            'label' => $t('Emails Sent'),
+            'widget' => array(
+                'module' => 'number',
+                'settings' => array(),
+                'type' => 'number',
+                'weight' => 33,
+            ),
+            'weight' => 7,
+            'required' => FALSE
+        ));
+
+    foreach ($bases as $field) {
+        field_create_field($field);
+    }
+    foreach ($instances as $fieldinstance) {
+        $fieldinstance['entity_type'] = 'node';
+        $fieldinstance['bundle'] = 'parent_search_request';
+        field_create_instance($fieldinstance);
+    }
+
+    print "DONE. \n";
+}
