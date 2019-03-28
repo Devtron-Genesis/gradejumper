@@ -297,3 +297,41 @@ function gj_search_frm_v2_theme($existing, $type, $theme, $path){
         ),
     );
 }
+
+
+/*****
+ * gj_search_frm_v2_form_alter
+ *****
+ * Description: Set default values for user inputs
+ *
+ * Arguments:
+ * Return:      array
+ *****
+ * Author:      Dean Hopkins
+ * Date:        2019-03-28
+ *****/
+function gj_search_frm_v2_form_alter(&$form, &$form_state, $form_id)
+{
+    if ($form_id == "gj_search_frm_v2_form"){
+        $level = "";
+        $subject = "";
+
+        if (arg()[0] == "level-subject"){
+            $level = isset(arg()[1]) ? arg()[1] : null;
+            $subject = isset(arg()[2]) ? arg()[2] : null;
+        } else if (arg()[0] == "level"){
+            $level = isset(arg()[1]) ? arg()[1] : null;
+        } else if (arg()[0] == "subject"){
+            $subject = isset(arg()[1]) ? arg()[1] : null;
+        }
+
+        if ($subject){
+            $form['subject']['#default_value'] = $subject;
+        }
+        if ($level){
+            $form['level']['#default_value'] = $level;
+        }
+
+        $form['level']['#disabled'] = false;
+    }
+}
