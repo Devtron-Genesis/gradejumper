@@ -1518,6 +1518,36 @@ function get_level_subject_from_path($path=null){
     return $ret;
 }
 
+
+/********************************************************************
+ * get_level_subject_from_path                                      *
+ ********************************************************************
+ * Description: Returns array(level, subject) strings from args     *
+ * Arguments:                                                       *
+ * Return:      $ret_str                                            *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-03-28                                          *
+ ********************************************************************/
+function get_level_subject_from_args(){
+
+    if (isset($_GET['subject']) && isset($_GET['level'])){
+        $ret['level'] = $_GET['level'];
+        $ret['subject'] = $_GET['subject'];
+        $ret_str = ucwords($ret['level']) . " " . ucwords($ret['subject']);
+    } else if (isset($_GET['level'])){
+        $ret['level'] = $_GET['level'];
+        $ret['subject'] = null;
+        $ret_str = ucwords($ret['level']) ;
+    } else if (isset($_GET['subject'])){
+        $ret['level'] = null;
+        $ret['subject'] = $_GET['subject'];
+        $ret_str =ucwords($ret['subject']);
+    }
+
+    return $ret_str;
+}
+
 function get_search_request_page(){
     $node = node_view(node_load('1020'));
     $node['#node']->title = "";
