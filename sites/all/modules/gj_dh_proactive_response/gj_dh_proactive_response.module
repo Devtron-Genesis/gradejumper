@@ -390,6 +390,29 @@ function _get_parent_search_requests_by_email_and_subject_level_tid($email, $tid
 
 }
 
+function _get_parent_search_requests_with_unsent_emails(){
+    $ret_nodes = array();
+
+    $qry_str = "
+        SELECT nid FROM node 
+        LEFT join field_data_field_search_request_emails_sent SRES 
+        on node.nid = SRES.entity_id 
+        where node.type = 'parent_search_request' 
+        and SRES.field_search_request_emails_sent_value is null
+        or SRES.field_search_request_emails_sent_value = 0;
+    ";
+
+
+    $results = db_query($qry_str,array())->fetchAll();
+
+    foreach ($results as $result){
+        array_push($ret_nodes, node_load($result->nid));
+    }
+
+    return $ret_nodes;
+
+}
+
 function _get_parent_search_requests_by_user($uid){
     $ret_nodes = array();
 

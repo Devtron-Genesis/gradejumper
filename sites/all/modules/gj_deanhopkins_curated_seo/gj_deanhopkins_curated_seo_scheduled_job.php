@@ -126,6 +126,89 @@ function _get_subject_level_term_display_name($term){
         return $term->name;
     } else {
         $parent_term = array_pop(taxonomy_get_parents($term->tid));
-        return $parent_term->name . " (" . $term->name . ")";
+        return $parentp_term->name . " (" . $term->name . ")";
     }
+}
+
+/********************************************************************
+ * gj_deanhopkins_curated_seo_send_tutor_emails                     *
+ ********************************************************************
+ * Description: Main entry point for the send search request emails *
+ *              scheduled job. Finds all search requests where      *
+ *              emails_sent == 0. Finds relevant tutors, sends      *
+ *              emails to relevant tutorsthen update emails_sent=1  *
+ * Arguments:                                                       *
+ * Return:      void                                                *
+ ********************************************************************
+ * Author:      Dean Hopkins                                        *
+ * Date:        2019-03-28                                         *
+ ********************************************************************/
+function gj_deanhopkins_curated_seo_send_tutor_emails(){
+    $search_requests = _get_parent_search_requests_with_unsent_emails();
+
+    foreach ($search_requests as $search_request){
+        _notify_relevant_tutors($search_request);
+        $search_request->field_search_request_emails_sent['und'][0]['value'] = 1;
+        node_save($search_request);
+    }
+}
+
+function _notify_relevant_tutors($parent_search_request){
+    $tid = $parent_search_request->field_search_request_tid['und'][0]['value'];
+
+    if ($tid){
+        $tutor_ads = _get_tutor_ads_by_subject_level_tid($tid);
+        foreach ($tutor_ads as $tutor_ad){
+            $tutor_user = user_load($tutor_ad->uid);
+            _notify_tutor_of_search_request($tutor_user, $parent_search_request);
+        }
+    }
+
+}
+
+function _notify_tutor_of_search_request($tutor_user, $parent_search_request){
+    $message = "Hi " . get_tutor_ad_first_name(get_tutor_ad_by_user($tutor_user)) . ",<br /><br />";
+    $message .= "We have recieved a new tutoring request from " . $parent_search_request->field_search_request_first_name['und'][0]['value'] . ".<br /><br />";
+    $message .= "Proacively responding to this request with a friendly message will significantly increase your chances of winning the business. Click the button below to create your proactive response...<br /><br />";
+
+    $message .= "<div style='width:100%; text-align: center;'>";
+    $message .=  "<a href='". $GLOBALS['base_url'] . "/respond_search_request/" . base64_encode($parent_search_request->nid) . "' style='" . _get_btn_email_style() . "'>Create proactive response</a><br /><br />";
+    $message .= "</div>";
+
+    $link = l("log into your account", $GLOBALS['base_url'] . "/user/login");
+    $message .= "You can alternatively " . $link . " and click on the \"Proactive responses\" link to view all matching tutor requests that are currently available.<br /><br />";
+    $message .= "We reward proactivity, so the faster you respond the better! :)";
+
+    $params = array(
+        'body' => $message,
+        'subject' => 'GradeJumpers New Tutoring Request',
+        'headers'=>'simple',
+    );
+    $to = $tutor_user->mail;
+    $from = "support@gradejumpers.com";
+
+    drupal_mail('gj_deanhopkins_curated_seo', 'gj_dh', $to, language_default(), $params, $from, TRUE);
+}
+
+
+
+function _get_tutor_ads_by_subject_level_tid($tid){
+    $ret_nodes = array();
+    $qry_str = "
+        SELECT nid FROM node 
+        join field_data_field_col_subject_level_pricing FCOL 
+        on node.nid = FCOL.entity_id 
+        join field_data_field_offered_level FDLEVEL 
+        on FDLEVEL.entity_id = FCOL.field_col_subject_level_pricing_value 
+        where node.type = 'tutor_ad' 
+        and FCOL.bundle = 'tutor_ad' 
+        and FDLEVEL.bundle = 'field_col_subject_level_pricing' 
+        and FDLEVEL.field_offered_level_tid = :tid 
+    ";
+
+    $results = db_query($qry_str,array('tid'=>$tid))->fetchAll();
+    foreach ($results as $result){
+        array_push($ret_nodes, node_load($result->nid));
+    }
+    return $ret_nodes;
 }

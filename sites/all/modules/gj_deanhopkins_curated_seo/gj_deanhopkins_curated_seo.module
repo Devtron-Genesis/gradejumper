@@ -73,6 +73,15 @@ function gj_deanhopkins_curated_seo_menu(){
         'access callback' => TRUE,
     );
 
+    $items['process_search_request_emails'] = array(
+        'type' => MENU_NORMAL_ITEM,
+        'title' => t('Trigger job to process sending of parent search request emails'),
+        'description' => 'Trigger job to process sending of parent search request emails',
+        'page callback' => 'gj_deanhopkins_curated_seo_send_tutor_emails',
+        'access arguments' => array('access content'),
+        'access callback' => TRUE,
+    );
+
     return $items;
 }
 
