@@ -86,12 +86,10 @@ function gj_deanhopkins_parent_search_request_form_submit($form, &$form_state) {
     $results = _get_parent_search_requests_by_email_and_subject_level_tid($email, $tid);
     if (sizeof($results) > 0){
         $node = _create_parent_search_request_node($form);
-        _notify_relevant_tutors($form, $node);
         $options = array('query' => array('managed_search' => base64_encode(date("M,d,Y h:i:s A"))));
         drupal_goto('level-subject/' . $level . '/' . $subject, $options);
     } else {
         $node = _create_parent_search_request_node($form);
-        _notify_relevant_tutors($form, $node);
         _redirect_search_request($form);
     }
 }
@@ -135,69 +133,6 @@ function _create_parent_search_request_node($form){
     node_save($node);
 
     return $node;
-}
-
-function _notify_relevant_tutors($form, $parent_search_request){
-    $tid = isset($form['tid']['#value']) ? $form['tid']['#value'] : NULL;
-
-    if ($tid){
-        $tutor_ads = _get_tutor_ads_by_subject_level_tid($tid);
-        foreach ($tutor_ads as $tutor_ad){
-            $tutor_user = user_load($tutor_ad->uid);
-            _notify_tutor_of_search_request($tutor_user, $parent_search_request);
-        }
-    }
-
-}
-
-function _notify_tutor_of_search_request($tutor_user, $parent_search_request){
-    $message = "Hi " . get_tutor_ad_first_name(get_tutor_ad_by_user($tutor_user)) . ",<br /><br />";
-    $message .= "We have recieved a new tutoring request from " . $parent_search_request->field_search_request_first_name['und'][0]['value'] . ".<br /><br />";
-    $message .= "Proacively responding to this request with a friendly message will significantly increase your chances of winning the business. Click the button below to create your proactive response...<br /><br />";
-
-    $message .= "<div style='width:100%; text-align: center;'>";
-    $message .=  "<a href='". $GLOBALS['base_url'] . "/respond_search_request/" . base64_encode($parent_search_request->nid) . "' style='" . _get_btn_email_style() . "'>Create proactive response</a><br /><br />";
-    $message .= "</div>";
-
-    $link = l("log into your account", $GLOBALS['base_url'] . "/user/login");
-    $message .= "You can alternatively " . $link . " and click on the \"Proactive responses\" link to view all matching tutor requests that are currently available.<br /><br />";
-    $message .= "We reward proactivity, so the faster you respond the better! :)";
-
-    $params = array(
-        'body' => $message,
-        'subject' => 'GradeJumpers New Tutoring Request',
-        'headers'=>'simple',
-    );
-    $to = $tutor_user->mail;
-    $from = "support@gradejumpers.com";
-
-    drupal_mail('gj_deanhopkins_curated_seo', 'gj_dh', $to, language_default(), $params, $from, TRUE);
-}
-
-function _get_tutor_ads_by_subject_level_tid($tid){
-    $ret_nodes = array();
-
-    $qry_str = "
-        SELECT nid FROM node 
-        join field_data_field_col_subject_level_pricing FCOL 
-        on node.nid = FCOL.entity_id 
-        join field_data_field_offered_level FDLEVEL 
-        on FDLEVEL.entity_id = FCOL.field_col_subject_level_pricing_value 
-        where node.type = 'tutor_ad' 
-        and FCOL.bundle = 'tutor_ad' 
-        and FDLEVEL.bundle = 'field_col_subject_level_pricing' 
-        and FDLEVEL.field_offered_level_tid = :tid 
-    ";
-
-
-    $results = db_query($qry_str,array('tid'=>$tid))->fetchAll();
-
-    foreach ($results as $result){
-        array_push($ret_nodes, node_load($result->nid));
-    }
-
-    return $ret_nodes;
-
 }
 
 function _redirect_search_request($form){
