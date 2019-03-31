@@ -60,7 +60,6 @@ function get_email_header(){
         .email-content{
             margin: 50px 48px;
             color: #15180c;
-            font-family: Montserrat;
             font-size: 16px;
             font-weight: 300;
             line-height: 22px;
@@ -80,7 +79,6 @@ function get_email_header(){
             margin:auto;
             color: #ffffff;
             border:0px;
-            font-family: Montserrat;
             font-size: 16px;
             font-weight: 500;
             line-height: 22px;
@@ -96,7 +94,7 @@ function get_email_header(){
             </div>
 
             <div class='email-box' style='min-height: 100px; border-radius: 5px; border: 1px solid #b9b9b9; background-color: #ffffff;'>
-                <div class='email-content' style='margin: 50px 48px; color: #15180c; font-family: Montserrat; font-size: 16px; font-weight: 300; line-height: 22px;'
+                <div class='email-content' style='margin: 50px 48px; color: #15180c; font-family: Helvetica; font-size: 16px; font-weight: 300; line-height: 22px;'
                     <p>
     ";
 
