@@ -87,7 +87,7 @@ function get_email_header(){
         }
     </style>
 
-    <body style='background-color: #f5f5f5; padding:25px;'>
+    <body style='background-color: #f5f5f5; padding:25px; font-family: Helvetica !important;'>
         <div class='email-container' style='display: block; width: 690px; margin:auto;'>
             <div class='email-gj-logo-container' style='margin-top:65px; height:97px; display:block;'>
                 <span class='email-gj-logo' style='min-height:100%; float:right;'>
