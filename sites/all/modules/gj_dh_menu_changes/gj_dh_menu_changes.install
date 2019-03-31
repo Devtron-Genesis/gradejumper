@@ -134,3 +134,21 @@ function gj_dh_menu_changes_update_existing_items(){
     $link['link_path'] = "https://secure.tutorcruncher.com/gradejumpers/signup/client/";
     menu_link_save($link);
 }
+
+/***********************************************************************
+ * gj_dh_menu_changes_update_7106                                      *
+ ***********************************************************************
+ * Description: Implements hook_update.                                *
+ *              Restrict parent menu items to parent role              *
+ * Arguments:                                                          *
+ * Return:                                                             *
+ ***********************************************************************
+ * Author:      Dean Hopkins                                           *
+ * Date:        2019-03-30                                             *
+ ***********************************************************************/
+function gj_dh_menu_changes_update_7106(){
+    print "Running GJ_DH_MENU_CHANGES_UPDATE_7106. \n";
+    print "Changing menu permissions for parent role.. ";
+    gj_dh_menu_changes_create_new_items();
+    print "DONE. \n";
+}
