@@ -2,7 +2,7 @@
 
 
 /***********************************************************************
- * gj_deanhopkins_email_template_update_7104                           *
+ * gj_deanhopkins_email_template_update_7105                           *
  ***********************************************************************
  * Description: Implements hook_update.                                *
  *              Persist settings to database                           *
@@ -12,12 +12,12 @@
  * Author:      Dean Hopkins                                           *
  * Date:        2019-03-19                                             *
  ***********************************************************************/
-function gj_deanhopkins_email_template_update_7104(){
-    print "Running GJ_DEANHOPKINS_EMAIL_TEMPLATE_UPDATE_7103. \n";
+function gj_deanhopkins_email_template_update_7105(){
+    print "Running GJ_DEANHOPKINS_EMAIL_TEMPLATE_UPDATE_7105. \n";
     print "Persist email notification settings... ";
 
     $subject = "You have a new message!";
-    $from = "lisa@gradejumpers.com";
+    $from = "sarah@gradejumpers.com";
     $email_body = '<p>Hi [privatemsg_message:recipient:first-name],</p>
 <p>You have a new message. Click the button below to view and reply…</p>
 
@@ -25,7 +25,7 @@ function gj_deanhopkins_email_template_update_7104(){
     <button type="button" class="btn btn-lg btn-primary btn-view-message" style="width: 358px; height: 58px; border-radius: 40px; background-color: #3f73d2; margin:auto; color: #ffffff; border:0px; font-family: Montserrat; font-size: 16px; font-weight: 500; line-height: 22px;">View message</button>
 </a>
 
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi vitae quam rutrum, consectetur odio eget, semper leo. Donec varius sem non auctor tempor. Nam eu viverra dolor, faucibus tempor enim.</p>';
+<p>If you have any questions please don\'t hesitate to contact our friendly London based team on 0800 722 3827.</p>';
 
     variable_set('pm_email_notify_default', TRUE);
     variable_set('pm_email_notify_subject', $subject);
