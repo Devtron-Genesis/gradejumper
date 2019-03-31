@@ -149,6 +149,21 @@ function gj_dh_menu_changes_update_existing_items(){
 function gj_dh_menu_changes_update_7106(){
     print "Running GJ_DH_MENU_CHANGES_UPDATE_7106. \n";
     print "Changing menu permissions for parent role.. ";
-    gj_dh_menu_changes_create_new_items();
+    $parent_rid = user_role_load_by_name('Parent')->rid;
+    $parent_only_mlids = array(1, 2, 3);
+
+    foreach ($parent_only_mlids as $mlid){
+        //set permission for parent only menu item
+        $parent_role_fields = array('rids' => $parent_rid, 'hrids' => "");
+        $count = db_select('menu_per_role')->condition('mlid', $mlid)->countQuery()->execute()->fetchField();
+        if ($count == 0) {
+            $parent_role_fields['mlid'] = $mlid;
+            db_insert('menu_per_role')->fields($parent_role_fields)->execute();
+        }
+        else {
+            db_update('menu_per_role')->fields($parent_role_fields)->condition('mlid', $mlid)->execute();
+        }
+    }
+
     print "DONE. \n";
 }
