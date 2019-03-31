@@ -150,7 +150,7 @@ function gj_dh_menu_changes_update_7106(){
     print "Running GJ_DH_MENU_CHANGES_UPDATE_7106. \n";
     print "Changing menu permissions for parent role.. ";
     $parent_rid = user_role_load_by_name('Parent')->rid;
-    $parent_only_mlids = array(1, 2, 3);
+    $parent_only_mlids = array(4566);
 
     foreach ($parent_only_mlids as $mlid){
         //set permission for parent only menu item
@@ -165,5 +165,9 @@ function gj_dh_menu_changes_update_7106(){
         }
     }
 
+    $mlids_to_delete = array(4576, 4577);
+    foreach ($mlids_to_delete as $mlid){
+        menu_link_delete($mlid);
+    }
     print "DONE. \n";
 }
