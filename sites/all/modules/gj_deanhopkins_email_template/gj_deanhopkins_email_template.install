@@ -17,7 +17,7 @@ function gj_deanhopkins_email_template_update_7105(){
     print "Persist email notification settings... ";
 
     $subject = "You have a new message!";
-    $from = "sarah@gradejumpers.com";
+    $from = "lisa@gradejumpers.com";
     $email_body = '<p>Hi [privatemsg_message:recipient:first-name],</p>
 <p>You have a new message. Click the button below to view and reply…</p>
 
