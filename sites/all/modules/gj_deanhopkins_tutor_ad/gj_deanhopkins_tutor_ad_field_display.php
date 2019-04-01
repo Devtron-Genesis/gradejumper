@@ -887,17 +887,17 @@ function get_fivestar_email_display($rating, $messaging=false, $header=false){
                     margin-right: 3px;
                     ";
 
-    $star_full = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p10.svg") . '">';
-    $star_empty = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p0.svg") . '">';
-    $star_p1 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p1.svg") . '">';
-    $star_p2 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p2.svg") . '">';
-    $star_p3 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p3.svg") . '">';
-    $star_p4 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p4.svg") . '">';
-    $star_p5 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p5.svg") . '">';
-    $star_p6 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p6.svg") . '">';
-    $star_p7 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p7.svg") . '">';
-    $star_p8 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p8.svg") . '">';
-    $star_p9 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p9.svg") . '">';
+    $star_full = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p10.png") . '">';
+    $star_empty = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p0.png") . '">';
+    $star_p1 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p1.png") . '">';
+    $star_p2 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p2.png") . '">';
+    $star_p3 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p3.png") . '">';
+    $star_p4 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p4.png") . '">';
+    $star_p5 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p5.png") . '">';
+    $star_p6 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p6.png") . '">';
+    $star_p7 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p7.png") . '">';
+    $star_p8 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p8.png") . '">';
+    $star_p9 = '<img style="width: 24px; height: 24px; position: relative; top: 5px;" src="' . file_create_url(drupal_get_path('module', 'gj_dh_proactive_response_templates') . "/img/star_p9.png") . '">';
 
     $rating_out_of_five = $rating / 20;
     $rating_round = round($rating_out_of_five, 1, PHP_ROUND_HALF_DOWN);

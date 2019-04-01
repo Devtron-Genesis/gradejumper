@@ -89,7 +89,7 @@ function get_email_header(){
         <div class='email-container' style='display: block; width: 690px; margin:auto;'>
             <div class='email-gj-logo-container' style='margin-top:65px; height:97px; display:block;'>
                 <span class='email-gj-logo' style='min-height:100%; float:right;'>
-                <img src='" . file_create_url(drupal_get_path('module', 'gj_deanhopkins_email_template') . '/img/gj_logo_stress_free.png') . "' >
+                <img style='height: 100px;' src='" . file_create_url(drupal_get_path('module', 'gj_deanhopkins_email_template') . '/img/gj_logo_stress_free.png') . "' >
                 </span>
             </div>
 
