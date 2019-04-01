@@ -14,7 +14,7 @@
                 <td><a href="<?php print url('/management/tutoring_request_management/') . base64_encode($search_request->nid);?>"><?php print $search_request->nid; ?></a></td>
                 <td><a href="<?php print url('/management/tutoring_request_management/') . base64_encode($search_request->nid);?>"><?php print $search_request->title; ?></a></td>
                 <td><?php print date("d/m/Y H:i", $search_request->created); ?></td>
-                <td><?php print sizeof(_get_search_request_responses_sent($search_request->nid)); ?></td>
+                <td><?php print sizeof(_get_search_request_responses($search_request->nid)); ?></td>
                 <td><?php print _search_request_parent_mail_already_sent($search_request) ? "Yes" : "No"; ?></td>
             </tr>
     <?php endforeach; ?>
