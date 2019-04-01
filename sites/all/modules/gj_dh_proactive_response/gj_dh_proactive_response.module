@@ -221,7 +221,7 @@ function gj_dh_proactive_response_tutoring_requests_callback(){
                     if (_tutor_already_responded_to_search_request($result->nid, $user)){
                         array_push($applied_requests, $result);
                     } else {
-                        if (_get_search_request_responses_sent($result->nid) < 3){
+                        if (sizeof(_get_search_request_responses_sent($result->nid)) < 3){
                             array_push($matching_requests, $result);
                         }
                     }
