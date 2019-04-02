@@ -9,7 +9,7 @@
             <div class="gj-pr-tutor-request-counter-container">
                 <div class="gj-pr-tutor-request-counter">
                     <?php
-                        $count = _search_request_num_responses_display($search_request->nid);
+                        $count = _search_request_num_responses($search_request->nid);
                         $output = $count . " response";
                         if ($count > 1 || $count == 0){ $output .= "s"; }
                         print $output;
