@@ -1471,3 +1471,7 @@ button{
 .page-node-edit-tutor-ad .alert-success{
     display: none !important;
 }
+
+.file-size {
+    margin-right: 5px;
+}
