@@ -231,7 +231,7 @@ function _get_subject_level_terms_from_string($sub){
  * Author:      Dean Hopkins                                        *
  * Date:        2019-02-12                                          *
  ********************************************************************/
-function gj_deanhopkins_curated_seo_mail($key,&$message,$params)
+function gj_deanhopkins_curated_seo_node_mail($key,&$message,$params)
 {
     switch ($key) {
         case 'gj_dh':
