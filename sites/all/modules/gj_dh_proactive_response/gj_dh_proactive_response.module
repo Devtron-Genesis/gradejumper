@@ -867,6 +867,8 @@ function _send_tutoring_responses_email_to_parent($parent_search_request, $respo
     $message .= "If you have any questions please don't hesitate to contact our friendly London based team on 0800 722 3827. <br /><br />";
     $message .= "We look forward to finding you the perfect tutor! :)";
 
+    $message = preg_replace("/Montserrat/", "Helvetica", $message);
+
     $params = array(
         'body' => $message,
         'subject' => 'New Tutoring Request',
