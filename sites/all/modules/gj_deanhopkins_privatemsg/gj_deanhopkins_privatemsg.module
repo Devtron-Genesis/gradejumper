@@ -149,6 +149,7 @@ function gj_deanhopkins_privatemsg_privatemsg_message_insert($message){
  * Date:        2019-03-27                                          *
  ********************************************************************/
 function gj_deanhopkins_privatemsg_privatemsg_message_presave_alter(&$message) {
+    /*
     $author = user_load($message->author->uid);
     $recipient = user_load(array_pop($message->recipients)->uid);
     if (has_role_manager($author) || has_role_manager($recipient)){
@@ -160,6 +161,7 @@ function gj_deanhopkins_privatemsg_privatemsg_message_presave_alter(&$message) {
             $message->subject = "Message from Student";
         }
     }
+    */
 }
 
 /********************************************************************
