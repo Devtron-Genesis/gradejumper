@@ -367,6 +367,11 @@ function gj_deanhopkins_search_level_subject($level_str, $subject_str){
         }
     }
 
+    if (sizeof($node_teasers) < 1){
+        $options = array('query' => array('subject' => $subject_str, 'level' => $level_str));
+        drupal_goto('/content/no-tutors-available', $options);
+    }
+
     pager_default_initialize($count_result->total, $limit, $element = 0);
     $pager = theme('pager');
 
