@@ -126,7 +126,7 @@ function _get_subject_level_term_display_name($term){
         return $term->name;
     } else {
         $parent_term = array_pop(taxonomy_get_parents($term->tid));
-        return $parentp_term->name . " (" . $term->name . ")";
+        return $parent_term->name . " (" . $term->name . ")";
     }
 }
 
