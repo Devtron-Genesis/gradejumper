@@ -212,3 +212,15 @@ function _get_tutor_ads_by_subject_level_tid($tid){
     }
     return $ret_nodes;
 }
+
+
+function gj_deanhopkins_curated_seo_mail($key,&$message,$params)
+{
+    switch ($key) {
+        case 'gj_dh':
+            $message['subject']=t($params['subject']);
+            $message['body'][]=get_email_header() . $params['body'] . get_email_footer();
+            $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+            break;
+    }
+}
