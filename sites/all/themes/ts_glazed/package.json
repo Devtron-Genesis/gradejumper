@@ -12,5 +12,12 @@
     "gulp-minify-css": "latest",
     "gulp-sourcemaps": "latest",
     "gulp-uglify": "^1.5.3"
-  }
+  },
+  "main": "gulpfile.js",
+  "dependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
 }

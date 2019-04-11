@@ -74,6 +74,7 @@
     font-weight: 300;
     line-height: 65px;
     padding-bottom: 10px;
+    font-weight: bolder;
 }
 
 .info-block-container{
@@ -409,4 +410,27 @@
 
 button{
     outline:none !important;
+}
+
+@media only screen and (max-width: 767px) {
+    .search-label-header{
+        font-size: 20px;
+        padding-bottom: 0;
+        line-height: 40px;
+
+    }
+    .serch-star-reviews{
+        padding-top: 5px;
+        padding-bottom: 10px;
+    }
+    .tutor-search-button{
+        height: 30px;
+        min-height: 30px;
+    }
+    .search-sort-mobile-left{
+        line-height: 30px;
+    }
+    #search_sort_type{
+        height: 35px !important;
+    }
 }

@@ -16,6 +16,7 @@ a {
 
 a {
   text-decoration: none;
+  word-break: break-word;
 
   &:hover,
   &:focus {
@@ -457,7 +458,7 @@ br.form_breakline {
   }
   @media (max-width: $screen-sm-max) {
     .section-top {
-      padding-top: 100px !important;
+      padding-top: 0px !important;
       .az-element.az-text {
         text-align: center;
         h3 span {
@@ -886,4 +887,32 @@ br.form_breakline {
       }
     }
   }
+}
+.page-level-subject div#wxqapemx {
+  @media (max-width: $screen-xs-max) {
+    .az-element.az-text {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+      margin-bottom:0 !important;
+      padding-bottom: 10px !important;
+      h3 {
+        margin-bottom: 0 !important;
+        span {
+          font-size: 40px;
+          line-height: 1;
+        }
+      }
+    }
+    .az-element.az-image.animated {
+      img {
+        margin-bottom: 0px !important;
+      }
+    }
+  }
+}
+div.tooltip {
+  @media (max-width: $screen-xs-max) {
+    display: none !important;
+  }
+
 }

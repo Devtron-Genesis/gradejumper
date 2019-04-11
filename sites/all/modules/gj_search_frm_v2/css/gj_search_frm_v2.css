@@ -88,3 +88,21 @@
     margin-top: 10px;
   }
 }
+@media only screen and (max-width: 767px) {
+  .tutor-search-select-wrap {
+    margin-bottom: 0;
+  }
+  .tutor-search-container-v2 .tutor-search-button {
+    margin-top: 0;
+    padding-bottom: 0 !important;
+  }
+  .tutor-search-container-v2 #edit-subject, .tutor-search-container-v2 #edit-level {
+      height: 35px;
+  }
+  .tutor-search-container-v2 #edit-submit {
+      font-size: 16px;
+      height: 25px;
+      min-height: 35px;
+      padding: 5px 13px;
+  }
+}
