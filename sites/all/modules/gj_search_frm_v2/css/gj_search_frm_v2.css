@@ -88,3 +88,11 @@
     margin-top: 10px;
   }
 }
+@media only screen and (max-width: 767px) {
+  .tutor-search-select-wrap {
+    margin-bottom: 0;
+  }
+  .tutor-search-container-v2 .tutor-search-button {
+    margin-top: 0;
+  }
+}

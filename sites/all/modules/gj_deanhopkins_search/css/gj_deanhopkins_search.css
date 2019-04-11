@@ -410,3 +410,14 @@
 button{
     outline:none !important;
 }
+
+@media only screen and (max-width: 767px) {
+    .search-label-header{
+        font-size: 35px;
+        padding-bottom: 0;
+    }
+    .serch-star-reviews{
+        padding-top: 5px;
+        padding-bottom: 10px;
+    }
+}
