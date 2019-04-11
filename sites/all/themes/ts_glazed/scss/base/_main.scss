@@ -16,6 +16,7 @@ a {
 
 a {
   text-decoration: none;
+  word-break: break-word;
 
   &:hover,
   &:focus {
@@ -897,8 +898,8 @@ br.form_breakline {
       h3 {
         margin-bottom: 0 !important;
         span {
-          font-size: 20px;
-          line-height: 0;
+          font-size: 40px;
+          line-height: 1;
         }
       }
     }
