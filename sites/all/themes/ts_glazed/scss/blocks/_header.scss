@@ -61,7 +61,7 @@ $header-sm-height: 76px;
     li:not(:last-child) {
       margin-right: 50px;
 
-      @media (min-width: $screen-sm-min) and (max-width: $screen-sm-max) {
+      @media (min-width: $screen-sm-min) and (max-width: 1050px) {
         margin-right: 10px;
       }
 
