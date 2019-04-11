@@ -91,4 +91,10 @@ $xs-mobile-tutors: 400px;
 }
 .page-tutor-application-submitted .main-container.section-wrapper {
     padding-bottom: 150px;
-} 
+}
+.page-node-add-tutor-ad #field-enter-a-youtube-profile-vi-add-more-wrapper fieldset .video_embed_url {
+  @media (max-width: $screen-xs-max) {
+    width: 100% !important;    
+  }
+}
+ 
