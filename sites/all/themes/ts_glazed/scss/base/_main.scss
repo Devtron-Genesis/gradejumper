@@ -888,22 +888,24 @@ br.form_breakline {
   }
 }
 .page-node-1020 div#wxqapemx {
-  .az-element.az-text {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-    margin-bottom:0 !important;
-    padding-bottom: 10px !important;
-    h3 {
-      margin-bottom: 0 !important;
-      span {
-        font-size: 20px;
-        line-height: 0;
+  @media (max-width: $screen-xs-max) {
+    .az-element.az-text {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+      margin-bottom:0 !important;
+      padding-bottom: 10px !important;
+      h3 {
+        margin-bottom: 0 !important;
+        span {
+          font-size: 20px;
+          line-height: 0;
+        }
       }
     }
-  }
-  .az-element.az-image.animated {
-    img {
-      margin-bottom: 0px !important;
+    .az-element.az-image.animated {
+      img {
+        margin-bottom: 0px !important;
+      }
     }
   }
 }
