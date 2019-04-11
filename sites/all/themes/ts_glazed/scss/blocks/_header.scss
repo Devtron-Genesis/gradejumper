@@ -9,7 +9,7 @@ $header-sm-height: 76px;
   background: $header-bg;
   color: $header-color;
 
-  @media (max-width: $screen-xs-max) {
+  @media (max-width: 1100px) {
     height: auto;
     padding: 0;
     background: none;
@@ -18,7 +18,7 @@ $header-sm-height: 76px;
 
   .navbar-header {
 
-    @media (max-width: $screen-xs-max) {
+    @media (max-width: 1100px) {
       position: relative;
       background: $header-bg;
       height: $header-xs-height;
@@ -50,7 +50,7 @@ $header-sm-height: 76px;
     font-size: 18px;
     font-weight: 400;
 
-    @media (max-width: $screen-xs-max) {
+    @media (max-width: 1100px) {
       background-color: #333;
     }
 
@@ -61,11 +61,11 @@ $header-sm-height: 76px;
     li:not(:last-child) {
       margin-right: 50px;
 
-      @media (min-width: $screen-sm-min) and (max-width: 1050px) {
+      @media (min-width: $screen-sm-min) and (max-width: 1100px) {
         margin-right: 10px;
       }
 
-      @media (max-width: $screen-xs-max) {
+      @media (max-width: 1100px) {
         margin-right: 0;
         border-bottom: 1px solid #666;
       }
@@ -76,11 +76,8 @@ $header-sm-height: 76px;
       color: $header-color;
       line-height: 22px;
       background: none;
-      @media (max-width: $screen-xs-max) {
+      @media (max-width: 1100px) {
         padding: 15px 24px;
-      }
-      @media (min-width: $screen-sm-min) and (max-width: $screen-sm-max) {
-        padding: 10px 5px;
       }
     }
   }
@@ -113,7 +110,7 @@ $header-sm-height: 76px;
   }
 }
 section#block-menu-menu-main-navigation-menu {
-  @media (max-width: $screen-xs-max) {
+  @media (max-width: 1100px) {
     a.btn-bg-white.btn-bg-white {
       background: none !important;
       border: none !important;
@@ -162,6 +159,11 @@ section#block-menu-menu-main-navigation-menu {
   }
 }
 
+@media (min-width: 1100px) {
+  .navbar-nav {
+      float: none !important;
+  }
+}
 @media (max-width: 1100px) {
     .visible-xs {
         display: block !important;
@@ -178,6 +180,7 @@ section#block-menu-menu-main-navigation-menu {
     .navbar-collapse {
         border-top: 1px solid transparent;
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+        padding: 0;
     }
     .navbar-fixed-top {
         top: 0;
@@ -187,8 +190,7 @@ section#block-menu-menu-main-navigation-menu {
         display: none!important;
     }
     .navbar-nav {
-        float: left !important;
-        margin-top: 7.5px;
+        float: none !important;
     }
     .navbar-nav>li {
         float: none;
