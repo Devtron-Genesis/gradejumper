@@ -163,6 +163,9 @@
         }
       }
       $('.page-messages #block-block-16 img').removeAttr("title");
+      $('.node-type-tutor-ad .tutor_ad_availability_table_header_row .tutor-ad-availability-table-header').wrap('<div class="ga_time_table"></div>');
+      $('.node-type-tutor-ad .timetable_wrapper th span img').matchHeight();
+      $('.node-type-tutor-ad .timetable_wrapper th .ga_time_table').matchHeight();
   });
   $(window).resize(function(){
       var win_height = $(window).height();

@@ -36,6 +36,7 @@ scripts[] = js/jquery.dotdotdot.js
 scripts[] = js/script.js
 scripts[] = js/custom.js
 scripts[] = bootstrap/js/bootstrap.js
+scripts[] = js/jquery.matchHeight-min.js
 
 scripts[] = bootstrap/assets/javascripts/bootstrap/affix.js
 scripts[] = bootstrap/assets/javascripts/bootstrap/alert.js
