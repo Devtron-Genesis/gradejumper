@@ -41,6 +41,7 @@
 $break-small-device: 992px;
 $xs-mobile-tutors: 400px;
 $screen-xs-after: 769px;
+$screen-md-img: 950px;
 
 .page-level-subject-degree-gujarati div#tutor-ad-teaser-container-mobile .teaser-wrapper-mobile .tutor-ad-teaser-price-mobile {
   @media screen and (max-width: $break-small-device) {
@@ -131,6 +132,14 @@ $screen-xs-after: 769px;
       width: 300px !important;
       @media (max-width: 370px) {
         width: 200px !important;
+      }
+      @media (min-width: $screen-xs-max) {
+            position: relative;
+            right: 40px;
+      }
+      @media (min-width: $screen-md-img) {
+            position: relative;
+            right: 20px !important;
       }
     }
   }
