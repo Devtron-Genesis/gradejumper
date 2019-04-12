@@ -331,6 +331,10 @@ nav { display: none !important; }
 .main-container .action-links { display: none !important; }
 ul .action-links{ margin-top: 70px !important; }
 
+@media screen and (max-width:992px) {
+    .message-header-col{
+        padding-right: 0px !important;
+}
 @media screen and (max-width:876px) {
 
     .page-messages hr{
@@ -377,7 +381,6 @@ ul .action-links{ margin-top: 70px !important; }
 
     .message-header-col{
         padding-left:15px !important;
-        padding-right: 15px !important;
     }
 
     .message-tutor-name{
@@ -551,7 +554,7 @@ ul .action-links{ margin-top: 70px !important; }
 @media screen and (max-width:400px) {
     .message-header-col{
         padding-left: 10px !important;
-        padding-right: 15px !important;
+        padding-right: 10px !important;
     }
 
     .fivestar-widget-static{

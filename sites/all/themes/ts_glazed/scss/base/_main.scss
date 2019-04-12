@@ -924,7 +924,10 @@ div.tooltip {
 }
 
 .page-messages section#block-system-main {
-  width: 80%;
+  width: 83%;
+  @media (max-width: 767px) {
+    width: 100%;
+  }  
 }
 
 @media (max-width: 767px) {
