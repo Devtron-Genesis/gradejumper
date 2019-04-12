@@ -124,8 +124,8 @@ section#block-menu-menu-main-navigation-menu {
   #header {
     height: 50px;
     padding: 6px 0 0 20px;
-    @media (max-width: $screen-xs-max) {
-      padding: 0;
+    @media (max-width: 1100px) {
+      padding: 0 0 0 0;
     }
 
     .navbar-header {

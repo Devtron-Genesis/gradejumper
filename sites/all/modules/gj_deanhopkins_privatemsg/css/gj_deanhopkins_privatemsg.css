@@ -334,6 +334,7 @@ ul .action-links{ margin-top: 70px !important; }
 @media screen and (max-width:992px) {
     .message-header-col{
         padding-right: 15px !important;
+    }
 }
 @media screen and (max-width:876px) {
 
@@ -452,6 +453,7 @@ ul .action-links{ margin-top: 70px !important; }
 
     .message-header-price{
         padding-right: 25px !important;
+        margin-top: -10px;
     }
 
 }
