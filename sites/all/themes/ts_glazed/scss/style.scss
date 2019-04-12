@@ -120,3 +120,21 @@ $xs-mobile-tutors: 400px;
 .page-respond-search-request .gj-pr-input-contatutoring_requestsiner .gj-pr-input-label {
   padding-top: 10px;
 }
+.node-type-cb-drag-drop-page {
+  .az-element.az-ctnr .afterthedeadline-button {
+    display: none;
+  }
+  .az-element .az-element.az-image {
+    img {
+      width: 300px;
+    }
+  }
+  .container > .az-row--sm .panel-body.az-ctnr > .az-element .az-element.az-image {
+    text-align: center;
+    img {
+      @media (max-width: $screen-xs-max) {
+        width: unset !important;
+      }
+    }
+  }
+}
