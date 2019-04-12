@@ -40,6 +40,7 @@
 /* variable for media querys */
 $break-small-device: 992px;
 $xs-mobile-tutors: 400px;
+$screen-xs-after: 769px;
 
 .page-level-subject-degree-gujarati div#tutor-ad-teaser-container-mobile .teaser-wrapper-mobile .tutor-ad-teaser-price-mobile {
   @media screen and (max-width: $break-small-device) {
@@ -139,7 +140,7 @@ $xs-mobile-tutors: 400px;
       @media (max-width: $screen-xs-max) {
         width: unset !important;
       }
-      @media (min-width: $screen-xs-max) {
+      @media (min-width: $screen-xs-after) {
         width: 100% !important;
       }
     }
