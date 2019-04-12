@@ -166,6 +166,25 @@
       $('.node-type-tutor-ad .tutor_ad_availability_table_header_row .tutor-ad-availability-table-header').wrap('<div class="ga_time_table"></div>');
       $('.node-type-tutor-ad .timetable_wrapper th span img').matchHeight();
       $('.node-type-tutor-ad .timetable_wrapper th .ga_time_table').matchHeight();
+
+      // to changge days name for mobile screens
+      $('.timetable_wrapper tr:nth-child(1)').addClass('row_day_monday');
+      $('.timetable_wrapper tr:nth-child(2)').addClass('row_day_tuesday');
+      $('.timetable_wrapper tr:nth-child(3)').addClass('row_day_wednesday');
+      $('.timetable_wrapper tr:nth-child(4)').addClass('row_day_thusday');
+      $('.timetable_wrapper tr:nth-child(5)').addClass('row_day_friday');
+      $('.timetable_wrapper tr:nth-child(6)').addClass('row_day_saturday');
+      $('.timetable_wrapper tr:nth-child(7)').addClass('row_day_sunday');
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        $('.row_day_monday td:nth-child(1)').addClass('col_day_mon').text('Mon');
+        $('.row_day_tuesday td:nth-child(1)').addClass('col_day_tue').text('Tue');
+        $('.row_day_wednesday td:nth-child(1)').addClass('col_day_wed').text('Wed');
+        $('.row_day_thusday td:nth-child(1)').addClass('col_day_thu').text('Thu');
+        $('.row_day_friday td:nth-child(1)').addClass('col_day_fri').text('Fri');
+        $('.row_day_saturday td:nth-child(1)').addClass('col_day_sat').text('Sat');
+        $('.row_day_sunday td:nth-child(1)').addClass('col_day_sun').text('Sun');
+      }
+      
   });
   $(window).resize(function(){
       var win_height = $(window).height();
