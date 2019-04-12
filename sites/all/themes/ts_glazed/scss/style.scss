@@ -130,7 +130,7 @@ $screen-xs-after: 769px;
     img {
       width: 300px !important;
       @media (max-width: 370px) {
-        width: 200px !important;
+        /*width: 200px !important;*/
       }
     }
   }
@@ -141,7 +141,7 @@ $screen-xs-after: 769px;
         width: unset !important;
       }
       @media (min-width: $screen-xs-after) {
-        width: 100% !important;
+       /* width: 100% !important;*/
       }
     }
   }
