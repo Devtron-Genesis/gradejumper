@@ -40,6 +40,7 @@
 /* variable for media querys */
 $break-small-device: 992px;
 $xs-mobile-tutors: 400px;
+$screen-xs-after: 769px;
 
 .page-level-subject-degree-gujarati div#tutor-ad-teaser-container-mobile .teaser-wrapper-mobile .tutor-ad-teaser-price-mobile {
   @media screen and (max-width: $break-small-device) {
@@ -128,6 +129,9 @@ $xs-mobile-tutors: 400px;
     text-align: center;
     img {
       width: 300px !important;
+      @media (max-width: 370px) {
+        width: 200px !important;
+      }
     }
   }
   .container > .az-row--sm .panel-body.az-ctnr > .az-element .az-element.az-image {
@@ -135,6 +139,9 @@ $xs-mobile-tutors: 400px;
     img {
       @media (max-width: $screen-xs-max) {
         width: unset !important;
+      }
+      @media (min-width: $screen-xs-after) {
+        width: 100% !important;
       }
     }
   }
