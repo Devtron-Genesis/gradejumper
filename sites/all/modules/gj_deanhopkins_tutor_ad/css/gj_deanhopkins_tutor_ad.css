@@ -71,7 +71,7 @@ html, body{
 
     #mobile-spacer{
         width: 100%;
-        min-height: 360px;
+        /*min-height: 360px;*/
         float: left;
         display: block;
     }
@@ -128,7 +128,7 @@ html, body{
 
 @media screen and (max-width:340px) {
     #mobile-spacer{
-        min-height: 390px !important;
+        /*min-height: 390px !important;*/
     }
 }
 
