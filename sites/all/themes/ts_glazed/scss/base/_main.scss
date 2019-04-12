@@ -459,12 +459,16 @@ br.form_breakline {
   @media (max-width: $screen-sm-max) {
     .section-top {
       padding-top: 0px !important;
+      padding-bottom: 30px !important;
       .az-element.az-text {
         text-align: center;
         h3 span {
           font-size: 36px !important;
         }
       }
+      .az-element.az-image {
+        padding-top: 30px;
+      } 
     }
   }
 }
