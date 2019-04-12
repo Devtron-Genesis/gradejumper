@@ -160,8 +160,8 @@ $screen-md-img: 950px;
     @media (min-width: 993px) {
         padding-left: 50px;
       }
-      @media(min-width:768px) and (max-width:992px) {
-        padding-left: 10px;
+      @media(width: 992px) {
+        padding-left: 30px;
       }
   }
 }
