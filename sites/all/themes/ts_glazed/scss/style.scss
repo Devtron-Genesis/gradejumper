@@ -139,6 +139,9 @@ $xs-mobile-tutors: 400px;
       @media (max-width: $screen-xs-max) {
         width: unset !important;
       }
+      @media (min-width: $screen-xs-max) {
+        width: 100% !important;
+      }
     }
   }
 }
