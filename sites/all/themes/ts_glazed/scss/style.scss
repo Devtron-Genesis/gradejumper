@@ -127,7 +127,7 @@ $xs-mobile-tutors: 400px;
   .az-element .az-element.az-image {
     text-align: center;
     img {
-      width: 300px !important;
+      /*width: 300px !important;*/
       @media (max-width: 370px) {
         width: 200px;
       }
