@@ -125,8 +125,9 @@ $xs-mobile-tutors: 400px;
     display: none;
   }
   .az-element .az-element.az-image {
+    text-align: center;
     img {
-      width: 300px;
+      width: 300px !important;
     }
   }
   .container > .az-row--sm .panel-body.az-ctnr > .az-element .az-element.az-image {
