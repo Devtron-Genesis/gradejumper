@@ -89,8 +89,16 @@ $xs-mobile-tutors: 400px;
 		font-size: 25px !important;		
 	}
 }
-.page-tutor-application-submitted .main-container.section-wrapper {
+.page-tutor-application-submitted {
+  .main-container.section-wrapper {
     padding-bottom: 150px;
+     .gj_as_title {
+        @media (max-width: $screen-xs-max) {
+          padding-top: 10px;
+          padding-bottom: 20px;
+      }
+    }
+  }
 }
 .page-node-add-tutor-ad #field-enter-a-youtube-profile-vi-add-more-wrapper fieldset .video_embed_url {
   @media (max-width: $screen-xs-max) {
