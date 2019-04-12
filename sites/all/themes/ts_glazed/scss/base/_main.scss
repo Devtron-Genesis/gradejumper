@@ -916,3 +916,17 @@ div.tooltip {
   }
 
 }
+.alert-success {
+  display: none;
+}
+
+.page-messages section#block-system-main {
+  width: 80%;
+}
+
+@media (max-width: 767px) {
+  .az-element.az-ctnr.az-column.col-sm-12 {
+      padding-left: 0px;
+      padding-right: 0px;
+  }
+}
