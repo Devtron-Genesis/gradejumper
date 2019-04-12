@@ -121,6 +121,9 @@ $xs-mobile-tutors: 400px;
   padding-top: 10px;
 }
 .node-type-cb-drag-drop-page {
+  .az-element.az-ctnr .afterthedeadline-button {
+    display: none;
+  }
   .container > .az-row--sm .panel-body.az-ctnr > .az-element .az-element.az-image {
     text-align: center;
     img {
