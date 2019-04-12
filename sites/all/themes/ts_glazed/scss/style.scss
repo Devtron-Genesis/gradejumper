@@ -133,14 +133,14 @@ $screen-md-img: 950px;
       @media (max-width: 370px) {
         width: 200px !important;
       }
-      @media (min-width: $screen-xs-max) {
+    /*  @media (min-width: $screen-xs-max) {
             position: relative;
             right: 40px;
       }
       @media (min-width: $screen-md-img) {
             position: relative;
             right: 20px !important;
-      }
+      }*/
     }
   }
   .container > .az-row--sm .panel-body.az-ctnr > .az-element .az-element.az-image {
