@@ -129,7 +129,7 @@ $xs-mobile-tutors: 400px;
     img {
       width: 300px !important;
       @media (max-width: 370px) {
-        width: 200px;
+        width: 200px !important;
       }
     }
   }
