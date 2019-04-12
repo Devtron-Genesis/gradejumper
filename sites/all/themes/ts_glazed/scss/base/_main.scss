@@ -930,3 +930,8 @@ div.tooltip {
       padding-right: 0px !important;
   }
 }
+.privatemsg-message-body:not(.privatemsg-message-owner) {
+  a {
+    color: #00FFFF;
+  }
+}
