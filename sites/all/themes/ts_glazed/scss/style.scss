@@ -92,13 +92,7 @@ $screen-md-img: 950px;
       font-size: 25px !important;   
     }
   }
-  .embedded-video .player {
-    iframe {
-      @media (max-width: $screen-xs-max) {
-        height: auto;
-      }
-    }
-  }
+
 }
 .page-tutor-application-submitted {
   .main-container.section-wrapper {
@@ -122,7 +116,7 @@ $screen-md-img: 950px;
 .page-respond-search-request .gj-pr-input-contatutoring_requestsiner .gj-pr-input-label {
   padding-top: 10px;
 }
-.node-type-cb-drag-drop-page {
+.page-node-1021.node-type-cb-drag-drop-page {
   .az-element.az-ctnr .afterthedeadline-button {
     display: none;
   }
