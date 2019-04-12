@@ -124,6 +124,11 @@ $xs-mobile-tutors: 400px;
   .az-element.az-ctnr .afterthedeadline-button {
     display: none;
   }
+  .az-element .az-element.az-image {
+    img {
+      width: 300px;
+    }
+  }
   .container > .az-row--sm .panel-body.az-ctnr > .az-element .az-element.az-image {
     text-align: center;
     img {
