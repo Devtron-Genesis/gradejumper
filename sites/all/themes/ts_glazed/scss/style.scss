@@ -128,6 +128,9 @@ $xs-mobile-tutors: 400px;
     text-align: center;
     img {
       width: 300px !important;
+      @media (max-width: 370px) {
+        width: 200px;
+      }
     }
   }
   .container > .az-row--sm .panel-body.az-ctnr > .az-element .az-element.az-image {
