@@ -459,6 +459,7 @@ ul .action-links{ margin-top: 70px !important; }
     }
 
 }
+
 @media screen and (min-width:876px) {
     .message-tutor-name{
         color: #2b539d;
@@ -626,4 +627,10 @@ button{
 
 .message-send #edit-cancel{
     display: none;
+}
+@media screen and (min-width:992px) {
+    .page-403-access-denied #block-system-main .gj40s_wrap {
+        width: 970px;
+        margin: 0 auto;       
+    }
 }
