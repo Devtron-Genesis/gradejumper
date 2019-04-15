@@ -1211,11 +1211,17 @@ img {max-width: 100%;}
 #field-enter-a-youtube-profile-vi-add-more-wrapper fieldset .panel-heading{
      display: none !important;
  }
+#field-enter-a-youtube-profile-vi-add-more-wrapper fieldset legend span.fieldset-legend{
+     display: none !important;
+ }
 
 #field-enter-a-youtube-profile-vi-add-more-wrapper fieldset .panel-body{
     padding: 0 !important;
 }
 
+#field-enter-a-youtube-profile-vi-add-more-wrapper fieldset .video_embed_url{
+    width: 50% !important;
+}
 #field-enter-a-youtube-profile-vi-add-more-wrapper fieldset .video_embed_url{
     width: 50% !important;
 }
