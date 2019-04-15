@@ -184,10 +184,10 @@
         $('.row_day_saturday td:nth-child(1)').addClass('col_day_sat').text('Sat');
         $('.row_day_sunday td:nth-child(1)').addClass('col_day_sun').text('Sun');
       }
-      // if (($(window).width() < 740) && ($(window).width() > 0)) {
-      //   var promo_height = $('.promo-container').innerHeight();
-      //   $('#mobile-spacer').css('min-height', promo_height+90+'px');
-      // }
+      if (($(window).width() < 740) && ($(window).width() > 0)) {
+        var promo_height = $('.promo-container').innerHeight();
+        $('#mobile-spacer').css('min-height', promo_height+90+'px');
+      }
   });
   $(window).resize(function(){
       if ($(window).width() < 740) {
