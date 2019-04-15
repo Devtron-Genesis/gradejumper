@@ -3,7 +3,7 @@ html, body{
 }
 
 #header{
-    position:fixed !important;
+    /*position:fixed !important;*/
     width: 100% !important;
 }
 
@@ -597,9 +597,10 @@ ul .action-links{ margin-top: 70px !important; }
 
 
 #block-system-main{
-    position: absolute;
+    position: relative;
     top: 66px;
     /*width: 100%;*/
+    z-index: -1;
 }
 
 
