@@ -570,6 +570,9 @@ ul .action-links{ margin-top: 70px !important; }
     .tutor-ad-rating-text{
         font-size: 14px;
     }
+    .page-403-access-denied #block-system-main .gj40s_wrap img {
+        width: 80%;
+    }
 }
 
 .tutor-ad-rating-text{
@@ -605,13 +608,10 @@ ul .action-links{ margin-top: 70px !important; }
 .page-403-access-denied #block-system-main{
     position: relative;
     top: 66px;
-    /*width: 100%;*/
     z-index: -1;
+    padding-left: 15px;
+    padding-right: 15px;
 }
-.page-403-access-denied #block-system-main .gj40s_wrap img{
-    width: 80%;
-}
-
 button{
     outline:none !important;
 }
