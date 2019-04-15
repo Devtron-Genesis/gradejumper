@@ -113,7 +113,22 @@ h6 {
     }
   }
 }
-
+.page-node-931 {
+  @media (max-width: $screen-xs-max) {
+    [class*="col-sm"] {
+      padding-left: 0px !important;
+      padding-right: 0px !important;
+    }
+  }
+}
+.page-node-936 {
+  @media (max-width: $screen-xs-max) {
+    [class*="col-sm"] {
+      padding-left: 0px !important;
+      padding-right: 0px !important;
+    }
+  }
+}
 // css hotfixes for pages (not include glazed builder components)
 .section-wrapper {
   padding-top: 30px;
