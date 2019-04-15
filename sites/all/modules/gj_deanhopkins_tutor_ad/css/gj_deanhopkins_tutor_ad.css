@@ -131,7 +131,11 @@ html, body{
         /*min-height: 390px !important;*/
     }
 }
-
+@media screen and (max-width:480px) {
+    .page-node-add-tutor-ad #tutor-ad-node-form .tutor-ad-edit-header{
+        font-size: 35px !important;
+    }
+}
 .tutor-ad-header-left {
     padding-right: 0px !important;
     padding-left: 0px !important;
