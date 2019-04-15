@@ -91,7 +91,12 @@ html, body{
     .tutor-ad-container .block-title{
         font-size: 30px !important;
     }
-
+    .page-node-add-tutor-ad .block-gj-deanhopkins-tutor-ad h2 {
+        font-size: 30px !important;
+    }
+    .page-node-add-tutor-ad .tutor-ad-tos-container .tutor-ad-tos-header p {
+        font-size: 30px;
+    }
 }
 @media screen and (min-width:740px) {
     #mobile-spacer{
