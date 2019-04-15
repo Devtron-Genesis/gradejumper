@@ -141,6 +141,21 @@ html, body{
         font-size: 35px !important;
     }
 }
+ @media(min-width:401px) and (max-width: 440px) {
+    .page-node-add-tutor-ad .form-textarea-wrapper textarea {
+        height: 160px;
+    }
+} 
+@media(min-width:331px) and (max-width: 400px) {
+    .page-node-add-tutor-ad .form-textarea-wrapper textarea {
+        height: 180px;
+    }
+}
+@media(min-width:300px) and (max-width: 330px) {
+    .page-node-add-tutor-ad .form-textarea-wrapper textarea {
+        height: 200px;
+    }
+}
 .tutor-ad-header-left {
     padding-right: 0px !important;
     padding-left: 0px !important;
