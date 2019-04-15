@@ -216,6 +216,9 @@
       if ($(window).width() < 480) {
         $('body.node-type-tutor-ad div#tutor-ad-container .embedded-video iframe').css('height', '170');
       }
+      if ($(window).width() < 400) {
+        $('body.node-type-tutor-ad div#tutor-ad-container .embedded-video iframe').css('height', '140');
+      }
       var win_height = $(window).height();
       $('aside').css('height', win_height+'px');
       if(window.innerHeight > window.innerWidth){
