@@ -938,11 +938,11 @@ div.tooltip {
   display: none;
 }
 
-.page-messages {
-  section#block-system-main {
+.page-messages section#block-system-main {
+  width: 83%;
+  @media (max-width: 767px) {
     width: 100%;
-    top: 0px !important;  
-  }
+  }  
 }
 
 @media (max-width: 767px) {
