@@ -139,7 +139,6 @@ html, body{
 @media screen and (max-width:480px) {
     .page-node-add-tutor-ad #tutor-ad-node-form .tutor-ad-edit-header{
         font-size: 35px !important;
-        font-weight: bolder;
     }
 }
 .tutor-ad-header-left {
@@ -1487,4 +1486,7 @@ button{
 
 .file-size {
     margin-right: 5px;
+}
+.page-node-add-tutor-ad #tutor-ad-node-form .tutor-ad-edit-header{
+    font-weight: bolder;
 }
