@@ -1419,6 +1419,9 @@ img {max-width: 100%;}
     .tutor-ad-edit-ref-name{
         padding-bottom: 15px;
     }
+    #field-enter-a-youtube-profile-vi-add-more-wrapper fieldset .video_embed_url{
+        width: 96% !important;
+    }
 }
 
 
