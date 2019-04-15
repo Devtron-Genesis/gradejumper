@@ -143,8 +143,18 @@
   $(document).ready(function() {
       var win_height = $(window).height();
       $('aside').css('height', win_height+'px');
+      if ($(window).width() > 769) {
+        $('body.node-type-tutor-ad div#tutor-ad-container .embedded-video iframe').css('height', '360');
+      }
       if ($(window).width() < 768) {
-         $('.page-messages #header .navbar-header .nav-link').prepend('<button class="navbar-toggle msj"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>');
+        $('.page-messages #header .navbar-header .nav-link').prepend('<button class="navbar-toggle msj"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>');
+        $('body.node-type-tutor-ad div#tutor-ad-container .embedded-video iframe').css('height', '280');
+      }
+      if ($(window).width() < 590) {
+        $('body.node-type-tutor-ad div#tutor-ad-container .embedded-video iframe').css('height', '210');
+      }
+      if ($(window).width() < 480) {
+        $('body.node-type-tutor-ad div#tutor-ad-container .embedded-video iframe').css('height', '170');
       }
       $('.page-messages #header .navbar-header .nav-link .navbar-toggle.msj').click(function() {
         $(this).parents('#header').siblings('.main-container.section-wrapper').find('aside').slideToggle();
@@ -193,6 +203,18 @@
       if ($(window).width() < 740) {
         var promo_height = $('.promo-container').innerHeight();
         $('#mobile-spacer').css('min-height', promo_height+90+'px');
+      }
+      if ($(window).width() > 769) {
+        $('body.node-type-tutor-ad div#tutor-ad-container .embedded-video iframe').css('height', '360');
+      }
+      if ($(window).width() < 768) {
+        $('body.node-type-tutor-ad div#tutor-ad-container .embedded-video iframe').css('height', '280');
+      }
+      if ($(window).width() < 590) {
+        $('body.node-type-tutor-ad div#tutor-ad-container .embedded-video iframe').css('height', '210');
+      }
+      if ($(window).width() < 480) {
+        $('body.node-type-tutor-ad div#tutor-ad-container .embedded-video iframe').css('height', '170');
       }
       var win_height = $(window).height();
       $('aside').css('height', win_height+'px');
