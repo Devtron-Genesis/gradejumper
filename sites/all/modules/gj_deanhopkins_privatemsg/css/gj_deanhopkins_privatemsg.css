@@ -608,6 +608,9 @@ ul .action-links{ margin-top: 70px !important; }
     /*width: 100%;*/
     z-index: -1;
 }
+.page-403-access-denied #block-system-main .gj40s_wrap img{
+    width: 80%;
+}
 
 button{
     outline:none !important;
