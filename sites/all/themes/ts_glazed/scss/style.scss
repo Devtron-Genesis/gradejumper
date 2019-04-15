@@ -164,5 +164,8 @@ $screen-md-img: 950px;
     .btn.btn-primary.form-submit:focus {
       outline: none;
     }
+    .btn.btn-primary.form-submit {
+      padding: 18px 26px;
+    }
   }
 }
