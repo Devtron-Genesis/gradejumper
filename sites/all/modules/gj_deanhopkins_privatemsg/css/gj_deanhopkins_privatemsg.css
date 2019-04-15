@@ -634,3 +634,8 @@ button{
         margin: 0 auto;       
     }
 }
+@media screen and (min-width:721px) {
+    .page-403-access-denied #block-system-main .gj40s_wrap {
+        padding-bottom: 80px;    
+    }
+}
